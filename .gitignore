@@ -1,0 +1,49 @@
+# Laravel / PHP
+/vendor
+/node_modules
+/public/hot
+/public/storage
+/public/build
+/storage/*.key
+/storage/app/*
+!/storage/app/.gitkeep
+/storage/framework/cache/*
+!/storage/framework/cache/.gitkeep
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/framework/testing/*
+!/storage/framework/testing/.gitkeep
+/storage/framework/views/*
+!/storage/framework/views/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+/bootstrap/cache/*
+!/bootstrap/cache/.gitkeep
+
+# Environment
+.env
+.env.*
+!.env.example
+.phpunit.result.cache
+
+# IDE / OS
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+*.swp
+
+# Build artifacts
+/dist
+/build
+npm-debug.log
+yarn-error.log
+
+# Module-local artifacts
+modules/*/vendor
+modules/*/node_modules
+
+# Secrets
+*.pem
+*.key
+secrets.*.json

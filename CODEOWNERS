@@ -1,0 +1,21 @@
+# Code Owners for Sky Fundi Platform
+#
+# These owners are requested for review automatically when a pull request
+# touches the given paths. Replace the placeholder handles with real
+# GitHub usernames/teams as the team grows.
+
+# Platform-wide default owner
+*                           @thato899
+
+# Core is the most sensitive part of the codebase — Auth, RBAC, Billing,
+# AI Gateway. Changes here require review from the core maintainers team.
+/core/                      @thato899
+
+# Module changes can be owned by module-specific leads once assigned.
+/modules/                   @thato899
+
+# Documentation and architecture decisions
+/docs/                      @thato899
+
+# CI/CD and repository governance
+/.github/                   @thato899
