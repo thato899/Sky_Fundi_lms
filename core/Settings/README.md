@@ -1,9 +1,12 @@
 # core/Settings
 
-**Purpose**: (to be filled in when Settings is implemented) — part of the Sky Fundi Platform Core, per [/core/README.md](../README.md).
+**Purpose**: database-driven global platform configuration — "no hardcoded configuration," per the original brief. Part of the Sky Fundi Platform Core, per [/core/README.md](../README.md).
 
-**Responsibilities**: TBD at implementation time, following the four-layer structure described in [Clean Architecture](../../docs/architecture/clean-architecture.md) (Domain, Application, Http/Console adapters, Infrastructure).
+**Responsibilities**:
+- `Infrastructure/Models/Setting` — a single `key` -> `value` (JSON) row, grouped (`general`, `system`, `storage`, `security`, `ai`, `branding`, ...), with optional at-rest encryption for secret-bearing values (API keys) via `Application/SettingsService`.
+- `Application/SettingsService::get()/set()/all()/setMany()` — the only read/write path; every Core service and future module reads its runtime configuration through this rather than `config()`/`env()` so it stays changeable without a redeploy. Cached, cache-invalidated on write, fires `Events\SettingsUpdated`.
+- `database/seeders/SettingsSeeder.php` (repository root) seeds System Name, Timezone, Maintenance Mode, Storage default disk, Security (login attempts, lockout, password expiry, 2FA enforcement flag), and AI default/fallback provider — matching the original settings brief.
 
-**Allowed dependencies**: other Core services only where explicitly documented here once implemented. Never a module.
+**Allowed dependencies**: `Core\AuditLogs`. Used by `Core\Branding` (branding is stored as a Settings group, see below). Never a module.
 
-**Future usage**: implementation begins per the [Roadmap](../../docs/roadmap.md).
+**Routes**: `GET/PUT /api/v1/settings` (permission `core.settings.manage`), optionally filtered by `?group=`.

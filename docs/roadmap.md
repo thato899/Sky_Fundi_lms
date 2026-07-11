@@ -4,12 +4,12 @@ This roadmap reflects intended sequencing, not committed dates. It will evolve a
 
 ## v1.0 — Foundation Goes Live
 
-- Platform Core: Authentication, RBAC, Users, Settings, Branding, Notifications, Audit Logs, Storage, File Management, Logging
-- AI Gateway (initial provider(s) wired, gateway contract enforced)
-- Public REST API (v1) covering Core capabilities
-- Schools module (baseline: institution profile, staff, learners, classes)
-- Tutoring module (baseline: individual tutor/tutoring centre profile, students, sessions)
-- Billing and Licensing (baseline: tenant subscription/module entitlement)
+- Platform Core: Authentication, RBAC, Users, Settings, Branding, Notifications, Audit Logs, Storage, File Management, Logging — **Core implemented** (Authentication, RBAC, Users, Settings, Branding, Notifications, Audit Logs, Storage, Logging, Module Manager, API foundation); File Management not yet started.
+- AI Gateway (initial provider(s) wired, gateway contract enforced) — **implemented**: Ollama and DeepSeek are live providers; OpenAI, Claude, and Gemini are registered, plug-and-play placeholders per [AI Gateway](ai/ai-gateway.md).
+- Public REST API (v1) covering Core capabilities — **implemented** for the Core surface above; no educational endpoints exist.
+- Schools module (baseline: institution profile, staff, learners, classes) — not started; no educational modules exist yet, by design (see [Module System](architecture/module-system.md)).
+- Tutoring module (baseline: individual tutor/tutoring centre profile, students, sessions) — not started.
+- Billing and Licensing (baseline: tenant subscription/module entitlement) — not started.
 
 ## v1.5 — Day-to-Day Academic Operations
 

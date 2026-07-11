@@ -1,9 +1,12 @@
 # core/Branding
 
-**Purpose**: (to be filled in when Branding is implemented) — part of the Sky Fundi Platform Core, per [/core/README.md](../README.md).
+**Purpose**: platform branding — logo, favicon, colours, platform/company name, support email, login background — dynamically loaded, defaulting to Sky Fundi. Part of the Sky Fundi Platform Core, per [/core/README.md](../README.md).
 
-**Responsibilities**: TBD at implementation time, following the four-layer structure described in [Clean Architecture](../../docs/architecture/clean-architecture.md) (Domain, Application, Http/Console adapters, Infrastructure).
+**Responsibilities**:
+- `Application/BrandingService` — reads/writes branding as a named group (`branding`) of `Core\Settings` rows rather than its own table, so it's fully database-driven for free. Falls back to `config/branding.php` (Sky Fundi defaults) for any field not yet overridden.
+- `resetToDefaults()` restores the seeded Sky Fundi defaults.
+- Fires `Events\BrandingChanged` on update, in addition to the audit log entry `SettingsService::set()` already writes.
 
-**Allowed dependencies**: other Core services only where explicitly documented here once implemented. Never a module.
+**Allowed dependencies**: `Core\Settings`, `Core\AuditLogs`. Never a module.
 
-**Future usage**: implementation begins per the [Roadmap](../../docs/roadmap.md).
+**Routes**: `GET /api/v1/branding` (public — a login screen needs branding before authenticating), `PUT /api/v1/branding` (permission `core.branding.manage`).
