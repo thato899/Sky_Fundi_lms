@@ -34,4 +34,12 @@ interface FileStorageInterface
     public function size(string $path): int;
 
     public function driverName(): string;
+
+    /**
+     * Whether this driver is currently configured and usable — added
+     * alongside the Storage Provider Registry (see
+     * Core\Storage\Application\StorageProviderRegistry) so it mirrors
+     * Core\AIGateway\Contracts\AIProviderInterface::isAvailable().
+     */
+    public function isAvailable(): bool;
 }

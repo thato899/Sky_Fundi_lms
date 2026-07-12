@@ -36,16 +36,28 @@ final class RoleSeeder extends Seeder
             'core.ai.manage',
             'core.logs.view',
             'core.modules.manage',
+            'core.licenses.manage',
+            'core.deployment.manage',
+            'core.health.view',
+            'core.security.manage',
+            'core.feature-flags.manage',
+            'core.analytics.view',
+            'core.backups.manage',
         ],
         'Support' => [
             'core.users.view',
             'core.logs.view',
+            'core.health.view',
         ],
         'Developer' => [
             'core.modules.manage',
             'core.ai.manage',
             'core.settings.manage',
             'core.logs.view',
+            'core.deployment.manage',
+            'core.health.view',
+            'core.feature-flags.manage',
+            'core.backups.manage',
         ],
     ];
 

@@ -58,4 +58,11 @@ final class LocalFileStorage implements FileStorageInterface
     {
         return "local:{$this->diskName}";
     }
+
+    public function isAvailable(): bool
+    {
+        // Local disks are always usable — no external credentials or
+        // network dependency, unlike S3/Azure/GCS.
+        return true;
+    }
 }

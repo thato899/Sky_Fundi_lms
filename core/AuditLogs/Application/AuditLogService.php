@@ -41,20 +41,46 @@ final class AuditLogService
     }
 
     /**
-     * Search audit logs by action, actor, target, and date range — see
-     * core/AuditLogs/README.md ("Audit logs should be searchable.").
-     * Returns a query builder so the controller can paginate/sort per
-     * docs/api/conventions.md without this service reimplementing that.
+     * Search audit logs by action, actor, target, category, and date
+     * range — see core/AuditLogs/README.md ("Audit logs should be
+     * searchable."). `category` matches the action's prefix before
+     * the first dot (e.g. "auth", "role", "license", "settings"),
+     * which is how the Audit Centre groups entries by area (
+     * Authentication, Permissions, Modules, Settings, AI, Branding,
+     * Licensing, ...) without a separate taxonomy table to keep in
+     * sync with every action string. Returns a query builder so the
+     * controller can paginate/sort per docs/api/conventions.md
+     * without this service reimplementing that.
      */
     public function search(array $filters): Builder
     {
         return AuditLog::query()
             ->when($filters['action'] ?? null, fn ($q, $action) => $q->where('action', 'like', "%{$action}%"))
+            ->when($filters['category'] ?? null, fn ($q, $category) => $q->where('action', 'like', "{$category}.%"))
             ->when($filters['actor_id'] ?? null, fn ($q, $actorId) => $q->where('actor_id', $actorId))
             ->when($filters['target_type'] ?? null, fn ($q, $type) => $q->where('target_type', $type))
             ->when($filters['target_id'] ?? null, fn ($q, $id) => $q->where('target_id', $id))
             ->when($filters['from'] ?? null, fn ($q, $from) => $q->where('created_at', '>=', $from))
             ->when($filters['to'] ?? null, fn ($q, $to) => $q->where('created_at', '<=', $to))
             ->latest('created_at');
+    }
+
+    /**
+     * The distinct set of categories actually present in the audit
+     * trail so far — used to populate an admin filter dropdown without
+     * hardcoding a category list that drifts from reality.
+     *
+     * @return string[]
+     */
+    public function categories(): array
+    {
+        return AuditLog::query()
+            ->distinct()
+            ->pluck('action')
+            ->map(fn (string $action) => explode('.', $action, 2)[0])
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
     }
 }

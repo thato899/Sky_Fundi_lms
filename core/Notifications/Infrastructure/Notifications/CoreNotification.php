@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Core\Notifications\Infrastructure\Notifications;
 
+use Core\Notifications\Infrastructure\Channels\PushChannel;
+use Core\Notifications\Infrastructure\Channels\SmsChannel;
+use Core\Notifications\Infrastructure\Channels\WhatsAppChannel;
 use Core\Notifications\Infrastructure\Models\NotificationTemplate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -22,15 +25,35 @@ final class CoreNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    /**
+     * Maps the short channel names NotificationService and
+     * NotificationPreference use ("sms", "whatsapp", "push") to the
+     * Laravel channel class that actually handles them. "database"
+     * and "mail" are Laravel's own built-in channel names and need no
+     * entry here.
+     */
+    private const CHANNEL_CLASSES = [
+        'sms' => SmsChannel::class,
+        'whatsapp' => WhatsAppChannel::class,
+        'push' => PushChannel::class,
+    ];
+
     public function __construct(
         private readonly string $type,
         private readonly array $data,
         private readonly array $channels,
-    ) {}
+    ) {
+        // Named queue per Core\Queue's queue taxonomy — see
+        // core/Queue/README.md and config/queue_names.php.
+        $this->onQueue(\Core\Queue\Domain\QueueName::Notifications->value);
+    }
 
     public function via(object $notifiable): array
     {
-        return $this->channels;
+        return array_map(
+            fn (string $channel) => self::CHANNEL_CLASSES[$channel] ?? $channel,
+            $this->channels,
+        );
     }
 
     public function toMail(object $notifiable): MailMessage

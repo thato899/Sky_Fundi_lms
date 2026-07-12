@@ -26,9 +26,14 @@ final class AuditLogController extends Controller
     public function index(Request $request): JsonResponse
     {
         $paginated = $this->auditLogs
-            ->search($request->only(['action', 'actor_id', 'target_type', 'target_id', 'from', 'to']))
+            ->search($request->only(['action', 'category', 'actor_id', 'target_type', 'target_id', 'from', 'to']))
             ->paginate((int) $request->integer('per_page', 25));
 
         return $this->ok(AuditLogResource::collection($paginated));
+    }
+
+    public function categories(): JsonResponse
+    {
+        return $this->ok(['data' => $this->auditLogs->categories()]);
     }
 }

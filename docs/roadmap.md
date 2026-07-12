@@ -9,7 +9,11 @@ This roadmap reflects intended sequencing, not committed dates. It will evolve a
 - Public REST API (v1) covering Core capabilities — **implemented** for the Core surface above; no educational endpoints exist.
 - Schools module (baseline: institution profile, staff, learners, classes) — not started; no educational modules exist yet, by design (see [Module System](architecture/module-system.md)).
 - Tutoring module (baseline: individual tutor/tutoring centre profile, students, sessions) — not started.
-- Billing and Licensing (baseline: tenant subscription/module entitlement) — not started.
+- Billing and Licensing (baseline: tenant subscription/module entitlement) — **implemented**: see [Licensing](../core/Licensing/README.md) and [Subscriptions](../core/Subscriptions/README.md).
+
+## Enterprise Infrastructure Layer — implemented
+
+Built between v1.0 Core and the first educational module, per the same "no educational features" discipline: Licensing, Subscriptions, Deployment profiles, expanded Storage (S3 live; Azure/GCS placeholders), Mail provider abstraction, expanded Notifications (SMS/WhatsApp/push placeholders), expanded Audit Centre (category search), Health monitoring, API Gateway additions (rate limiting, request logging/metrics, reusable query helpers), the platform's named-queue taxonomy, a Backup framework (restore is future work), Scheduler wiring, Feature Flags, Platform Analytics (infrastructure only, no dashboards), a Security Centre (trusted devices, IP restrictions, session management, suspicious-login detection), and an interactive Installer (`platform:install`). See each service's own README under `/core` for detail — [`core/README.md`](../core/README.md) is the index.
 
 ## v1.5 — Day-to-Day Academic Operations
 

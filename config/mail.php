@@ -16,6 +16,12 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
         ],
+        // Requires the "aws/aws-sdk-php" package — see
+        // Core\Mail\Infrastructure\Providers\SesMailProvider.
+        'ses' => ['transport' => 'ses'],
+        // Requires the "symfony/mailgun-mailer" package — see
+        // Core\Mail\Infrastructure\Providers\MailgunMailProvider.
+        'mailgun' => ['transport' => 'mailgun'],
         'log' => ['transport' => 'log', 'channel' => env('MAIL_LOG_CHANNEL')],
         'array' => ['transport' => 'array'],
     ],

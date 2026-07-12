@@ -8,6 +8,8 @@ use Core\AIGateway\Application\DTOs\AIRequest;
 use Core\AIGateway\Application\DTOs\AIResponse;
 use Core\AIGateway\Exceptions\AIGatewayException;
 use Core\AIGateway\Exceptions\ProviderNotAvailableException;
+use Core\Analytics\Application\AnalyticsRecorder;
+use Core\Analytics\Domain\Enums\AnalyticsMetric;
 use Core\Logging\Application\PlatformLogger;
 use Generator;
 
@@ -25,6 +27,7 @@ final class AIManager
     public function __construct(
         private readonly ProviderFactory $factory,
         private readonly PlatformLogger $logger,
+        private readonly AnalyticsRecorder $analytics,
     ) {}
 
     public function complete(AIRequest $request): AIResponse
@@ -40,6 +43,12 @@ final class AIManager
                 'capability' => $request->capability,
                 'module_id' => $request->moduleId,
                 'tenant_id' => $request->tenantId,
+            ]);
+
+            $this->analytics->record(AnalyticsMetric::AIUsage, value: 1.0, metadata: [
+                'provider' => $response->provider,
+                'model' => $response->model,
+                'capability' => $request->capability,
             ]);
 
             return $response;

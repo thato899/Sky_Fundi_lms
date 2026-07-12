@@ -45,6 +45,31 @@ return [
             'use_path_style_endpoint' => (bool) env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
         ],
+
+        // Placeholder — see
+        // Core\Storage\Infrastructure\Providers\AzureBlobFileStorage.
+        // Driver key kept distinct ("azure") so
+        // StorageProviderFactory can route to the right adapter once
+        // a real Flysystem Azure driver is registered.
+        'azure' => [
+            'driver' => 'azure',
+            'account_name' => env('AZURE_STORAGE_ACCOUNT'),
+            'account_key' => env('AZURE_STORAGE_KEY'),
+            'container' => env('AZURE_STORAGE_CONTAINER'),
+            'url' => env('AZURE_STORAGE_URL'),
+            'throw' => false,
+        ],
+
+        // Placeholder — see
+        // Core\Storage\Infrastructure\Providers\GoogleCloudFileStorage.
+        'gcs' => [
+            'driver' => 'gcs',
+            'project_id' => env('GOOGLE_CLOUD_PROJECT_ID'),
+            'key_file' => env('GOOGLE_CLOUD_KEY_FILE'),
+            'bucket' => env('GOOGLE_CLOUD_STORAGE_BUCKET'),
+            'url' => env('GOOGLE_CLOUD_STORAGE_URL'),
+            'throw' => false,
+        ],
     ],
 
     'links' => [

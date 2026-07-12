@@ -14,4 +14,8 @@ Route::middleware(['auth:sanctum'])->prefix('audit-logs')->name('audit-logs.')->
     Route::get('/', [AuditLogController::class, 'index'])
         ->middleware('permission:core.logs.view')
         ->name('index');
+
+    Route::get('/categories', [AuditLogController::class, 'categories'])
+        ->middleware('permission:core.logs.view')
+        ->name('categories');
 });

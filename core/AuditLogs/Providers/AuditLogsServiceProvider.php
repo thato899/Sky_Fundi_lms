@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Core\AuditLogs\Providers;
 
+use Core\AuditLogs\Listeners\AuditableEventSubscriber;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 
 final class AuditLogsServiceProvider extends ServiceProvider
@@ -16,5 +18,7 @@ final class AuditLogsServiceProvider extends ServiceProvider
         Route::middleware('api')
             ->prefix('api/v1')
             ->group(__DIR__.'/../routes/api.php');
+
+        Event::subscribe(AuditableEventSubscriber::class);
     }
 }

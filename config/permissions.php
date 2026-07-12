@@ -30,4 +30,11 @@ return [
     'core.ai.manage' => 'Configure AI Gateway providers and routing',
     'core.logs.view' => 'View application, security, and audit logs',
     'core.modules.manage' => 'Install, enable, disable, update, or remove modules',
+    'core.licenses.manage' => 'Issue, activate, suspend, cancel, and renew licenses',
+    'core.deployment.manage' => 'Create and update deployment profiles',
+    'core.health.view' => 'View platform health and system status checks',
+    'core.security.manage' => 'Manage trusted devices, IP restrictions, and session security',
+    'core.feature-flags.manage' => 'Create, update, and toggle feature flags',
+    'core.analytics.view' => 'View platform analytics data',
+    'core.backups.manage' => 'Trigger and view platform backups',
 ];
