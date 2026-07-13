@@ -60,6 +60,7 @@ Every top-level and module-level folder contains its own `README.md` describing 
 | Module system | [`docs/architecture/module-system.md`](docs/architecture/module-system.md) |
 | Multi-tenancy | [`docs/architecture/multi-tenancy.md`](docs/architecture/multi-tenancy.md) |
 | Module development guide | [`docs/modules/module-development-guide.md`](docs/modules/module-development-guide.md) |
+| Organization management | [`docs/modules/organizations.md`](docs/modules/organizations.md) |
 | API conventions | [`docs/api/conventions.md`](docs/api/conventions.md) |
 | Database standards | [`docs/database/conventions.md`](docs/database/conventions.md) |
 | Security | [`docs/security/README.md`](docs/security/README.md) |

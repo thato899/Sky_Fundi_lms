@@ -35,7 +35,8 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/",
-            "Modules\\Academics\\Tests\\": "modules/Academics/tests/"
+            "Modules\\Academics\\Tests\\": "modules/Academics/tests/",
+            "Modules\\Organizations\\Tests\\": "modules/Organizations/tests/"
         }
     },
     "scripts": {
