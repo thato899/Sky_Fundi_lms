@@ -39,4 +39,5 @@ return [
     // tracks per-tenant enablement as data, not code loading.
     Modules\Academics\Providers\AcademicsServiceProvider::class,
     Modules\Organizations\Providers\OrganizationsServiceProvider::class,
+    Modules\Staff\Providers\StaffServiceProvider::class,
 ];
