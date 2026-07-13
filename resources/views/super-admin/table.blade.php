@@ -1,0 +1,2 @@
+@extends('super-admin.layout')
+@section('content')<div class="eyebrow">Platform administration</div><h1>{{ $title }}</h1><table><thead><tr>@foreach($columns as $column)<th>{{ str($column)->replace('_',' ')->title() }}</th>@endforeach</tr></thead><tbody>@forelse($rows as $row)<tr>@foreach($columns as $column)<td>{{ data_get($row,$column) }}</td>@endforeach</tr>@empty<tr><td colspan="{{ count($columns) }}">No records found.</td></tr>@endforelse</tbody></table>@endsection
