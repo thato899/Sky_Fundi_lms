@@ -8,6 +8,8 @@ Home of every educational and operational feature module for the Sky Fundi Platf
 
 **Allowed dependencies**: `/core` (via documented Core service interfaces only), the AI Gateway (via `core/AIGateway`, never a provider SDK directly). Modules must not depend on each other's internal classes — see [Cross-Module Communication](../docs/architecture/module-system.md#cross-module-communication).
 
-**Future usage**: as each module in the [Roadmap](../docs/roadmap.md) is built, it gets its own folder here (e.g. `modules/Academics/`, `modules/Attendance/`) with its own `README.md` per the standard anatomy. Nothing is scaffolded here yet — this is the foundation stage.
+**Future usage**: as each remaining module in the [Roadmap](../docs/roadmap.md) is built, it gets its own folder here (e.g. `modules/Attendance/`) with its own `README.md` per the standard anatomy.
+
+**Built so far**: [`Academics`](Academics/README.md) — the reusable academic engine (academic years, terms, grades, classes, subjects, departments, curricula, calendar, timetable foundation). See its own README for a worked example of the anatomy described below.
 
 See also: [Module Development Guide](../docs/modules/module-development-guide.md).

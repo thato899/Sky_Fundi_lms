@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Core\Api\Exceptions;
 
 use Core\Auth\Exceptions\AccountNotActiveException;
+use Core\Support\Exceptions\DomainException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -39,6 +40,14 @@ final class ApiExceptionHandler
                 code: 'account_not_active',
                 message: $e->getMessage(),
                 status: 403,
+            );
+        });
+
+        $exceptions->render(function (DomainException $e, Request $request) {
+            return self::error(
+                code: 'domain_rule_violation',
+                message: $e->getMessage(),
+                status: $e->httpStatus(),
             );
         });
 

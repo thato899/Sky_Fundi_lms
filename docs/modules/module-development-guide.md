@@ -1,6 +1,6 @@
 # Module Development Guide
 
-This guide walks through building a new module from scratch, once Core exists. Until then, treat this as the target workflow to design toward.
+This guide walks through building a new module. Platform Core and the Enterprise Infrastructure Layer are implemented — see [`/core`](../../core/README.md) — so "Core exists" is no longer a future condition; this is the live workflow.
 
 ## 1. Propose the Module
 
@@ -14,7 +14,11 @@ Follow the anatomy defined in [`../architecture/module-system.md`](../architectu
 modules/<ModuleName>/
 ├── README.md
 ├── module.json
-├── src/{Domain,Application,Http,Console,Infrastructure}
+├── Domain/
+├── Application/
+├── Http/
+├── Console/
+├── Infrastructure/
 ├── database/{migrations,seeders}
 ├── routes/api.php
 ├── config/<module>.php
@@ -22,25 +26,27 @@ modules/<ModuleName>/
 └── tests/{Unit,Feature}
 ```
 
+See [`modules/Academics`](../../modules/Academics/README.md) for a real example of this shape.
+
 ## 3. Write the Manifest
 
 Fill in `module.json` per the schema in [`../architecture/module-system.md`](../architecture/module-system.md#module-manifest-modulejson). Be explicit and conservative about `coreDependencies` and `moduleDependencies`.
 
 ## 4. Domain First
 
-Start in `src/Domain`. Define entities and value objects that express the module's business rules without any Laravel dependency. Define repository interfaces here.
+Start in `Domain/`. Define entities and value objects that express the module's business rules without any Laravel dependency. Define repository interfaces here.
 
 ## 5. Application Layer
 
-Write services/use-cases in `src/Application` that orchestrate the domain. Emit domain events for anything another module might care about.
+Write services/use-cases in `Application/` that orchestrate the domain. Emit domain events for anything another module might care about.
 
 ## 6. Infrastructure and Interface
 
-Implement Eloquent models, migrations, and repository implementations in `src/Infrastructure`. Implement controllers, Form Requests, and API Resources in `src/Http`, following [API conventions](../api/conventions.md).
+Implement Eloquent models, migrations, and repository implementations in `Infrastructure/`. Implement controllers, Form Requests, and API Resources in `Http/`, following [API conventions](../api/conventions.md).
 
 ## 7. Permissions
 
-Register the module's permissions through Core RBAC (see [Security → RBAC](../security/rbac.md)). Permission keys are namespaced by module: `<module>.<resource>.<action>` (e.g. `academics.subjects.manage`).
+Register the module's permissions through Core RBAC (see [Security → RBAC](../security/rbac.md)) — concretely, call `Core\RBAC\Application\RoleService::registerPermission()` for each permission from a module seeder (see `modules/Academics/database/seeders/AcademicsPermissionSeeder.php` for the pattern). Permission keys are namespaced by module: `<module>.<resource>.<action>` (e.g. `academics.subjects.manage`).
 
 ## 8. Tests
 

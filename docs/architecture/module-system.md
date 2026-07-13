@@ -10,7 +10,7 @@ A module is a self-contained unit of functionality that can be **installed, enab
 
 Academics, Schools, Tutoring, Attendance, Homework, Assessments, AI, Library, Sports, Transport, Finance, Messaging, Newsletters, Reports, Hostel, Clinic, Visitors, Inventory.
 
-None of these exist yet in this repository — this document defines the contract they must follow when built.
+Academics is now implemented — see [`modules/Academics`](../../modules/Academics/README.md). The rest of this list remains future work; this document defines the contract they must follow when built.
 
 ## Module Anatomy
 
@@ -20,12 +20,11 @@ Each module lives under `/modules/<ModuleName>` and follows the same internal sh
 modules/Academics/
 ├── README.md                  # purpose, responsibilities, allowed dependencies
 ├── module.json                # module manifest (see below)
-├── src/
-│   ├── Domain/                # entities, value objects, repository interfaces
-│   ├── Application/            # services / use cases, DTOs, events
-│   ├── Http/                   # controllers, form requests, API resources
-│   ├── Console/                 # artisan commands owned by this module
-│   └── Infrastructure/          # Eloquent models, repository implementations
+├── Domain/                    # entities, value objects, repository interfaces
+├── Application/                # services / use cases, DTOs, events
+├── Http/                       # controllers, form requests, API resources
+├── Console/                     # artisan commands owned by this module
+├── Infrastructure/              # Eloquent models, repository implementations
 ├── database/
 │   ├── migrations/
 │   └── seeders/
@@ -41,9 +40,11 @@ modules/Academics/
     └── Feature/
 ```
 
+> **Note:** earlier drafts of this document nested the four code layers under an additional `src/` folder. The platform's `composer.json` PSR-4 mapping (`"Modules\\": "modules/"`, set up alongside the rest of this architecture) maps a module's namespace directly onto its folder with no `src/` layer, so the anatomy above was corrected to match — see [`modules/Academics`](../../modules/Academics/README.md) for the first module built against it.
+
 ## Module Manifest (`module.json`)
 
-Every module declares a manifest describing its identity and declared dependencies. This is documentation-first; the concrete loader/registry implementation will be built when Core is implemented, but the manifest contract is fixed now so modules built by different contributors stay compatible:
+Every module declares a manifest describing its identity and declared dependencies. The loader/registry that reads this manifest is implemented — see [`core/Modules`](../../core/Modules/README.md). The schema below is what `Core\Modules\Application\ModuleManager::discover()` expects to find at `<module>/module.json`:
 
 ```json
 {

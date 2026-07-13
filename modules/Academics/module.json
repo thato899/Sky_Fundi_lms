@@ -1,0 +1,32 @@
+{
+  "name": "academics",
+  "displayName": "Academics",
+  "version": "0.1.0",
+  "description": "The reusable academic engine: academic years, terms, grades, classes, subjects, departments, curricula, calendar, and timetable foundation. Organisation-agnostic — usable by schools, tutoring centres, training academies, and colleges alike.",
+  "tenantTypes": ["school", "tutoring-centre", "training-academy", "college", "university"],
+  "coreDependencies": ["auth", "rbac", "users", "settings", "audit-logs"],
+  "moduleDependencies": [],
+  "provides": {
+    "events": [
+      "academics.academic_year.created",
+      "academics.academic_year.closed",
+      "academics.academic_term.created",
+      "academics.grade.created",
+      "academics.class.created",
+      "academics.subject.created",
+      "academics.curriculum.assigned",
+      "academics.calendar.updated"
+    ],
+    "permissions": [
+      "academics.academic-years.view", "academics.academic-years.manage",
+      "academics.terms.view", "academics.terms.manage",
+      "academics.grades.view", "academics.grades.manage",
+      "academics.classes.view", "academics.classes.manage",
+      "academics.subjects.view", "academics.subjects.manage",
+      "academics.departments.view", "academics.departments.manage",
+      "academics.curriculum.view", "academics.curriculum.manage",
+      "academics.calendar.view", "academics.calendar.manage",
+      "academics.timetable.view", "academics.timetable.manage"
+    ]
+  }
+}

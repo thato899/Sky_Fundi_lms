@@ -31,4 +31,10 @@ return [
     Core\Backup\Providers\BackupServiceProvider::class,
     Core\Scheduler\Providers\SchedulerServiceProvider::class,
     Core\Installer\Providers\InstallerServiceProvider::class,
+
+    // Module providers — see docs/architecture/module-system.md. Each
+    // module bootstraps itself exactly like a Core service (routes +
+    // migrations); Core\Modules\Application\ModuleManager separately
+    // tracks per-tenant enablement as data, not code loading.
+    Modules\Academics\Providers\AcademicsServiceProvider::class,
 ];
