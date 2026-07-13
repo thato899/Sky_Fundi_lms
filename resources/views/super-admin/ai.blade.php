@@ -1,0 +1,2 @@
+@extends('super-admin.layout')
+@section('content')<div class="eyebrow">AI Gateway</div><h1>Provider management</h1><div class="grid">@foreach($providers as $name=>$provider)<div class="card"><strong>{{ strtoupper($name) }}</strong><p><span class="pill">{{ $provider->isAvailable() ? 'Available' : 'Unavailable' }}</span></p><p style="color:var(--muted)">Configuration and connection tests are managed through the protected AI Gateway API.</p></div>@endforeach</div>@endsection

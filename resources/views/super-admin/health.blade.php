@@ -1,0 +1,2 @@
+@extends('super-admin.layout')
+@section('content')<div class="eyebrow">Operational readiness</div><h1>System health <span class="pill">{{ $overall }}</span></h1><table><thead><tr><th>Check</th><th>Status</th><th>Message</th></tr></thead><tbody>@foreach($checks as $check)<tr><td>{{ $check->name }}</td><td>{{ $check->status->value }}</td><td>{{ $check->message }}</td></tr>@endforeach</tbody></table>@endsection
