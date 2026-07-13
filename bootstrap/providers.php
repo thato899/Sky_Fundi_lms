@@ -37,4 +37,5 @@ return [
     // migrations); Core\Modules\Application\ModuleManager separately
     // tracks per-tenant enablement as data, not code loading.
     Modules\Academics\Providers\AcademicsServiceProvider::class,
+    Modules\Organizations\Providers\OrganizationsServiceProvider::class,
 ];

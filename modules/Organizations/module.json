@@ -1,0 +1,13 @@
+{
+  "name": "organizations",
+  "displayName": "Organizations",
+  "version": "0.1.0",
+  "description": "Organisation tenancy, administration, configuration, entitlement, branding, and AI-provider management.",
+  "tenantTypes": ["school", "tutoring-centre", "college", "training-academy", "other"],
+  "coreDependencies": ["auth", "rbac", "users", "settings", "branding", "audit-logs", "modules", "ai-gateway", "licensing", "subscriptions", "security"],
+  "moduleDependencies": [],
+  "provides": {
+    "events": ["organizations.created", "organizations.updated", "organizations.deleted", "organizations.activated", "organizations.suspended", "organizations.administrator.assigned", "organizations.branding.changed", "organizations.settings.updated", "organizations.ai_provider.changed", "organizations.module.enabled", "organizations.module.disabled"],
+    "permissions": ["organizations.view", "organizations.manage", "organizations.branding.manage", "organizations.ai.manage", "organizations.modules.manage", "organizations.users.manage", "organizations.settings.manage", "organizations.security.manage"]
+  }
+}

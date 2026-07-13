@@ -42,6 +42,10 @@ Built between v1.0 Core and the first educational module, per the same "no educa
 - Additional tenant types beyond the initial set (see [Multi-Tenancy](architecture/multi-tenancy.md))
 - Additional AI providers as the Gateway's adapter set grows
 
+## Organization Management — implemented
+
+`modules/Organizations` is the organization tenancy foundation: lifecycle, organization-scoped settings, inherited branding, administrator membership, licensing metadata, encrypted AI configuration, and module assignment. New tenant-owned modules should reference and scope queries by `organization_id`.
+
 ## How This Roadmap Is Maintained
 
 Each item, once actively being built, should be tracked as GitHub issues/milestones referencing this roadmap section. This document stays the high-level index; issue tracking carries the detail.
