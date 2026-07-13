@@ -20,7 +20,7 @@ final class Role extends Model
 
     protected $table = 'roles';
 
-    protected $fillable = ['name', 'description', 'is_system'];
+    protected $fillable = ['organization_id', 'name', 'description', 'is_system'];
 
     protected function casts(): array
     {

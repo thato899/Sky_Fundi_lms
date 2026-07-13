@@ -13,6 +13,7 @@ return [
     Core\Users\Providers\UsersServiceProvider::class,
     Core\Auth\Providers\CoreAuthServiceProvider::class,
     Core\RBAC\Providers\RBACServiceProvider::class,
+    Core\Identity\Providers\IdentityServiceProvider::class,
     Core\AuditLogs\Providers\AuditLogsServiceProvider::class,
     Core\Settings\Providers\SettingsServiceProvider::class,
     Core\Branding\Providers\BrandingServiceProvider::class,

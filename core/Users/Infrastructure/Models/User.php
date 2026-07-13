@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -100,6 +101,12 @@ final class User extends Model implements AuthenticatableContract, CanResetPassw
     {
         return $this->belongsToMany(Permission::class, 'model_has_permissions', 'model_id', 'permission_id')
             ->where('model_has_permissions.model_type', self::class);
+    }
+
+    /** Tenant access belongs to memberships, never to the identity itself. */
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(\Core\Identity\Infrastructure\Models\Membership::class);
     }
 
     public function isLocked(): bool
