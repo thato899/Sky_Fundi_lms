@@ -5,3 +5,4 @@ Sky Fundi is REST API-first: every capability is designed as an API endpoint bef
 - [`conventions.md`](conventions.md) — URL structure, versioning, request/response shape, pagination, filtering
 - [`authentication.md`](authentication.md) — how clients authenticate against the API
 - [`error-handling.md`](error-handling.md) — standard error response format and codes
+- [`learners.md`](learners.md) — organization-scoped learner administration endpoints
