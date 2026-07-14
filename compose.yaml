@@ -4,6 +4,8 @@ services:
     working_dir: /var/www/html
     volumes: [".:/var/www/html", "storage:/var/www/html/storage"]
     ports: ["8000:8000"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    restart: unless-stopped
     depends_on: {mysql: {condition: service_healthy}}
   mysql:
     image: mysql:8.0
@@ -14,4 +16,21 @@ services:
   mailpit:
     image: axllent/mailpit
     ports: ["8025:8025", "1025:1025"]
+  queue:
+    build: .
+    working_dir: /var/www/html
+    volumes: [".:/var/www/html", "storage:/var/www/html/storage"]
+    command: ["php","artisan","queue:work","--sleep=3","--tries=3"]
+    depends_on: {mysql: {condition: service_healthy}}
+    restart: unless-stopped
+  scheduler:
+    build: .
+    working_dir: /var/www/html
+    volumes: [".:/var/www/html", "storage:/var/www/html/storage"]
+    command: ["php","artisan","schedule:work"]
+    depends_on: {mysql: {condition: service_healthy}}
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    profiles: ["redis"]
 volumes: {mysql: {}, storage: {}}
