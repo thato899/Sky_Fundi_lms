@@ -10,6 +10,7 @@ use Core\Users\Infrastructure\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Academics\Infrastructure\Models\AcademicYear;
 use Modules\Academics\Infrastructure\Models\ClassGroup;
@@ -100,5 +101,10 @@ final class LearnerProfile extends Model
     public function curriculum(): BelongsTo
     {
         return $this->belongsTo(Curriculum::class);
+    }
+
+    public function statusHistory(): HasMany
+    {
+        return $this->hasMany(LearnerStatusHistory::class);
     }
 }
