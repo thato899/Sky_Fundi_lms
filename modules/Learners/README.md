@@ -1,6 +1,6 @@
 # Learners
 
-The Learners module provides the organization-scoped learner profile foundation, atomic learner-number generation, and validated learner-status history.
+The Learners module provides a secure organization-scoped administration API, learner profile foundation, atomic learner-number generation, and validated learner-status history.
 
 Each profile belongs to an organization. A learner may exist as a profile only; links to a platform `User` and organization `Membership` are nullable. Optional current-placement relationships connect a profile to an academic year, grade, class, and curriculum.
 
@@ -20,4 +20,20 @@ Supported ordinary transitions are:
 
 No-op transitions and other transitions are rejected. Terminal statuses can still be archived and subsequently restored to that terminal status.
 
-APIs, controllers, policies, invitations, portal workflows, guardians, imports, documents, attendance, assessments, marks, historical enrolments, RAG/AI features, and UI are explicitly not implemented.
+## Administration API
+
+The versioned endpoints under `/api/v1/learners` support directory search, filters, whitelisted sorting, pagination, profile-only creation, profile and current-placement updates, status transitions, archive/restore, and newest-first immutable status history. See [`docs/api/learners.md`](../../docs/api/learners.md) for the endpoint and query contract.
+
+Every request requires authentication, an active organization membership, an active organization, the Learners module enabled for that organization, and the action-specific `learners.*` permission. The active organization comes only from trusted organization context. A dedicated middleware resolves the public learner UUID within that organization before controller execution, so cross-organization identifiers return `404`.
+
+`LearnerService` coordinates writes and audits through the existing numbering, status, and audit services. Creation never creates a User or Membership and always disables portal access. Manual numbers require `learners.override_number`. `LearnerDirectoryService` eager-loads current placement and allows only documented search, filter, sort, and page-size inputs; archived learners are excluded unless `archived=true` is explicit.
+
+Run the idempotent permission seeder after installing the module:
+
+```bash
+docker compose exec app php artisan db:seed --class="Modules\\Learners\\Database\\Seeders\\LearnersPermissionSeeder"
+```
+
+This grants all learner permissions to Super Admin and Organization Administrator, and all except number override to Academic Administrator. Teacher, Tutor, and Learner receive no learner-administration permissions by default. Authorization checks permissions rather than role names.
+
+Learner login accounts, invitations, portal workflows, guardians, imports, documents, consent, attendance, homework, assessments, marks, reports, historical enrolments, RAG/AI features, Blade UI, mobile functionality, and the neighboring milestones are explicitly not implemented.
