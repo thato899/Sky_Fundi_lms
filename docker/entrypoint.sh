@@ -1,8 +1,7 @@
 #!/bin/sh
 set -eu
-[ -f .env ] || cp .env.example .env
-mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
-chmod -R ug+rw storage bootstrap/cache
-[ -f vendor/autoload.php ] || composer install --no-interaction --prefer-dist
-[ -n "$(grep '^APP_KEY=' .env | cut -d= -f2-)" ] || php artisan key:generate --force
+
+# Runtime services deliberately do not initialise the shared source tree.
+# The Compose init service owns that work and records completion before app,
+# queue, and scheduler are started.
 exec "$@"

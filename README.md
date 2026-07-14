@@ -1,89 +1,47 @@
 # Sky Fundi Platform
 
-**Sky Fundi** is a modular, multi-tenant education platform built to serve individual tutors, tutoring centres, primary schools, secondary schools, colleges, training centres, and future education institutions from a single, extensible codebase.
+Sky Fundi is a modular, multi-tenant education-platform foundation for tutors, schools, colleges, and training providers. It is a Laravel 11 application, not an empty scaffold.
 
-This repository is the **foundation** of the platform. It contains no application/business logic yet — it establishes the architecture, conventions, and documentation that all future development (by any contributor, at any point in the platform's lifetime) must follow.
+## Current scope
 
-> Status: 🏗️ Foundation stage — Core and modules are not yet implemented. See [`docs/roadmap.md`](docs/roadmap.md).
+The repository currently includes the Platform Core; authentication; RBAC and permissions; Organizations; organization identity and membership; Academics; the Staff foundation; an AI Gateway; audit logging; settings and branding; licensing and subscription foundations; and storage, mail, queue, backup, and health foundations. Docker development configuration is included.
 
----
+This is **not** yet the complete sellable education MVP. Learners, guardians, attendance, assessments, content delivery, billing workflows, portals, and mobile applications are not part of the implemented scope.
 
-## What is Sky Fundi?
+## Docker quick start
 
-Sky Fundi replaces a legacy, tightly-coupled system with a clean, modular architecture where **no educational feature lives in the platform core**. Everything domain-specific — academics, attendance, homework, assessments, library, transport, finance, and so on — is built as an independently installable, enableable, and removable **module**.
+Prerequisites: Docker Desktop/Engine and Git. From the repository root:
 
-The platform is designed to be:
-
-- **Modular** — features are self-contained modules with explicit, controlled dependencies
-- **Multi-tenant ready** — architecture supports schools, tutoring centres, colleges, and training academies as distinct tenant types, even where deployments are single-database-per-school
-- **API-first** — every capability is exposed via a versioned REST API before any UI consumes it
-- **Mobile ready** — the API is designed for web, Flutter, and native Android/iOS consumption from day one
-- **AI-ready** — all AI capability flows through a single **AI Gateway** abstraction; no module talks to an AI provider directly
-- **Secure by default** — RBAC, audit logging, and defensive defaults are part of the Core, not bolted on later
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Language / Runtime | PHP 8.3+ |
-| Framework | Laravel (latest stable) |
-| Database | MySQL |
-| Cache / Queue backing | Redis (optional) |
-| Background jobs | Laravel Queue |
-| API | REST, versioned |
-| Initial frontend | Blade |
-| Future frontends | React, Flutter, Android |
-
-## Repository Structure
-
-```
-Sky_Fundi_lms/
-├── core/           # Platform core — Auth, RBAC, Users, Settings, AI Gateway, etc. Nothing academic.
-├── modules/        # Self-contained, pluggable feature modules (Academics, Attendance, Library, ...)
-├── docs/           # All architecture, API, security, and developer documentation
-├── config/         # Application/platform configuration
-├── resources/      # Shared views, lang files, front-end assets
-├── public/         # Web server entry point and public assets
-├── storage/        # Runtime storage (logs, cache, uploaded files)
-├── tests/          # Automated test suites
-├── .github/        # Issue templates, PR template, CI workflows
+```bash
+docker compose up --build init
+docker compose up -d
+docker compose exec app php artisan migrate --seed
 ```
 
-Every top-level and module-level folder contains its own `README.md` describing its purpose, responsibilities, and allowed dependencies. Start with [`docs/architecture/overview.md`](docs/architecture/overview.md) for the full picture.
+The first command starts MySQL, creates `.env` only when it is absent, installs the locked Composer dependencies, generates a missing application key, and exits successfully. The application then opens at `http://localhost:8000`, with Mailpit at `http://localhost:8025`.
 
-## Documentation Index
+For the full workflow, verification commands, optional Ollama setup, and troubleshooting, see [the local runbook](docs/development/LOCAL_RUNBOOK.md).
 
-| Topic | Location |
-|---|---|
-| Architecture overview | [`docs/architecture/overview.md`](docs/architecture/overview.md) |
-| Clean Architecture layers | [`docs/architecture/clean-architecture.md`](docs/architecture/clean-architecture.md) |
-| Module system | [`docs/architecture/module-system.md`](docs/architecture/module-system.md) |
-| Multi-tenancy | [`docs/architecture/multi-tenancy.md`](docs/architecture/multi-tenancy.md) |
-| Module development guide | [`docs/modules/module-development-guide.md`](docs/modules/module-development-guide.md) |
-| Organization management | [`docs/modules/organizations.md`](docs/modules/organizations.md) |
-| Identity and organization access | [`core/Identity/README.md`](core/Identity/README.md) |
-| API conventions | [`docs/api/conventions.md`](docs/api/conventions.md) |
-| Database standards | [`docs/database/conventions.md`](docs/database/conventions.md) |
-| Security | [`docs/security/README.md`](docs/security/README.md) |
-| AI Gateway | [`docs/ai/ai-gateway.md`](docs/ai/ai-gateway.md) |
-| Deployment | [`docs/deployment/README.md`](docs/deployment/README.md) |
-| Developer onboarding | [`docs/development/onboarding.md`](docs/development/onboarding.md) |
-| Coding standards | [`docs/development/coding-standards.md`](docs/development/coding-standards.md) |
-| Git workflow | [`docs/development/git-workflow.md`](docs/development/git-workflow.md) |
-| Testing strategy | [`docs/development/testing-strategy.md`](docs/development/testing-strategy.md) |
-| Naming conventions | [`docs/naming-conventions.md`](docs/naming-conventions.md) |
-| Environment variables | [`docs/environment-variables.md`](docs/environment-variables.md) |
-| Versioning | [`docs/versioning.md`](docs/versioning.md) |
-| Roadmap | [`docs/roadmap.md`](docs/roadmap.md) |
+## Repository structure
 
-## Getting Started
+```
+app/        Laravel application code
+core/       Platform-wide services and cross-cutting concerns
+modules/    Self-contained domain modules
+database/   Migrations, factories, and seeders
+docker/     Development-container bootstrap scripts
+docs/       Architecture and developer documentation
+tests/      Automated test suites
+```
 
-This repository does not yet contain a runnable application — it is the scaffolding and rulebook the application will be built against. Once Core implementation begins, this section will be replaced with real installation steps. In the meantime see [`docs/development/onboarding.md`](docs/development/onboarding.md) for how to set up a working environment ahead of first code.
+## Documentation
+
+Start with [the architecture overview](docs/architecture/overview.md), then see [Organizations](docs/modules/organizations.md), [identity and membership](core/Identity/README.md), and [the local runbook](docs/development/LOCAL_RUNBOOK.md).
 
 ## Contributing
 
-Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/development/git-workflow.md`](docs/development/git-workflow.md) before opening a pull request. All contributions must respect the module boundaries described in [`docs/architecture/module-system.md`](docs/architecture/module-system.md).
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and [the Git workflow](docs/development/git-workflow.md) before opening a pull request. Contributions must preserve the documented module boundaries.
 
 ## License
 
-See [`LICENSE`](LICENSE).
+See [LICENSE](LICENSE).
