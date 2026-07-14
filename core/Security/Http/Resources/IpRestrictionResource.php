@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Core\Security\Http\Resources;
 
+use Core\Security\Infrastructure\Models\IpRestriction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \Core\Security\Infrastructure\Models\IpRestriction
+ * @mixin IpRestriction
  */
 final class IpRestrictionResource extends JsonResource
 {

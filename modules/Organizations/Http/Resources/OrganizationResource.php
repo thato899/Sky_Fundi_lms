@@ -6,8 +6,9 @@ namespace Modules\Organizations\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Organizations\Infrastructure\Models\Organization;
 
-/** @mixin \Modules\Organizations\Infrastructure\Models\Organization */
+/** @mixin Organization */
 final class OrganizationResource extends JsonResource
 {
     public function toArray(Request $request): array

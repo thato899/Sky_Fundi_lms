@@ -1,6 +1,14 @@
 <?php
 
 declare(strict_types=1);
+use Core\Installer\Application\Steps\AdministratorStep;
+use Core\Installer\Application\Steps\AIProviderStep;
+use Core\Installer\Application\Steps\ApplicationStep;
+use Core\Installer\Application\Steps\BrandingStep;
+use Core\Installer\Application\Steps\LicenseStep;
+use Core\Installer\Application\Steps\LocalizationStep;
+use Core\Installer\Application\Steps\MailStep;
+use Core\Installer\Application\Steps\StorageStep;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,13 +23,13 @@ declare(strict_types=1);
 
 return [
     'steps' => [
-        \Core\Installer\Application\Steps\ApplicationStep::class,
-        \Core\Installer\Application\Steps\LocalizationStep::class,
-        \Core\Installer\Application\Steps\MailStep::class,
-        \Core\Installer\Application\Steps\StorageStep::class,
-        \Core\Installer\Application\Steps\AIProviderStep::class,
-        \Core\Installer\Application\Steps\BrandingStep::class,
-        \Core\Installer\Application\Steps\AdministratorStep::class,
-        \Core\Installer\Application\Steps\LicenseStep::class,
+        ApplicationStep::class,
+        LocalizationStep::class,
+        MailStep::class,
+        StorageStep::class,
+        AIProviderStep::class,
+        BrandingStep::class,
+        AdministratorStep::class,
+        LicenseStep::class,
     ],
 ];

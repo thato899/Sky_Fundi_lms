@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Core\AIGateway\Http\Controllers\Api\V1;
 
-use Core\Api\Http\Controllers\Controller;
-use Core\Api\Http\Responses\ApiResponse;
 use Core\AIGateway\Application\AIManager;
 use Core\AIGateway\Application\DTOs\AIRequest;
 use Core\AIGateway\Application\ProviderRegistry;
 use Core\AIGateway\Http\Requests\TestProviderRequest;
+use Core\Api\Http\Controllers\Controller;
+use Core\Api\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 
 final class AIProviderController extends Controller

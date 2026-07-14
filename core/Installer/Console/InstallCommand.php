@@ -43,7 +43,7 @@ final class InstallCommand extends Command
             $this->line("→ {$step->label()}");
             $input = $this->collectInputFor($step->key());
             $installer->runStep($step->key(), $input);
-            $this->info("  done.");
+            $this->info('  done.');
         }
 
         $this->info('Installation complete.');

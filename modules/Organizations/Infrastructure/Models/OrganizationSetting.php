@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 final class OrganizationSetting extends Model
 {
     use HasUuidPrimaryKey;
+
     protected $fillable = ['organization_id', 'group', 'key', 'value'];
-    protected function casts(): array { return ['value' => 'array']; }
+
+    protected function casts(): array
+    {
+        return ['value' => 'array'];
+    }
 }

@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 final class OrganizationAiConfiguration extends Model
 {
     use HasUuidPrimaryKey;
+
     protected $fillable = ['organization_id', 'provider', 'credentials', 'configuration'];
-    protected function casts(): array { return ['credentials' => 'encrypted:array', 'configuration' => 'array']; }
+
+    protected function casts(): array
+    {
+        return ['credentials' => 'encrypted:array', 'configuration' => 'array'];
+    }
 }

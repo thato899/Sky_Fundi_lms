@@ -1,1 +1,59 @@
-<?php declare(strict_types=1); use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('staff_profiles',function(Blueprint $t):void{$t->uuid('id')->primary();$t->uuid('organization_id')->index();$t->uuid('organization_membership_id')->unique();$t->uuid('user_id')->index();$t->string('employee_number');$t->string('staff_type');$t->string('job_title')->nullable();$t->string('employment_type')->default('permanent');$t->string('employment_status')->default('invited');$t->uuid('department_id')->nullable();$t->uuid('reports_to_staff_id')->nullable();$t->date('hire_date')->nullable();$t->date('contract_end_date')->nullable();$t->text('qualification_summary')->nullable();$t->json('specializations')->nullable();$t->json('languages')->nullable();$t->decimal('weekly_working_hours',5,2)->nullable();$t->string('availability_status')->default('available');$t->string('work_email')->nullable();$t->string('work_phone')->nullable();$t->string('onboarding_status')->default('pending');$t->timestamp('archived_at')->nullable();$t->softDeletes();$t->timestamps();$t->unique(['organization_id','employee_number']);}); Schema::create('staff_availabilities',function(Blueprint $t):void{$t->uuid('id')->primary();$t->uuid('staff_profile_id')->index();$t->string('day_of_week');$t->time('start_time');$t->time('end_time');$t->string('type')->default('available');$t->date('effective_from')->nullable();$t->date('effective_until')->nullable();$t->text('notes')->nullable();$t->boolean('active')->default(true);$t->timestamps();}); } public function down():void{Schema::dropIfExists('staff_availabilities');Schema::dropIfExists('staff_profiles');} };
+<?php
+
+declare(strict_types=1);
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('staff_profiles', function (Blueprint $t): void {
+            $t->uuid('id')->primary();
+            $t->uuid('organization_id')->index();
+            $t->uuid('organization_membership_id')->unique();
+            $t->uuid('user_id')->index();
+            $t->string('employee_number');
+            $t->string('staff_type');
+            $t->string('job_title')->nullable();
+            $t->string('employment_type')->default('permanent');
+            $t->string('employment_status')->default('invited');
+            $t->uuid('department_id')->nullable();
+            $t->uuid('reports_to_staff_id')->nullable();
+            $t->date('hire_date')->nullable();
+            $t->date('contract_end_date')->nullable();
+            $t->text('qualification_summary')->nullable();
+            $t->json('specializations')->nullable();
+            $t->json('languages')->nullable();
+            $t->decimal('weekly_working_hours', 5, 2)->nullable();
+            $t->string('availability_status')->default('available');
+            $t->string('work_email')->nullable();
+            $t->string('work_phone')->nullable();
+            $t->string('onboarding_status')->default('pending');
+            $t->timestamp('archived_at')->nullable();
+            $t->softDeletes();
+            $t->timestamps();
+            $t->unique(['organization_id', 'employee_number']);
+        });
+        Schema::create('staff_availabilities', function (Blueprint $t): void {
+            $t->uuid('id')->primary();
+            $t->uuid('staff_profile_id')->index();
+            $t->string('day_of_week');
+            $t->time('start_time');
+            $t->time('end_time');
+            $t->string('type')->default('available');
+            $t->date('effective_from')->nullable();
+            $t->date('effective_until')->nullable();
+            $t->text('notes')->nullable();
+            $t->boolean('active')->default(true);
+            $t->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('staff_availabilities');
+        Schema::dropIfExists('staff_profiles');
+    }
+};

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Core\Auth\Application;
 
+use Core\AuditLogs\Application\AuditLogService;
 use Core\Auth\Application\DTOs\LoginResult;
 use Core\Auth\Events\LoginFailed;
 use Core\Auth\Events\UserLoggedIn;
 use Core\Auth\Events\UserLoggedOut;
 use Core\Auth\Exceptions\AccountNotActiveException;
-use Core\AuditLogs\Application\AuditLogService;
 use Core\Users\Application\UserService;
 use Core\Users\Domain\Enums\UserStatus;
 use Core\Users\Infrastructure\Models\User;
@@ -31,8 +31,8 @@ final class AuthService
     ) {}
 
     /**
-     * @throws ValidationException            invalid credentials
-     * @throws AccountNotActiveException       valid credentials, inactive account
+     * @throws ValidationException invalid credentials
+     * @throws AccountNotActiveException valid credentials, inactive account
      */
     public function login(string $email, string $password, string $ipAddress, string $deviceName = 'api'): LoginResult
     {

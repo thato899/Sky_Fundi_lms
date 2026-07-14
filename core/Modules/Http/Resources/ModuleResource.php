@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Core\Modules\Http\Resources;
 
+use Core\Modules\Infrastructure\Models\ModuleRegistration;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \Core\Modules\Infrastructure\Models\ModuleRegistration
+ * @mixin ModuleRegistration
  */
 final class ModuleResource extends JsonResource
 {

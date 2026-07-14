@@ -22,6 +22,8 @@ final class OrganizationsPermissionSeeder extends Seeder
 
     public function run(RoleService $roles): void
     {
-        foreach (self::PERMISSIONS as $name => $description) $roles->registerPermission($name, module: 'organizations', description: $description);
+        foreach (self::PERMISSIONS as $name => $description) {
+            $roles->registerPermission($name, module: 'organizations', description: $description);
+        }
     }
 }

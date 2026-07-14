@@ -8,7 +8,6 @@ use Core\Backup\Contracts\BackupTargetInterface;
 use Core\Backup\Exceptions\BackupFailedException;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Str;
 
 /**
  * SQLite: a plain file copy (the whole database *is* one file).

@@ -1,6 +1,13 @@
 <?php
 
 declare(strict_types=1);
+use Core\Health\Infrastructure\Checks\AIProviderHealthCheck;
+use Core\Health\Infrastructure\Checks\ApiHealthCheck;
+use Core\Health\Infrastructure\Checks\CacheHealthCheck;
+use Core\Health\Infrastructure\Checks\DatabaseHealthCheck;
+use Core\Health\Infrastructure\Checks\MailHealthCheck;
+use Core\Health\Infrastructure\Checks\QueueHealthCheck;
+use Core\Health\Infrastructure\Checks\StorageHealthCheck;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,12 +22,12 @@ declare(strict_types=1);
 
 return [
     'checks' => [
-        \Core\Health\Infrastructure\Checks\ApiHealthCheck::class,
-        \Core\Health\Infrastructure\Checks\DatabaseHealthCheck::class,
-        \Core\Health\Infrastructure\Checks\CacheHealthCheck::class,
-        \Core\Health\Infrastructure\Checks\QueueHealthCheck::class,
-        \Core\Health\Infrastructure\Checks\StorageHealthCheck::class,
-        \Core\Health\Infrastructure\Checks\MailHealthCheck::class,
-        \Core\Health\Infrastructure\Checks\AIProviderHealthCheck::class,
+        ApiHealthCheck::class,
+        DatabaseHealthCheck::class,
+        CacheHealthCheck::class,
+        QueueHealthCheck::class,
+        StorageHealthCheck::class,
+        MailHealthCheck::class,
+        AIProviderHealthCheck::class,
     ],
 ];

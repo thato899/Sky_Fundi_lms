@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Core\Deployment\Http\Resources;
 
+use Core\Deployment\Infrastructure\Models\DeploymentProfile;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \Core\Deployment\Infrastructure\Models\DeploymentProfile
+ * @mixin DeploymentProfile
  */
 final class DeploymentProfileResource extends JsonResource
 {

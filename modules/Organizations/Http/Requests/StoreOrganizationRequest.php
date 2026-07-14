@@ -9,7 +9,11 @@ use Illuminate\Validation\Rule;
 
 final class StoreOrganizationRequest extends FormRequest
 {
-    public function authorize(): bool { return $this->user()?->can('organizations.manage') ?? false; }
+    public function authorize(): bool
+    {
+        return $this->user()?->can('organizations.manage') ?? false;
+    }
+
     public function rules(): array
     {
         return [

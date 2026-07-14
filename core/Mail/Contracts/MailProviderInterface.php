@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Core\Mail\Contracts;
 
 use Core\Support\Contracts\ProviderInterface;
+use Core\Support\Exceptions\ProviderNotAvailableException;
 
 /**
  * A mail provider maps to one of Laravel's own configured mailers
@@ -20,7 +21,7 @@ interface MailProviderInterface extends ProviderInterface
     /**
      * The config/mail.php "mailers" key this provider resolves to.
      *
-     * @throws \Core\Support\Exceptions\ProviderNotAvailableException for a placeholder provider
+     * @throws ProviderNotAvailableException for a placeholder provider
      */
     public function mailerName(): string;
 }

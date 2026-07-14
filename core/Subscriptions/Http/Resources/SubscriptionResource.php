@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Core\Subscriptions\Http\Resources;
 
+use Core\Subscriptions\Infrastructure\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \Core\Subscriptions\Infrastructure\Models\Subscription
+ * @mixin Subscription
  */
 final class SubscriptionResource extends JsonResource
 {

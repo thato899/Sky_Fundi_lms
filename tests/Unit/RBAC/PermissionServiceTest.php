@@ -41,7 +41,7 @@ final class PermissionServiceTest extends TestCase
         $this->assertTrue($service->check($user, 'core.logs.view'));
     }
 
-    public function test_the_permission_cache_is_invalidated_after_forgetCacheFor(): void
+    public function test_the_permission_cache_is_invalidated_after_forget_cache_for(): void
     {
         $permission = Permission::create(['name' => 'core.users.view', 'module' => 'core']);
         $role = Role::create(['name' => 'Viewer', 'is_system' => false]);

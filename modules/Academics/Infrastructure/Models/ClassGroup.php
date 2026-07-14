@@ -22,6 +22,8 @@ final class ClassGroup extends Model
 
     protected $table = 'academics_classes';
 
+    protected $attributes = ['status' => 'active'];
+
     protected $fillable = ['name', 'capacity', 'academic_year_id', 'grade_id', 'is_homeroom', 'status'];
 
     protected function casts(): array

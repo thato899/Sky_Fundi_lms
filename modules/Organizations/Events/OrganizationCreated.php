@@ -1,1 +1,13 @@
-<?php declare(strict_types=1); namespace Modules\Organizations\Events; final class OrganizationCreated extends OrganizationEvent { public function auditAction(): string { return 'organizations.created'; } }
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Organizations\Events;
+
+final class OrganizationCreated extends OrganizationEvent
+{
+    public function auditAction(): string
+    {
+        return 'organizations.created';
+    }
+}

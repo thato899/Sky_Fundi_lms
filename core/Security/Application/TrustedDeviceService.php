@@ -8,6 +8,7 @@ use Core\Security\Events\TrustedDeviceAdded;
 use Core\Security\Events\TrustedDeviceRevoked;
 use Core\Security\Infrastructure\Models\TrustedDevice;
 use Core\Users\Infrastructure\Models\User;
+use Illuminate\Support\Collection;
 
 /**
  * Device trust is opt-in per user (see core/Security/README.md) —
@@ -64,7 +65,7 @@ final class TrustedDeviceService
         $device->delete();
     }
 
-    public function listFor(User $user): \Illuminate\Support\Collection
+    public function listFor(User $user): Collection
     {
         return TrustedDevice::query()->where('user_id', $user->id)->latest('last_seen_at')->get();
     }

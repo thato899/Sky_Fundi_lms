@@ -6,6 +6,7 @@ namespace Core\Security\Application;
 
 use Core\Security\Domain\Enums\IpRestrictionType;
 use Core\Security\Infrastructure\Models\IpRestriction;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -69,7 +70,7 @@ final class IpRestrictionService
         $restriction->delete();
     }
 
-    private function restrictionsFor(string $scopeType, ?string $scopeId): \Illuminate\Support\Collection
+    private function restrictionsFor(string $scopeType, ?string $scopeId): Collection
     {
         return Cache::remember(
             "ip-restrictions:{$scopeType}:{$scopeId}",

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Core\Support\Contracts;
 
+use Illuminate\Database\Eloquent\Model;
+
 /**
  * Marker interface for domain events that should be automatically
  * recorded to the audit trail when dispatched, without the firing
@@ -30,7 +32,7 @@ interface Auditable
      * The Eloquent model this event's action was performed against,
      * or null if there isn't a single clear target.
      */
-    public function auditTarget(): ?\Illuminate\Database\Eloquent\Model;
+    public function auditTarget(): ?Model;
 
     /**
      * Structured before/after state for the audit record. Either key

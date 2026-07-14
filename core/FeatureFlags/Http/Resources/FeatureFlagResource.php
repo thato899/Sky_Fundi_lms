@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Core\FeatureFlags\Http\Resources;
 
+use Core\FeatureFlags\Infrastructure\Models\FeatureFlag;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \Core\FeatureFlags\Infrastructure\Models\FeatureFlag
+ * @mixin FeatureFlag
  */
 final class FeatureFlagResource extends JsonResource
 {

@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 final class OrganizationModule extends Model
 {
     use HasUuidPrimaryKey;
+
     protected $fillable = ['organization_id', 'module_name', 'enabled', 'enabled_by'];
-    protected function casts(): array { return ['enabled' => 'boolean']; }
+
+    protected function casts(): array
+    {
+        return ['enabled' => 'boolean'];
+    }
 }

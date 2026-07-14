@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Core\Backup\Contracts;
 
+use Core\Backup\Exceptions\BackupFailedException;
+
 /**
  * One backup target — database, storage, configuration, or logs (per
  * the brief). Each target produces a single archive file under the
@@ -16,7 +18,7 @@ interface BackupTargetInterface
     public function name(): string;
 
     /**
-     * @throws \Core\Backup\Exceptions\BackupFailedException
+     * @throws BackupFailedException
      */
     public function backup(string $destinationDirectory): string;
 }

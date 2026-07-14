@@ -18,6 +18,8 @@ final class Grade extends Model
 
     protected $table = 'academics_grades';
 
+    protected $attributes = ['status' => 'active'];
+
     protected $fillable = ['name', 'order', 'curriculum_id', 'academic_year_id', 'status'];
 
     protected function casts(): array

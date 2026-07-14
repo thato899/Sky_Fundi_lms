@@ -18,5 +18,9 @@ final class OrganizationContextService
             ->when($organizationId, fn ($query) => $query->where('organization_id', $organizationId), fn ($query) => $query->where('is_default', true))
             ->first() ?? Membership::query()->with(['role.permissions', 'organization.modules', 'organization.aiConfiguration'])->where('user_id', $user->id)->where('status', 'active')->first();
     }
-    public function fromRequest(Request $request): ?Membership { return $request->user() ? $this->membership($request->user(), $request->header('X-Organization-Id')) : null; }
+
+    public function fromRequest(Request $request): ?Membership
+    {
+        return $request->user() ? $this->membership($request->user(), $request->header('X-Organization-Id')) : null;
+    }
 }

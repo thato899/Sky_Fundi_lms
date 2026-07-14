@@ -6,8 +6,9 @@ namespace Modules\Academics\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Academics\Infrastructure\Models\Curriculum;
 
-/** @mixin \Modules\Academics\Infrastructure\Models\Curriculum */
+/** @mixin Curriculum */
 final class CurriculumResource extends JsonResource
 {
     public function toArray(Request $request): array

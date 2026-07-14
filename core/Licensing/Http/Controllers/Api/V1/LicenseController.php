@@ -13,6 +13,7 @@ use Core\Licensing\Http\Resources\LicenseResource;
 use Core\Licensing\Infrastructure\Models\License;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 final class LicenseController extends Controller
 {
@@ -60,7 +61,7 @@ final class LicenseController extends Controller
 
     public function renew(RenewLicenseRequest $request, License $license): JsonResponse
     {
-        $newExpiry = \Illuminate\Support\Carbon::parse($request->string('expiry_date')->value());
+        $newExpiry = Carbon::parse($request->string('expiry_date')->value());
 
         return $this->ok(new LicenseResource($this->licenses->renew($license, $newExpiry)));
     }

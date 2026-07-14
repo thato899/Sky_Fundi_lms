@@ -30,7 +30,18 @@ final class Organization extends Model
         return $this->belongsToMany(User::class, 'organization_administrators')->withPivot(['assigned_by', 'assigned_at']);
     }
 
-    public function settings(): HasMany { return $this->hasMany(OrganizationSetting::class); }
-    public function modules(): HasMany { return $this->hasMany(OrganizationModule::class); }
-    public function aiConfiguration(): HasOne { return $this->hasOne(OrganizationAiConfiguration::class); }
+    public function settings(): HasMany
+    {
+        return $this->hasMany(OrganizationSetting::class);
+    }
+
+    public function modules(): HasMany
+    {
+        return $this->hasMany(OrganizationModule::class);
+    }
+
+    public function aiConfiguration(): HasOne
+    {
+        return $this->hasOne(OrganizationAiConfiguration::class);
+    }
 }

@@ -6,14 +6,16 @@ namespace Core\Api\Exceptions;
 
 use Core\Auth\Exceptions\AccountNotActiveException;
 use Core\Support\Exceptions\DomainException;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 /**
@@ -32,6 +34,7 @@ final class ApiExceptionHandler
                 message: 'The given data was invalid.',
                 status: 422,
                 details: $e->errors(),
+                validationErrors: $e->errors(),
             );
         });
 
@@ -105,8 +108,13 @@ final class ApiExceptionHandler
         });
     }
 
-    private static function error(string $code, string $message, int $status, ?array $details = null): \Illuminate\Http\JsonResponse
-    {
+    private static function error(
+        string $code,
+        string $message,
+        int $status,
+        ?array $details = null,
+        ?array $validationErrors = null,
+    ): JsonResponse {
         $payload = [
             'error' => array_filter([
                 'code' => $code,
@@ -115,7 +123,13 @@ final class ApiExceptionHandler
             ], fn ($v) => $v !== null),
         ];
 
+        if ($validationErrors !== null) {
+            // Preserve Laravel's conventional top-level validation shape
+            // while retaining the platform's structured error envelope.
+            $payload['errors'] = $validationErrors;
+        }
+
         return response()->json($payload, $status)
-            ->header('X-Request-Id', request()->header('X-Request-Id', (string) \Illuminate\Support\Str::uuid()));
+            ->header('X-Request-Id', request()->header('X-Request-Id', (string) Str::uuid()));
     }
 }

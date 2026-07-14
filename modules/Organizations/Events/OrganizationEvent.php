@@ -16,6 +16,14 @@ abstract class OrganizationEvent implements Auditable
     use SerializesModels;
 
     public function __construct(public readonly Organization $organization) {}
-    public function auditTarget(): ?Model { return $this->organization; }
-    public function auditContext(): array { return ['after' => ['organization_id' => $this->organization->id]]; }
+
+    public function auditTarget(): ?Model
+    {
+        return $this->organization;
+    }
+
+    public function auditContext(): array
+    {
+        return ['after' => ['organization_id' => $this->organization->id]];
+    }
 }

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Core\Users\Http\Resources;
 
+use Core\Users\Infrastructure\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \Core\Users\Infrastructure\Models\User
+ * @mixin User
  */
 final class UserResource extends JsonResource
 {

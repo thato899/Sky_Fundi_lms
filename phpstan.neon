@@ -1,0 +1,12 @@
+parameters:
+    level: 5
+    paths:
+        - app
+        - core
+        - modules
+    excludePaths:
+        analyse:
+            - core/*/database/migrations/*
+            - core/*/routes/*
+            - modules/*/database/migrations/*
+            - modules/*/routes/*

@@ -21,7 +21,7 @@ final class StorageBackupTarget implements BackupTargetInterface
         $source = storage_path('app');
         $destination = $destinationDirectory.'/storage-'.now()->format('Ymd-His').'.zip';
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
 
         if ($zip->open($destination, ZipArchive::CREATE) !== true) {
             throw BackupFailedException::forTarget($this->name(), "Could not create archive at {$destination}.");
