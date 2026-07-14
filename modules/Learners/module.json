@@ -1,0 +1,1 @@
+{"name":"learners","displayName":"Learners","version":"0.1.0","description":"Organization-scoped learner profile foundation.","coreDependencies":["users","identity"],"moduleDependencies":["organizations","academics"],"provides":{"permissions":[]}}
