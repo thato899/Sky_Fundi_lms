@@ -11,6 +11,7 @@ use Core\AIGateway\Exceptions\AIGatewayException;
 use Core\AIGateway\Exceptions\ProviderNotAvailableException;
 use Generator;
 use Illuminate\Support\Facades\Http;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Self-hosted / offline provider via the Ollama HTTP API
@@ -104,7 +105,7 @@ final class OllamaProvider implements AIProviderInterface
         }
     }
 
-    private function readLine(\Psr\Http\Message\StreamInterface $stream): string
+    private function readLine(StreamInterface $stream): string
     {
         $line = '';
 

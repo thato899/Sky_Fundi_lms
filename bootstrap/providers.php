@@ -1,43 +1,71 @@
 <?php
 
 declare(strict_types=1);
+use App\Providers\AppServiceProvider;
+use Core\AIGateway\Providers\AIGatewayServiceProvider;
+use Core\Analytics\Providers\AnalyticsServiceProvider;
+use Core\Api\Providers\ApiServiceProvider;
+use Core\AuditLogs\Providers\AuditLogsServiceProvider;
+use Core\Auth\Providers\CoreAuthServiceProvider;
+use Core\Backup\Providers\BackupServiceProvider;
+use Core\Branding\Providers\BrandingServiceProvider;
+use Core\Deployment\Providers\DeploymentServiceProvider;
+use Core\FeatureFlags\Providers\FeatureFlagsServiceProvider;
+use Core\Health\Providers\HealthServiceProvider;
+use Core\Identity\Providers\IdentityServiceProvider;
+use Core\Installer\Providers\InstallerServiceProvider;
+use Core\Licensing\Providers\LicensingServiceProvider;
+use Core\Mail\Providers\MailServiceProvider;
+use Core\Modules\Providers\ModulesServiceProvider;
+use Core\Notifications\Providers\NotificationsServiceProvider;
+use Core\RBAC\Providers\RBACServiceProvider;
+use Core\Scheduler\Providers\SchedulerServiceProvider;
+use Core\Security\Providers\SecurityServiceProvider;
+use Core\Settings\Providers\SettingsServiceProvider;
+use Core\Storage\Providers\StorageServiceProvider;
+use Core\Subscriptions\Providers\SubscriptionsServiceProvider;
+use Core\Support\Providers\SupportServiceProvider;
+use Core\Users\Providers\UsersServiceProvider;
+use Modules\Academics\Providers\AcademicsServiceProvider;
+use Modules\Organizations\Providers\OrganizationsServiceProvider;
+use Modules\Staff\Providers\StaffServiceProvider;
 
 return [
-    App\Providers\AppServiceProvider::class,
+    AppServiceProvider::class,
 
     // Core service providers — each Core service registers its own
     // bindings, routes, and event->listener maps. Order matters where
     // a service depends on another (e.g. Auth depends on Users).
-    Core\Support\Providers\SupportServiceProvider::class,
-    Core\Api\Providers\ApiServiceProvider::class,
-    Core\Users\Providers\UsersServiceProvider::class,
-    Core\Auth\Providers\CoreAuthServiceProvider::class,
-    Core\RBAC\Providers\RBACServiceProvider::class,
-    Core\Identity\Providers\IdentityServiceProvider::class,
-    Core\AuditLogs\Providers\AuditLogsServiceProvider::class,
-    Core\Settings\Providers\SettingsServiceProvider::class,
-    Core\Branding\Providers\BrandingServiceProvider::class,
-    Core\Notifications\Providers\NotificationsServiceProvider::class,
-    Core\Storage\Providers\StorageServiceProvider::class,
-    Core\Mail\Providers\MailServiceProvider::class,
-    Core\AIGateway\Providers\AIGatewayServiceProvider::class,
-    Core\Modules\Providers\ModulesServiceProvider::class,
-    Core\Licensing\Providers\LicensingServiceProvider::class,
-    Core\Subscriptions\Providers\SubscriptionsServiceProvider::class,
-    Core\Deployment\Providers\DeploymentServiceProvider::class,
-    Core\Health\Providers\HealthServiceProvider::class,
-    Core\FeatureFlags\Providers\FeatureFlagsServiceProvider::class,
-    Core\Analytics\Providers\AnalyticsServiceProvider::class,
-    Core\Security\Providers\SecurityServiceProvider::class,
-    Core\Backup\Providers\BackupServiceProvider::class,
-    Core\Scheduler\Providers\SchedulerServiceProvider::class,
-    Core\Installer\Providers\InstallerServiceProvider::class,
+    SupportServiceProvider::class,
+    ApiServiceProvider::class,
+    UsersServiceProvider::class,
+    CoreAuthServiceProvider::class,
+    RBACServiceProvider::class,
+    IdentityServiceProvider::class,
+    AuditLogsServiceProvider::class,
+    SettingsServiceProvider::class,
+    BrandingServiceProvider::class,
+    NotificationsServiceProvider::class,
+    StorageServiceProvider::class,
+    MailServiceProvider::class,
+    AIGatewayServiceProvider::class,
+    ModulesServiceProvider::class,
+    LicensingServiceProvider::class,
+    SubscriptionsServiceProvider::class,
+    DeploymentServiceProvider::class,
+    HealthServiceProvider::class,
+    FeatureFlagsServiceProvider::class,
+    AnalyticsServiceProvider::class,
+    SecurityServiceProvider::class,
+    BackupServiceProvider::class,
+    SchedulerServiceProvider::class,
+    InstallerServiceProvider::class,
 
     // Module providers — see docs/architecture/module-system.md. Each
     // module bootstraps itself exactly like a Core service (routes +
     // migrations); Core\Modules\Application\ModuleManager separately
     // tracks per-tenant enablement as data, not code loading.
-    Modules\Academics\Providers\AcademicsServiceProvider::class,
-    Modules\Organizations\Providers\OrganizationsServiceProvider::class,
-    Modules\Staff\Providers\StaffServiceProvider::class,
+    AcademicsServiceProvider::class,
+    OrganizationsServiceProvider::class,
+    StaffServiceProvider::class,
 ];

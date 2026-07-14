@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Core\AuditLogs\Http\Resources;
 
+use Core\AuditLogs\Infrastructure\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \Core\AuditLogs\Infrastructure\Models\AuditLog
+ * @mixin AuditLog
  */
 final class AuditLogResource extends JsonResource
 {

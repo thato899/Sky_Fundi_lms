@@ -8,5 +8,8 @@ use Illuminate\Database\Seeder;
 
 final class OrganizationsDatabaseSeeder extends Seeder
 {
-    public function run(): void { $this->call(OrganizationsPermissionSeeder::class); }
+    public function run(): void
+    {
+        $this->call(OrganizationsPermissionSeeder::class);
+    }
 }

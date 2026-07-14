@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Organizations\Application;
 
 use Core\AuditLogs\Application\AuditLogService;
+use Core\Branding\Application\BrandingService;
 use Core\Modules\Application\ModuleManager;
 use Illuminate\Support\Facades\DB;
 use Modules\Organizations\Domain\Enums\OrganizationStatus;
@@ -33,6 +34,7 @@ final class OrganizationService
     {
         $organization = Organization::create([...$attributes, 'status' => $attributes['status'] ?? OrganizationStatus::Active, 'created_by' => $actorId, 'updated_by' => $actorId]);
         event(new OrganizationCreated($organization));
+
         return $organization;
     }
 
@@ -42,12 +44,31 @@ final class OrganizationService
         $organization->update([...$attributes, 'updated_by' => $actorId]);
         event(new OrganizationUpdated($organization));
         $this->auditLog->record(action: 'organizations.updated', target: $organization, before: $before, after: $attributes);
+
         return $organization->fresh();
     }
 
-    public function suspend(Organization $organization): Organization { $organization->update(['status' => OrganizationStatus::Suspended]); event(new OrganizationSuspended($organization)); return $organization->fresh(); }
-    public function activate(Organization $organization): Organization { $organization->update(['status' => OrganizationStatus::Active]); event(new OrganizationActivated($organization)); return $organization->fresh(); }
-    public function delete(Organization $organization): void { $organization->delete(); event(new OrganizationDeleted($organization)); }
+    public function suspend(Organization $organization): Organization
+    {
+        $organization->update(['status' => OrganizationStatus::Suspended]);
+        event(new OrganizationSuspended($organization));
+
+        return $organization->fresh();
+    }
+
+    public function activate(Organization $organization): Organization
+    {
+        $organization->update(['status' => OrganizationStatus::Active]);
+        event(new OrganizationActivated($organization));
+
+        return $organization->fresh();
+    }
+
+    public function delete(Organization $organization): void
+    {
+        $organization->delete();
+        event(new OrganizationDeleted($organization));
+    }
 
     public function assignAdministrator(Organization $organization, string $userId, ?string $actorId): void
     {
@@ -57,15 +78,21 @@ final class OrganizationService
 
     public function updateSettings(Organization $organization, array $settings): array
     {
-        foreach ($settings as $group => $values) foreach ($values as $key => $value) OrganizationSetting::query()->updateOrCreate(['organization_id' => $organization->id, 'group' => $group, 'key' => $key], ['value' => $value]);
+        foreach ($settings as $group => $values) {
+            foreach ($values as $key => $value) {
+                OrganizationSetting::query()->updateOrCreate(['organization_id' => $organization->id, 'group' => $group, 'key' => $key], ['value' => $value]);
+            }
+        }
         event(new OrganizationSettingsUpdated($organization));
+
         return $this->settings($organization);
     }
 
     /** Branding values inherit the platform's defaults when no tenant override exists. */
     public function branding(Organization $organization): array
     {
-        $platform = app(\Core\Branding\Application\BrandingService::class)->current();
+        $platform = app(BrandingService::class)->current();
+
         return array_replace($platform, $this->settings($organization)['branding'] ?? []);
     }
 
@@ -73,6 +100,7 @@ final class OrganizationService
     {
         $this->updateSettings($organization, ['branding' => $branding]);
         event(new OrganizationBrandingChanged($organization));
+
         return $this->branding($organization);
     }
 
@@ -80,6 +108,7 @@ final class OrganizationService
     {
         $configuration = OrganizationAiConfiguration::query()->updateOrCreate(['organization_id' => $organization->id], $values);
         event(new OrganizationAIProviderChanged($organization));
+
         return $configuration;
     }
 
@@ -89,6 +118,7 @@ final class OrganizationService
             $assignment = OrganizationModule::query()->updateOrCreate(['organization_id' => $organization->id, 'module_name' => $moduleName], ['enabled' => $enabled, 'enabled_by' => $actorId]);
             $enabled ? $this->modules->enable($moduleName, $organization->id) : $this->modules->disable($moduleName, $organization->id);
             event($enabled ? new OrganizationModuleEnabled($organization) : new OrganizationModuleDisabled($organization));
+
             return $assignment;
         });
     }
@@ -96,6 +126,7 @@ final class OrganizationService
     public function settings(Organization $organization): array
     {
         $stored = OrganizationSetting::query()->where('organization_id', $organization->id)->get()->groupBy('group')->map(fn ($items) => $items->mapWithKeys(fn ($item) => [$item->key => $item->value])->all())->all();
+
         return array_replace_recursive(['general' => config('organizations.settings_defaults')], $stored);
     }
 }

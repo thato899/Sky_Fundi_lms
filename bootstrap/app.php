@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Core\Api\Exceptions\ApiExceptionHandler;
 use Core\Api\Http\Middleware\ForceJsonResponse;
 use Core\Api\Http\Middleware\LogApiRequests;
 use Core\Auth\Http\Middleware\CheckAccountLocked;
@@ -35,6 +36,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        Core\Api\Exceptions\ApiExceptionHandler::register($exceptions);
+        ApiExceptionHandler::register($exceptions);
     })
     ->create();

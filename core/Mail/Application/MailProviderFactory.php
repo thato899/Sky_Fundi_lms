@@ -26,6 +26,6 @@ final class MailProviderFactory
         /** @var class-string<MailProviderInterface> $driverClass */
         $driverClass = $config['driver'];
 
-        return new $driverClass();
+        return new $driverClass;
     }
 }

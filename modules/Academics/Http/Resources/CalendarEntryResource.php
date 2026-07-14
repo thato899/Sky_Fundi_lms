@@ -6,8 +6,9 @@ namespace Modules\Academics\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Academics\Infrastructure\Models\CalendarEntry;
 
-/** @mixin \Modules\Academics\Infrastructure\Models\CalendarEntry */
+/** @mixin CalendarEntry */
 final class CalendarEntryResource extends JsonResource
 {
     public function toArray(Request $request): array

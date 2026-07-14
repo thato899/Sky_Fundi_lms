@@ -6,6 +6,7 @@ namespace Core\Backup\Application;
 
 use Core\Backup\Application\DTOs\BackupResult;
 use Core\Backup\Events\BackupCompleted;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\File;
 use Throwable;
 
@@ -19,7 +20,7 @@ use Throwable;
 final class BackupManager
 {
     public function __construct(
-        private readonly \Illuminate\Contracts\Container\Container $container,
+        private readonly Container $container,
     ) {}
 
     /**

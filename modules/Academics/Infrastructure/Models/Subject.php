@@ -17,6 +17,8 @@ final class Subject extends Model
 
     protected $table = 'academics_subjects';
 
+    protected $attributes = ['status' => 'active'];
+
     protected $fillable = [
         'code', 'name', 'description', 'curriculum_id', 'department_id',
         'colour', 'ai_configuration', 'status',

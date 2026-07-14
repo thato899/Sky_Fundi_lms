@@ -8,6 +8,7 @@ use Core\Licensing\Domain\Enums\LicenseStatus;
 use Core\Licensing\Domain\Services\LicenseKeyGenerator;
 use Core\Licensing\Events\LicenseActivated;
 use Core\Licensing\Events\LicenseCancelled;
+use Core\Licensing\Events\LicenseExpired;
 use Core\Licensing\Events\LicenseIssued;
 use Core\Licensing\Events\LicenseRenewed;
 use Core\Licensing\Events\LicenseSuspended;
@@ -103,7 +104,7 @@ final class LicenseService
 
             foreach ($overdue as $license) {
                 $license->update(['status' => LicenseStatus::Expired]);
-                event(new \Core\Licensing\Events\LicenseExpired($license));
+                event(new LicenseExpired($license));
             }
 
             return $overdue->count();

@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+use Core\AIGateway\Infrastructure\Providers\ClaudeProvider;
+use Core\AIGateway\Infrastructure\Providers\DeepSeekProvider;
+use Core\AIGateway\Infrastructure\Providers\GeminiProvider;
+use Core\AIGateway\Infrastructure\Providers\OllamaProvider;
+use Core\AIGateway\Infrastructure\Providers\OpenAIProvider;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,7 +29,7 @@ return [
 
     'providers' => [
         'ollama' => [
-            'driver' => Core\AIGateway\Infrastructure\Providers\OllamaProvider::class,
+            'driver' => OllamaProvider::class,
             'base_url' => env('AI_OLLAMA_BASE_URL', 'http://localhost:11434'),
             'model' => env('AI_OLLAMA_MODEL', 'llama3'),
             'timeout' => (int) env('AI_OLLAMA_TIMEOUT', 60),
@@ -32,7 +37,7 @@ return [
         ],
 
         'deepseek' => [
-            'driver' => Core\AIGateway\Infrastructure\Providers\DeepSeekProvider::class,
+            'driver' => DeepSeekProvider::class,
             'base_url' => env('AI_DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),
             'api_key' => env('AI_DEEPSEEK_API_KEY'),
             'model' => env('AI_DEEPSEEK_MODEL', 'deepseek-chat'),
@@ -45,21 +50,21 @@ return [
         // throws ProviderNotAvailableException until wired up, rather
         // than being silently absent from the registry.
         'openai' => [
-            'driver' => Core\AIGateway\Infrastructure\Providers\OpenAIProvider::class,
+            'driver' => OpenAIProvider::class,
             'api_key' => env('AI_OPENAI_API_KEY'),
             'model' => env('AI_OPENAI_MODEL', 'gpt-4o'),
             'enabled' => (bool) env('AI_OPENAI_ENABLED', false),
         ],
 
         'claude' => [
-            'driver' => Core\AIGateway\Infrastructure\Providers\ClaudeProvider::class,
+            'driver' => ClaudeProvider::class,
             'api_key' => env('AI_CLAUDE_API_KEY'),
             'model' => env('AI_CLAUDE_MODEL', 'claude-sonnet-4-6'),
             'enabled' => (bool) env('AI_CLAUDE_ENABLED', false),
         ],
 
         'gemini' => [
-            'driver' => Core\AIGateway\Infrastructure\Providers\GeminiProvider::class,
+            'driver' => GeminiProvider::class,
             'api_key' => env('AI_GEMINI_API_KEY'),
             'model' => env('AI_GEMINI_MODEL', 'gemini-2.0-flash'),
             'enabled' => (bool) env('AI_GEMINI_ENABLED', false),

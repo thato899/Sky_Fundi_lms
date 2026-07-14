@@ -35,7 +35,7 @@ services:
       MYSQL_USER: skyfundi
       MYSQL_PASSWORD: skyfundi
       MYSQL_ROOT_PASSWORD: root
-    ports: ["3306:3306"]
+    ports: ["3307:3306"]
     volumes: ["mysql:/var/lib/mysql"]
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]

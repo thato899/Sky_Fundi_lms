@@ -11,6 +11,4 @@ use Exception;
  * error, non-2xx response, malformed payload) — distinct from
  * ProviderNotAvailableException, which means no attempt was made.
  */
-final class AIGatewayException extends Exception
-{
-}
+final class AIGatewayException extends Exception {}

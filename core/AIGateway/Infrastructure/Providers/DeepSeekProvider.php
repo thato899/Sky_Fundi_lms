@@ -11,6 +11,7 @@ use Core\AIGateway\Exceptions\AIGatewayException;
 use Core\AIGateway\Exceptions\ProviderNotAvailableException;
 use Generator;
 use Illuminate\Support\Facades\Http;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Hosted provider using DeepSeek's OpenAI-compatible chat completions
@@ -109,7 +110,7 @@ final class DeepSeekProvider implements AIProviderInterface
         }
     }
 
-    private function readLine(\Psr\Http\Message\StreamInterface $stream): string
+    private function readLine(StreamInterface $stream): string
     {
         $line = '';
 

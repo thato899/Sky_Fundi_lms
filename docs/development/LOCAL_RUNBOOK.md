@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Use Docker Desktop (Windows/macOS) or Docker Engine (Linux), Docker Compose v2, and Git. Allocate at least 4 GB RAM to Docker for the PHP and MySQL containers. Ollama is optional; no Laravel service requires it to boot.
+Use Docker Engine, Docker Compose v2, and Git. This repository was executable-verified with Docker Engine running directly inside WSL Ubuntu, not Docker Desktop. Allocate at least 4 GB RAM to Docker for the PHP and MySQL containers. Ollama is optional; no Laravel service requires it to boot.
 
 ## Clean Docker startup
 
@@ -16,7 +16,7 @@ docker compose exec app php artisan migrate --seed
 
 `init` is a one-time Compose service. It waits for MySQL, creates `.env` only when it does not exist, installs the dependencies recorded in `composer.lock`, creates runtime directories, generates `APP_KEY` only if missing, and writes a completion marker. The `app`, `queue`, and `scheduler` services depend on its successful completion; they do not compete to initialise the bind-mounted source tree. `.env` is created locally, never overwritten, and remains ignored by Git.
 
-The application is available at `http://localhost:8000` and its public liveness endpoint is `GET /up`. Mailpit is available at `http://localhost:8025`.
+The application is available at `http://localhost:8000` and its public liveness endpoint is `GET /up`. Mailpit is available at `http://localhost:8025`. MySQL is published on host port 3307 and remains available as `mysql:3306` to Compose services.
 
 ## Verification
 
@@ -48,16 +48,19 @@ docker compose ps queue scheduler
 
 Before the first `docker compose exec app php artisan migrate --seed`, set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in your local `.env`. The supplied `SuperAdminUserSeeder` reads these values, creates the account idempotently, and skips creation when either is absent. Do not commit credentials or leave real production credentials in `.env`.
 
-## Optional Ollama on Windows
+## Optional Ollama with direct-WSL Docker Engine
 
-Start Ollama on the Windows host and use `AI_OLLAMA_BASE_URL=http://host.docker.internal:11434` and `AI_OLLAMA_MODEL=qwen3:8b` in `.env`.
+Do not assume `host.docker.internal` reaches Windows when Docker Engine runs directly inside WSL. In the verified environment it resolved to the WSL Docker gateway, while the Windows host address was the nameserver in `/etc/resolv.conf`. Ollama was not listening on either address during verification, so no working Windows-host URL is claimed here.
 
-```powershell
-Invoke-WebRequest http://localhost:11434/api/tags
-docker compose exec app php -r "var_dump(@file_get_contents('http://host.docker.internal:11434/api/tags') !== false);"
+Verify each hop before setting `AI_OLLAMA_BASE_URL`:
+
+```bash
+curl -sS http://localhost:11434/api/tags
+awk '/nameserver/ { print $2; exit }' /etc/resolv.conf
+docker compose exec app php -r "echo file_get_contents('http://host.docker.internal:11434/api/tags');"
 ```
 
-Ollama being unavailable is a degraded AI condition, not a Docker boot failure.
+If Ollama runs on Windows, it must listen on an address reachable from WSL and Docker and the Windows firewall must permit that traffic. Use the address that succeeds in both checks; do not make it an application health dependency. Ollama being unavailable is a degraded AI condition, not a Docker boot failure.
 
 ## Native WSL/Linux
 
@@ -73,9 +76,8 @@ php artisan test
 
 ## Troubleshooting
 
-- **Malformed ZIP extraction:** use the delivered archive and run `scripts/verify-archive.py archive.zip`; it rejects backslashes and unsafe paths.
 - **App exits or `vendor/autoload.php` is missing:** run `docker compose up --build init` and inspect `docker compose logs init`.
-- **`composer.lock` is missing:** generate it with a Composer-capable environment using `composer update --lock`, validate it, then commit it before relying on reproducible Docker builds.
+- **`composer.lock` is missing:** generate it with `composer update --no-interaction`, validate it, and review it before relying on reproducible Docker builds. `composer update --lock` only refreshes an existing lock file.
 - **MySQL unavailable:** inspect `docker compose logs mysql`; the init service retries with a bounded timeout.
 - **Missing `APP_KEY`:** rerun `docker compose up init`; it only generates a key when the value is blank.
 - **Migration failure:** check credentials in `.env`, then run `docker compose exec app php artisan migrate:status`.
@@ -83,6 +85,6 @@ php artisan test
 - **Route/config cache problems:** run `docker compose exec app php artisan optimize:clear`.
 - **Queue restarts or scheduler is absent:** inspect their logs and confirm init completed successfully.
 - **Mailpit unreachable:** verify `docker compose ps mailpit` and use `http://localhost:8025`.
-- **Docker cannot reach Windows Ollama:** verify the PowerShell request above and retain `host.docker.internal:host-gateway`.
-- **Port conflict:** change the host side of the `8000`, `3306`, or `8025` mappings in `compose.yaml`.
+- **Docker cannot reach Windows Ollama:** identify the Windows address from WSL, confirm Ollama is listening beyond Windows loopback, and verify the Windows firewall before changing the application URL.
+- **Port conflict:** change the host side of the `8000`, `3307`, or `8025` mappings in `compose.yaml`.
 - **Reset development data:** `docker compose down -v` removes the MySQL and storage volumes. This is destructive.

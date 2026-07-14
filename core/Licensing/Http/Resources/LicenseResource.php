@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Core\Licensing\Http\Resources;
 
+use Core\Licensing\Infrastructure\Models\License;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \Core\Licensing\Infrastructure\Models\License
+ * @mixin License
  */
 final class LicenseResource extends JsonResource
 {

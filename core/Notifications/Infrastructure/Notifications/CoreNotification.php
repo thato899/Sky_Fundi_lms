@@ -8,6 +8,7 @@ use Core\Notifications\Infrastructure\Channels\PushChannel;
 use Core\Notifications\Infrastructure\Channels\SmsChannel;
 use Core\Notifications\Infrastructure\Channels\WhatsAppChannel;
 use Core\Notifications\Infrastructure\Models\NotificationTemplate;
+use Core\Queue\Domain\QueueName;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -45,7 +46,7 @@ final class CoreNotification extends Notification implements ShouldQueue
     ) {
         // Named queue per Core\Queue's queue taxonomy — see
         // core/Queue/README.md and config/queue_names.php.
-        $this->onQueue(\Core\Queue\Domain\QueueName::Notifications->value);
+        $this->onQueue(QueueName::Notifications->value);
     }
 
     public function via(object $notifiable): array
@@ -64,7 +65,7 @@ final class CoreNotification extends Notification implements ShouldQueue
             ->where('is_active', true)
             ->first();
 
-        $mail = new MailMessage();
+        $mail = new MailMessage;
 
         if ($template !== null) {
             $mail->subject($template->subject ?? config('app.name'))

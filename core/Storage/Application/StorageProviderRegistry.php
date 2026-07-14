@@ -38,9 +38,20 @@ final class StorageProviderRegistry
      */
     public function availableDiskNames(): array
     {
-        return array_keys(array_filter(
-            $this->all(),
-            fn (FileStorageInterface $disk) => $disk->isAvailable(),
-        ));
+        $available = [];
+
+        foreach (array_keys(config('filesystems.disks', [])) as $name) {
+            try {
+                if ($this->factory->make($name)->isAvailable()) {
+                    $available[] = $name;
+                }
+            } catch (\Throwable) {
+                // An unconfigured optional disk is unavailable; it must not
+                // prevent local storage or the application health endpoint
+                // from being evaluated.
+            }
+        }
+
+        return $available;
     }
 }

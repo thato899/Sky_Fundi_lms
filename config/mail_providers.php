@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+use Core\Mail\Infrastructure\Providers\GoogleWorkspaceMailProvider;
+use Core\Mail\Infrastructure\Providers\MailgunMailProvider;
+use Core\Mail\Infrastructure\Providers\Microsoft365MailProvider;
+use Core\Mail\Infrastructure\Providers\SesMailProvider;
+use Core\Mail\Infrastructure\Providers\SmtpMailProvider;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,11 +23,11 @@ return [
     'default_provider' => env('MAIL_DEFAULT_PROVIDER', 'smtp'),
 
     'providers' => [
-        'smtp' => ['driver' => \Core\Mail\Infrastructure\Providers\SmtpMailProvider::class],
-        'ses' => ['driver' => \Core\Mail\Infrastructure\Providers\SesMailProvider::class],
-        'mailgun' => ['driver' => \Core\Mail\Infrastructure\Providers\MailgunMailProvider::class],
+        'smtp' => ['driver' => SmtpMailProvider::class],
+        'ses' => ['driver' => SesMailProvider::class],
+        'mailgun' => ['driver' => MailgunMailProvider::class],
         // Placeholders — see core/Mail/README.md.
-        'microsoft365' => ['driver' => \Core\Mail\Infrastructure\Providers\Microsoft365MailProvider::class],
-        'google_workspace' => ['driver' => \Core\Mail\Infrastructure\Providers\GoogleWorkspaceMailProvider::class],
+        'microsoft365' => ['driver' => Microsoft365MailProvider::class],
+        'google_workspace' => ['driver' => GoogleWorkspaceMailProvider::class],
     ],
 ];

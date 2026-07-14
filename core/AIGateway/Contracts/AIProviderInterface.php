@@ -6,6 +6,7 @@ namespace Core\AIGateway\Contracts;
 
 use Core\AIGateway\Application\DTOs\AIRequest;
 use Core\AIGateway\Application\DTOs\AIResponse;
+use Core\AIGateway\Exceptions\ProviderNotAvailableException;
 use Generator;
 
 /**
@@ -19,7 +20,7 @@ interface AIProviderInterface
     /**
      * A single, complete response for the given request.
      *
-     * @throws \Core\AIGateway\Exceptions\ProviderNotAvailableException
+     * @throws ProviderNotAvailableException
      */
     public function complete(AIRequest $request): AIResponse;
 
@@ -30,7 +31,7 @@ interface AIProviderInterface
      *
      * @return Generator<int, string>
      *
-     * @throws \Core\AIGateway\Exceptions\ProviderNotAvailableException
+     * @throws ProviderNotAvailableException
      */
     public function stream(AIRequest $request): Generator;
 

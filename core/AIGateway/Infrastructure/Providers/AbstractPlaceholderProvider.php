@@ -34,7 +34,6 @@ abstract class AbstractPlaceholderProvider implements AIProviderInterface
     public function stream(AIRequest $request): Generator
     {
         throw ProviderNotAvailableException::notImplemented($this->name());
-
         yield ''; // unreachable — keeps this a valid Generator return type
     }
 

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Core\RBAC\Http\Resources;
 
+use Core\RBAC\Infrastructure\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \Core\RBAC\Infrastructure\Models\Role
+ * @mixin Role
  */
 final class RoleResource extends JsonResource
 {

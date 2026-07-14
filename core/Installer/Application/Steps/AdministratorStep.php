@@ -7,6 +7,7 @@ namespace Core\Installer\Application\Steps;
 use Core\Installer\Contracts\InstallerStepInterface;
 use Core\RBAC\Application\RoleService;
 use Core\RBAC\Infrastructure\Models\Role;
+use Core\Users\Application\DTOs\CreateUserData;
 use Core\Users\Application\UserService;
 use Core\Users\Infrastructure\Models\User;
 
@@ -43,7 +44,7 @@ final class AdministratorStep implements InstallerStepInterface
 
     public function run(array $input): array
     {
-        $user = $this->users->create(new \Core\Users\Application\DTOs\CreateUserData(
+        $user = $this->users->create(new CreateUserData(
             name: $input['name'],
             email: $input['email'],
             password: $input['password'],

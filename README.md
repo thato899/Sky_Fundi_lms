@@ -1,6 +1,6 @@
 # Sky Fundi Platform
 
-Sky Fundi is a modular, multi-tenant education-platform foundation for tutors, schools, colleges, and training providers. It is a Laravel 11 application, not an empty scaffold.
+Sky Fundi is a modular, multi-tenant education-platform foundation for tutors, schools, colleges, and training providers. It is a Laravel 12 application, not an empty scaffold.
 
 ## Current scope
 
@@ -10,7 +10,7 @@ This is **not** yet the complete sellable education MVP. Learners, guardians, at
 
 ## Docker quick start
 
-Prerequisites: Docker Desktop/Engine and Git. From the repository root:
+Prerequisites: Docker Engine (including Docker Engine running directly inside WSL) or Docker Desktop, plus Git. From the repository root:
 
 ```bash
 docker compose up --build init
