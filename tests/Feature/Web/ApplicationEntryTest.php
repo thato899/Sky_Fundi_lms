@@ -188,6 +188,11 @@ final class ApplicationEntryTest extends TestCase
             'status' => $organizationStatus,
         ]);
         $role = Role::query()->create(['name' => fake()->unique()->jobTitle(), 'description' => 'Organization role', 'is_system' => false]);
+        $permission = Permission::query()->firstOrCreate(
+            ['name' => 'organization.dashboard.view'],
+            ['description' => 'View organization dashboard', 'module' => 'core'],
+        );
+        $role->permissions()->attach($permission);
 
         return Membership::query()->create([
             'user_id' => $user->id,

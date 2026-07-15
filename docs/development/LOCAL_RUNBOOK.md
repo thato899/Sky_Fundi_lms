@@ -18,7 +18,7 @@ docker compose exec app php artisan migrate --seed
 
 The public application entry page is available at `http://localhost:8000`, web login at `http://localhost:8000/login`, and the public liveness endpoint at `GET /up`. Mailpit is available at `http://localhost:8025`. MySQL is published on host port 3307 and remains available as `mysql:3306` to Compose services.
 
-After web login, a Super Admin is sent to `/super-admin`. A user with one active membership in an active organization is sent to the authenticated organization fallback dashboard; multiple active memberships require a trusted organization selection. Accounts without usable access receive a safe authenticated explanation. Role-specific organization, learner, guardian, and teacher dashboards are not implemented. Logout is a CSRF-protected `POST /logout` action that invalidates the session.
+After web login, a Super Admin is sent to `/super-admin`. A user with one active membership in an active organization and `organization.dashboard.view` is sent to `/dashboard`; multiple active memberships require trusted organization selection at `/access`. Accounts without usable access receive a safe authenticated explanation. The organization dashboard is read-only; learner, staff, and academic web management pages and learner, guardian, and teacher portals are not implemented. Logout is a CSRF-protected `POST /logout` action that invalidates the session.
 
 ## Verification
 

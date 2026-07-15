@@ -4,7 +4,7 @@ Sky Fundi is a modular, multi-tenant education-platform foundation for tutors, s
 
 ## Current scope
 
-The repository currently includes the Platform Core; authentication; RBAC and permissions; Organizations; organization identity and membership; Academics; the Staff and Learners profile foundations; an AI Gateway; audit logging; settings and branding; licensing and subscription foundations; and storage, mail, queue, backup, and health foundations. Docker development configuration is included.
+The repository currently includes the Platform Core; authentication; RBAC and permissions; Organizations; organization identity and membership; an organization administrator dashboard; Academics; the Staff and Learners profile foundations; an AI Gateway; audit logging; settings and branding; licensing and subscription foundations; and storage, mail, queue, backup, and health foundations. Docker development configuration is included. The authenticated dashboard reports organization-scoped records; learner, staff, and academic management remain API-first and do not yet have web interfaces.
 
 This is **not** yet the complete sellable education MVP. Learner workflows, guardians, attendance, assessments, content delivery, billing workflows, portals, and mobile applications are not part of the implemented scope.
 

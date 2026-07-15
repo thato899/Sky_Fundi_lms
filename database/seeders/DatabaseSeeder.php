@@ -18,6 +18,7 @@ final class DatabaseSeeder extends Seeder
         $this->call([
             PermissionSeeder::class,
             RoleSeeder::class,
+            OrganizationDashboardPermissionSeeder::class,
             SettingsSeeder::class,
             BrandingSeeder::class,
             SuperAdminUserSeeder::class,

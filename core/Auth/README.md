@@ -14,6 +14,6 @@
 
 **Routes**: `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, `POST /api/v1/auth/forgot-password`, `POST /api/v1/auth/reset-password`, `POST /api/v1/auth/email/verify/{id}/{hash}`, `POST /api/v1/auth/email/resend`.
 
-**Web entry**: `GET /login`, `POST /login`, and CSRF-protected `POST /logout` use Laravel's encrypted server-side session guard. Successful login regenerates the session; logout invalidates it and regenerates the CSRF token. Destination resolution uses platform permissions and active organization memberships. Users without a completed role dashboard receive a factual fallback rather than a placeholder portal.
+**Web entry**: `GET /login`, `POST /login`, and CSRF-protected `POST /logout` use Laravel's encrypted server-side session guard. Successful login regenerates the session; logout invalidates it and regenerates the CSRF token. Destination resolution uses platform permissions and active organization memberships. Eligible organization users reach the permission-protected `GET /dashboard`; multiple memberships require trusted server-side selection first. Users without usable organization access receive a factual access page.
 
 **Future usage**: 2FA (TOTP) enforcement per [Security Policies](../../docs/security/policies.md) and device trust are data-model-ready (see `Core\Users`) but not yet enforced in the login flow — planned for a later v1.x iteration.

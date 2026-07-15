@@ -20,6 +20,7 @@ declare(strict_types=1);
 */
 
 return [
+    'organization.dashboard.view' => 'View the active organization dashboard',
     'core.users.manage' => 'Create, update, suspend, and delete platform users',
     'core.users.view' => 'View platform user records',
     'core.roles.manage' => 'Create, update, and delete roles and their permission assignments',
