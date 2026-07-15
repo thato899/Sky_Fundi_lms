@@ -29,6 +29,14 @@ final class LearnerStatusService
         'completed' => [],
     ];
 
+    /** @return list<LearnerStatus> */
+    public function availableTransitions(LearnerProfile $learner): array
+    {
+        $status = $this->status($learner);
+
+        return $status === LearnerStatus::Archived ? [] : self::TRANSITIONS[$status->value];
+    }
+
     public function transition(LearnerProfile $learner, LearnerStatus $newStatus, User $actor, ?string $reason = null): LearnerProfile
     {
         if ($newStatus === LearnerStatus::Archived) {

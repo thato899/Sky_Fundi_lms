@@ -2,15 +2,17 @@
 
 ## Current State
 
-The initial frontend is server-rendered **Blade**, consuming the same versioned REST API (see [`../api/conventions.md`](../api/conventions.md)) that any future client would use — Blade views call internal API endpoints rather than embedding business logic directly in controllers/views, so the UI layer never becomes a shortcut around the API-first principle.
+The organization-scoped [Learner management interface](learner-management.md) is available to authorized members at `/learners`. The [organization administrator dashboard](organization-admin-dashboard.md) links to it when the active membership has `learners.view`.
+
+The frontend is server-rendered **Blade**. Thin web controllers reuse the same application services, policies, validation, organization context, and domain workflows as the versioned REST API (see [`../api/conventions.md`](../api/conventions.md)); views contain presentation logic only.
 
 ## Future Frontends
 
-React (web) and Flutter/Android (mobile) are expected future clients of the same API. Because Blade already talks to the API rather than bypassing it, introducing these should require no Core/module changes beyond ordinary API evolution.
+React (web) and Flutter/Android (mobile) are possible future clients of the same API. The existing Blade interface does not change the API contract.
 
 ## Principles for Blade Views
 
-- Views render presentation only; no business logic, no direct Eloquent queries from a view or its controller beyond what's needed to call the module's own API/service layer.
+- Views render presentation only; business workflows remain in module application services and organization-scoped option queries remain in controllers.
 - Shared layout/components live under `resources/views` at the appropriate scope (platform-wide vs module-specific) — see [`resources/README.md`](../../resources/README.md).
 - Module-provided UI (if a module ships Blade views) lives inside that module's own `resources/views`, per [Module Anatomy](../architecture/module-system.md#module-anatomy), not in the shared `resources/` tree, keeping module removal clean.
 

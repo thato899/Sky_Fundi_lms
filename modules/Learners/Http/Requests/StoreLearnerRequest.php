@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Learners\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 
 final class StoreLearnerRequest extends FormRequest
@@ -16,6 +17,8 @@ final class StoreLearnerRequest extends FormRequest
 
     public function rules(): array
     {
+        $organizationId = $this->attributes->get('organization')?->getKey();
+
         return [
             'learner_number' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z0-9][A-Za-z0-9._\/-]*$/'],
             'admission_number' => ['nullable', 'string', 'max:255'],
@@ -37,10 +40,10 @@ final class StoreLearnerRequest extends FormRequest
             'province' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'size:2'],
             'postal_code' => ['nullable', 'string', 'max:20'],
-            'current_academic_year_id' => ['nullable', 'uuid', 'exists:academics_academic_years,id'],
-            'current_grade_id' => ['nullable', 'uuid', 'exists:academics_grades,id'],
-            'current_class_id' => ['nullable', 'uuid', 'exists:academics_classes,id'],
-            'curriculum_id' => ['nullable', 'uuid', 'exists:academics_curricula,id'],
+            'current_academic_year_id' => ['nullable', 'uuid', Rule::exists('academics_academic_years', 'id')->where('organization_id', $organizationId)],
+            'current_grade_id' => ['nullable', 'uuid', Rule::exists('academics_grades', 'id')->where('organization_id', $organizationId)],
+            'current_class_id' => ['nullable', 'uuid', Rule::exists('academics_classes', 'id')->where('organization_id', $organizationId)],
+            'curriculum_id' => ['nullable', 'uuid', Rule::exists('academics_curricula', 'id')->where('organization_id', $organizationId)],
             'organization_id' => ['prohibited'],
             'user_id' => ['prohibited'],
             'organization_membership_id' => ['prohibited'],

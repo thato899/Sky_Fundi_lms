@@ -15,6 +15,6 @@ final class ArchiveLearnerRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['reason' => ['required', 'string', 'max:2000']];
+        return ['reason' => ['nullable', 'string', 'max:2000']];
     }
 }

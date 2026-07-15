@@ -19,7 +19,7 @@ final class TransitionLearnerStatusRequest extends FormRequest
     {
         return [
             'status' => ['required', Rule::enum(LearnerStatus::class), Rule::notIn([LearnerStatus::Archived->value])],
-            'reason' => ['required', 'string', 'max:2000'],
+            'reason' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }
