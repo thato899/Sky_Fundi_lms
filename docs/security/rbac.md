@@ -2,6 +2,8 @@
 
 Attendance declares `attendance.view`, `attendance.create`, `attendance.record`, `attendance.update`, `attendance.finalize`, `attendance.reopen`, `attendance.cancel`, `attendance.export`, and `attendance.view_reports`. Reopening is deliberately separate and requires a reason. Learner and Guardian roles receive no administrative attendance permissions.
 
+Assessments declares `assessments.view`, `assessments.create`, `assessments.update`, `assessments.mark`, `assessments.finalize`, `assessments.reopen`, `assessments.cancel`, `assessments.release`, `assessments.export`, `assessments.view_reports`, and `assessment_categories.manage`. Teacher/Tutor defaults omit reopen, cancel, release, reporting, and category management; assignment enforcement is unavailable until teacher-class/subject assignments exist.
+
 ## Model
 
 - **Users** belong to one or more **Tenants**.

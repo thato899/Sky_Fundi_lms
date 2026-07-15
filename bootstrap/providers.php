@@ -27,6 +27,7 @@ use Core\Subscriptions\Providers\SubscriptionsServiceProvider;
 use Core\Support\Providers\SupportServiceProvider;
 use Core\Users\Providers\UsersServiceProvider;
 use Modules\Academics\Providers\AcademicsServiceProvider;
+use Modules\Assessments\Providers\AssessmentsServiceProvider;
 use Modules\Attendance\Providers\AttendanceServiceProvider;
 use Modules\Learners\Providers\LearnersServiceProvider;
 use Modules\Organizations\Providers\OrganizationsServiceProvider;
@@ -72,4 +73,5 @@ return [
     StaffServiceProvider::class,
     LearnersServiceProvider::class,
     AttendanceServiceProvider::class,
+    AssessmentsServiceProvider::class,
 ];
