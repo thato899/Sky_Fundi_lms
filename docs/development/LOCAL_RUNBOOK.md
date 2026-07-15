@@ -1,5 +1,7 @@
 # Local development runbook
 
+Attendance permissions are installed by `php artisan migrate --seed`. The authenticated `/attendance` interface requires an active organization context, the Attendance module enabled for that organization, and an effective attendance permission.
+
 After signing in at `/login` and selecting an active organization, authorized members can open `/academics` directly or through the Academic management dashboard card. Verify protected pages with authenticated automated tests.
 
 ## Prerequisites

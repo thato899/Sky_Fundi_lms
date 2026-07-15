@@ -1,0 +1,5 @@
+@extends('attendance.layout')
+@section('title','Learner attendance history')
+@section('attendance-content')
+<h1>{{ $learner->first_name }} {{ $learner->last_name }} attendance</h1><p class="muted">Summary based only on recorded finalized sessions.</p><div class="grid">@foreach(['present','absent','late','excused','remote'] as $status)<div class="card"><strong>{{ $totals[$status] ?? 0 }}</strong><br>{{ ucfirst($status) }}</div>@endforeach</div><div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Class/session</th><th>Subject</th><th>Status</th><th>Minutes late</th><th>Reason</th></tr></thead><tbody>@forelse($entries as $entry)<tr><td>{{ $entry->session->session_date->format('Y-m-d') }}</td><td>{{ $entry->session->classGroup->name }}</td><td>{{ $entry->session->subject?->name ?? '—' }}</td><td>{{ $entry->status->value }}</td><td>{{ $entry->minutes_late ?? '—' }}</td><td>{{ $entry->reason ?? '—' }}</td></tr>@empty<tr><td colspan="6">No finalized attendance has been recorded.</td></tr>@endforelse</tbody></table></div>{{ $entries->links() }}
+@endsection

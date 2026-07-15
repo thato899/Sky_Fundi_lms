@@ -44,4 +44,4 @@ docker compose exec app php artisan db:seed --class="Modules\\Learners\\Database
 
 This grants all learner permissions to Super Admin and Organization Administrator, and all except number override to Academic Administrator. Teacher, Tutor, and Learner receive no learner-administration permissions by default. Authorization checks permissions rather than role names.
 
-Learner login accounts, invitations, portal workflows, guardians, imports, documents, consent, attendance, homework, assessments, marks, reports, historical enrolments, RAG/AI features, mobile functionality, and the neighboring milestones are explicitly not implemented.
+Learner login accounts, invitations, portal workflows, guardians, imports, documents, consent, homework, assessments, marks, reports, historical enrolments, RAG/AI features, and mobile functionality are explicitly not implemented here. The separate Attendance module reads trusted current placement and exposes finalized learner attendance history without modifying learner records.
