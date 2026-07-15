@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Modules\Academics\Providers;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
+use Modules\Academics\Http\Middleware\EnforceAcademicOrganization;
 
 /**
  * Bootstraps the Academics module exactly as every Core service
@@ -20,6 +22,7 @@ final class AcademicsServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        $this->app->make(Router::class)->aliasMiddleware('academics.organization', EnforceAcademicOrganization::class);
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         Route::middleware('api')

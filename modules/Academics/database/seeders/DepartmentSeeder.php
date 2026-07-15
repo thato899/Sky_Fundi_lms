@@ -6,6 +6,7 @@ namespace Modules\Academics\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Academics\Infrastructure\Models\Department;
+use Modules\Organizations\Infrastructure\Models\Organization;
 
 /**
  * Example departments per modules/Academics/README.md#departments —
@@ -27,8 +28,10 @@ final class DepartmentSeeder extends Seeder
 
     public function run(): void
     {
-        foreach (self::DEPARTMENTS as $department) {
-            Department::query()->firstOrCreate(['code' => $department['code']], $department);
+        foreach (Organization::query()->get() as $organization) {
+            foreach (self::DEPARTMENTS as $department) {
+                Department::query()->withoutGlobalScopes()->firstOrCreate(['organization_id' => $organization->getKey(), 'code' => $department['code']], $department);
+            }
         }
     }
 }

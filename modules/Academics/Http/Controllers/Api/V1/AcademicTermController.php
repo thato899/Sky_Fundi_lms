@@ -38,11 +38,15 @@ final class AcademicTermController extends Controller
 
     public function update(UpdateAcademicTermRequest $request, AcademicYear $academicYear, AcademicTerm $term): JsonResponse
     {
+        abort_unless($term->getAttribute('academic_year_id') === $academicYear->getKey(), 404);
+
         return $this->ok(new AcademicTermResource($this->terms->update($term, $request->validated())));
     }
 
     public function setCurrent(AcademicYear $academicYear, AcademicTerm $term): JsonResponse
     {
+        abort_unless($term->getAttribute('academic_year_id') === $academicYear->getKey(), 404);
+
         return $this->ok(new AcademicTermResource($this->terms->setCurrent($term)));
     }
 }

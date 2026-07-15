@@ -20,7 +20,8 @@ final class CalendarService
 {
     public function addEntry(AcademicYear $year, array $attributes): CalendarEntry
     {
-        $entry = $year->calendarEntries()->create($attributes);
+        /** @var CalendarEntry $entry */
+        $entry = $year->calendarEntries()->create([...$attributes, 'organization_id' => $year->getAttribute('organization_id')]);
 
         event(new CalendarUpdated($entry, 'created'));
 

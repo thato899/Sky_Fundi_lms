@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Academics\Tests\Feature;
 
+use Core\Identity\Infrastructure\Models\Membership;
 use Core\RBAC\Infrastructure\Models\Permission;
 use Core\RBAC\Infrastructure\Models\Role;
 use Core\Users\Infrastructure\Models\User;
@@ -13,11 +14,14 @@ use Modules\Academics\Database\Seeders\AcademicsPermissionSeeder;
 use Modules\Academics\Database\Seeders\CurriculumSeeder;
 use Modules\Academics\Infrastructure\Models\Curriculum;
 use Modules\Academics\Infrastructure\Models\Grade;
+use Modules\Organizations\Infrastructure\Models\Organization;
 use Tests\TestCase;
 
 final class GradeAndCurriculumTest extends TestCase
 {
     use RefreshDatabase;
+
+    private Organization $organization;
 
     private function actingAdmin(): User
     {
@@ -29,12 +33,15 @@ final class GradeAndCurriculumTest extends TestCase
 
         $admin = User::factory()->create();
         $admin->roles()->attach($role->id);
+        $this->organization = Organization::create(['name' => 'School', 'code' => 'school-grade', 'type' => 'school']);
+        Membership::create(['organization_id' => $this->organization->id, 'user_id' => $admin->id, 'role_id' => $role->id, 'status' => 'active', 'is_default' => true]);
 
         return $admin;
     }
 
     public function test_curricula_are_seeded_from_the_database_not_hardcoded(): void
     {
+        $this->actingAdmin();
         $this->seed(CurriculumSeeder::class);
 
         $this->assertDatabaseHas('academics_curricula', ['code' => 'CAPS']);
@@ -63,8 +70,8 @@ final class GradeAndCurriculumTest extends TestCase
     {
         $admin = $this->actingAdmin();
 
-        $a = Grade::create(['name' => 'Grade 8', 'order' => 1]);
-        $b = Grade::create(['name' => 'Grade 9', 'order' => 2]);
+        $a = Grade::create(['organization_id' => $this->organization->id, 'name' => 'Grade 8', 'order' => 1]);
+        $b = Grade::create(['organization_id' => $this->organization->id, 'name' => 'Grade 9', 'order' => 2]);
 
         $this->actingAs($admin, 'sanctum')
             ->postJson('/api/v1/academics/grades/reorder', ['grade_ids' => [$b->id, $a->id]])

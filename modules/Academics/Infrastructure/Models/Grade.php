@@ -10,9 +10,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Academics\Domain\Enums\AcademicStatus;
+use Modules\Academics\Infrastructure\Concerns\BelongsToOrganization;
 
 final class Grade extends Model
 {
+    use BelongsToOrganization;
     use HasUuidPrimaryKey;
     use SoftDeletes;
 
@@ -20,7 +22,7 @@ final class Grade extends Model
 
     protected $attributes = ['status' => 'active'];
 
-    protected $fillable = ['name', 'order', 'curriculum_id', 'academic_year_id', 'status'];
+    protected $fillable = ['organization_id', 'name', 'order', 'curriculum_id', 'academic_year_id', 'status'];
 
     protected function casts(): array
     {
@@ -43,5 +45,10 @@ final class Grade extends Model
     public function classes(): HasMany
     {
         return $this->hasMany(ClassGroup::class);
+    }
+
+    protected function organizationReferences(): array
+    {
+        return ['curriculum_id' => Curriculum::class, 'academic_year_id' => AcademicYear::class];
     }
 }

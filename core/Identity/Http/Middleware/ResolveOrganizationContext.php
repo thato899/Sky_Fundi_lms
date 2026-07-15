@@ -7,6 +7,7 @@ namespace Core\Identity\Http\Middleware;
 use Closure;
 use Core\Identity\Application\OrganizationContextService;
 use Illuminate\Http\Request;
+use Modules\Organizations\Domain\Enums\OrganizationStatus;
 use Symfony\Component\HttpFoundation\Response;
 
 final class ResolveOrganizationContext
@@ -19,8 +20,12 @@ final class ResolveOrganizationContext
         if ($request->user() && $membership === null) {
             abort(403, 'An active organization membership is required.');
         }
+        $organization = $membership?->getRelation('organization');
+        if ($organization !== null && $organization->getAttribute('status') !== OrganizationStatus::Active) {
+            abort(403, 'An active organization is required.');
+        }
         $request->attributes->set('organization_membership', $membership);
-        $request->attributes->set('organization', $membership?->organization);
+        $request->attributes->set('organization', $organization);
 
         return $next($request);
     }

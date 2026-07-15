@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Academics\Domain\Enums\AcademicStatus;
+use Modules\Academics\Infrastructure\Concerns\BelongsToOrganization;
 
 /**
  * Named ClassGroup, not Class, because `Class` is a reserved word in
@@ -17,6 +18,7 @@ use Modules\Academics\Domain\Enums\AcademicStatus;
  */
 final class ClassGroup extends Model
 {
+    use BelongsToOrganization;
     use HasUuidPrimaryKey;
     use SoftDeletes;
 
@@ -24,7 +26,7 @@ final class ClassGroup extends Model
 
     protected $attributes = ['status' => 'active'];
 
-    protected $fillable = ['name', 'capacity', 'academic_year_id', 'grade_id', 'is_homeroom', 'status'];
+    protected $fillable = ['organization_id', 'name', 'capacity', 'academic_year_id', 'grade_id', 'is_homeroom', 'status'];
 
     protected function casts(): array
     {
@@ -43,5 +45,10 @@ final class ClassGroup extends Model
     public function grade(): BelongsTo
     {
         return $this->belongsTo(Grade::class);
+    }
+
+    protected function organizationReferences(): array
+    {
+        return ['academic_year_id' => AcademicYear::class, 'grade_id' => Grade::class];
     }
 }

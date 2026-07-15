@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Academics\Tests\Feature;
 
+use Core\Identity\Infrastructure\Models\Membership;
 use Core\RBAC\Infrastructure\Models\Permission;
 use Core\RBAC\Infrastructure\Models\Role;
 use Core\Users\Infrastructure\Models\User;
@@ -12,11 +13,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Academics\Database\Seeders\AcademicsPermissionSeeder;
 use Modules\Academics\Domain\Enums\AcademicYearStatus;
 use Modules\Academics\Infrastructure\Models\AcademicYear;
+use Modules\Organizations\Infrastructure\Models\Organization;
 use Tests\TestCase;
 
 final class AcademicYearTest extends TestCase
 {
     use RefreshDatabase;
+
+    private Organization $organization;
 
     private function actingAdmin(): User
     {
@@ -28,6 +32,8 @@ final class AcademicYearTest extends TestCase
 
         $admin = User::factory()->create();
         $admin->roles()->attach($role->id);
+        $this->organization = Organization::create(['name' => 'School', 'code' => 'school-year', 'type' => 'school']);
+        Membership::create(['organization_id' => $this->organization->id, 'user_id' => $admin->id, 'role_id' => $role->id, 'status' => 'active', 'is_default' => true]);
 
         return $admin;
     }
@@ -73,8 +79,8 @@ final class AcademicYearTest extends TestCase
     {
         $admin = $this->actingAdmin();
 
-        $yearOne = AcademicYear::create(['name' => '2025', 'start_date' => '2025-01-01', 'end_date' => '2025-12-01', 'is_current' => true, 'status' => AcademicYearStatus::Current]);
-        $yearTwo = AcademicYear::create(['name' => '2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-01']);
+        $yearOne = AcademicYear::create(['organization_id' => $this->organization->id, 'name' => '2025', 'start_date' => '2025-01-01', 'end_date' => '2025-12-01', 'is_current' => true, 'status' => AcademicYearStatus::Current]);
+        $yearTwo = AcademicYear::create(['organization_id' => $this->organization->id, 'name' => '2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-01']);
 
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/academics/academic-years/{$yearTwo->id}/set-current")
@@ -88,7 +94,7 @@ final class AcademicYearTest extends TestCase
     public function test_closing_a_year_removes_its_current_status(): void
     {
         $admin = $this->actingAdmin();
-        $year = AcademicYear::create(['name' => '2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-01', 'is_current' => true, 'status' => AcademicYearStatus::Current]);
+        $year = AcademicYear::create(['organization_id' => $this->organization->id, 'name' => '2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-01', 'is_current' => true, 'status' => AcademicYearStatus::Current]);
 
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/academics/academic-years/{$year->id}/close")

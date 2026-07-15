@@ -4,6 +4,8 @@ The Learners module provides a secure organization-scoped administration API, le
 
 Each profile belongs to an organization. A learner may exist as a profile only; links to a platform `User` and organization `Membership` are nullable. Optional current-placement relationships connect a profile to an academic year, grade, class, and curriculum.
 
+Placement validation resolves all four academic references inside the learner's organization, rejects inactive or archived records, and preserves curriculum/grade/class/year compatibility. Academic records from another organization cannot be assigned even when their UUIDs are known.
+
 `LearnerNumberService` allocates numbers from a row-locked sequence owned by each organization and optional academic year. Prefix and padding are configurable at generation time: the default is `LRN-000001`, while a prefix of `STU`, academic year `2026/27`, and padding of four produces `STU-2026/27-0001`. It never derives identifiers from learner counts or randomness. Existing generated numbers are skipped, and the database continues to enforce organization-scoped learner-number uniqueness.
 
 Manual numbers must pass through `LearnerNumberService::validateManual()` before profile creation. Validation trims the value, enforces its storage length, and rejects a number already used by the organization; the database unique constraint remains the final concurrency safeguard.

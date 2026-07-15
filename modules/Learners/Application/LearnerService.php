@@ -47,7 +47,7 @@ final class LearnerService
                 throw new DomainException('Manual learner numbers require learners.override_number.');
             }
 
-            $this->validatePlacement($data);
+            $this->validatePlacement($organization, $data);
             $learnerNumber = $manualNumber !== null
                 ? $this->numbers->validateManual($organization, (string) $manualNumber)
                 : $this->numbers->next($organization);
@@ -91,7 +91,9 @@ final class LearnerService
 
     public function updateAcademicPlacement(LearnerProfile $learner, User $actor, array $data): LearnerProfile
     {
-        $this->validatePlacement($data);
+        /** @var Organization $organization */
+        $organization = $learner->getRelationValue('organization');
+        $this->validatePlacement($organization, $data);
 
         return DB::transaction(function () use ($learner, $actor, $data): LearnerProfile {
             $before = Arr::only($learner->getAttributes(), self::PLACEMENT_FIELDS);
@@ -119,16 +121,16 @@ final class LearnerService
         return $this->statuses->restore($learner, $actor, $reason);
     }
 
-    private function validatePlacement(array $data): void
+    private function validatePlacement(Organization $organization, array $data): void
     {
         /** @var AcademicYear|null $year */
-        $year = isset($data['current_academic_year_id']) ? AcademicYear::query()->whereKey((string) $data['current_academic_year_id'])->first() : null;
+        $year = isset($data['current_academic_year_id']) ? AcademicYear::query()->withoutGlobalScopes()->where('organization_id', $organization->getKey())->whereKey((string) $data['current_academic_year_id'])->first() : null;
         /** @var Grade|null $grade */
-        $grade = isset($data['current_grade_id']) ? Grade::query()->whereKey((string) $data['current_grade_id'])->first() : null;
+        $grade = isset($data['current_grade_id']) ? Grade::query()->withoutGlobalScopes()->where('organization_id', $organization->getKey())->whereKey((string) $data['current_grade_id'])->first() : null;
         /** @var ClassGroup|null $class */
-        $class = isset($data['current_class_id']) ? ClassGroup::query()->whereKey((string) $data['current_class_id'])->first() : null;
+        $class = isset($data['current_class_id']) ? ClassGroup::query()->withoutGlobalScopes()->where('organization_id', $organization->getKey())->whereKey((string) $data['current_class_id'])->first() : null;
         /** @var Curriculum|null $curriculum */
-        $curriculum = isset($data['curriculum_id']) ? Curriculum::query()->whereKey((string) $data['curriculum_id'])->first() : null;
+        $curriculum = isset($data['curriculum_id']) ? Curriculum::query()->withoutGlobalScopes()->where('organization_id', $organization->getKey())->whereKey((string) $data['curriculum_id'])->first() : null;
 
         if (isset($data['current_academic_year_id']) && ($year === null || $year->getAttribute('status') === AcademicYearStatus::Archived)) {
             throw new DomainException('The academic year must exist and must not be archived.');

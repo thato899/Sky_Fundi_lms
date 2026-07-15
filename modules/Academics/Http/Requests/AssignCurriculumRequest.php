@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Academics\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class AssignCurriculumRequest extends FormRequest
 {
@@ -16,7 +17,7 @@ final class AssignCurriculumRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'curriculum_id' => ['required', 'uuid', 'exists:academics_curricula,id'],
+            'curriculum_id' => ['required', 'uuid', Rule::exists('academics_curricula', 'id')->where('organization_id', $this->attributes->get('organization')?->getKey())],
         ];
     }
 }

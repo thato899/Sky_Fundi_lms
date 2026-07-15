@@ -22,7 +22,7 @@ use Modules\Academics\Http\Controllers\Api\V1\TimetablePeriodController;
 | declared in module.json.
 */
 
-Route::middleware(['auth:sanctum', 'account.not-locked'])->prefix('academics')->name('academics.')->group(function (): void {
+Route::middleware(['auth:sanctum', 'account.not-locked', 'organization.context', 'academics.organization'])->prefix('academics')->name('academics.')->group(function (): void {
 
     Route::prefix('curricula')->name('curricula.')->group(function (): void {
         Route::get('/', [CurriculumController::class, 'index'])->middleware('permission:academics.curriculum.view')->name('index');
