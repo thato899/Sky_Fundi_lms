@@ -23,6 +23,8 @@ final class OrganizationDashboardController
         abort_unless($membership instanceof Membership, 403);
         abort_unless($this->permissions->allows($membership, 'organization.dashboard.view'), 403);
 
-        return view('dashboard', $this->dashboard->for($membership));
+        return view('dashboard', $this->dashboard->for($membership) + [
+            'permissions' => $this->permissions->permissions($membership),
+        ]);
     }
 }

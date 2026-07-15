@@ -8,4 +8,4 @@ The dashboard reports live organization-scoped learner status and portal counts,
 
 Audit display is deliberately restricted to events directly targeting the active organization. Raw request metadata and before/after payloads are never rendered. Learner and staff additions are summarized from their organization-owned records. Empty data produces factual empty states.
 
-The dashboard links only to implemented web routes: dashboard, trusted organization selection, and logout. Learner, staff, and academic management cards are disabled and identify their web interfaces as unavailable; existing APIs remain documented separately.
+The dashboard links to the implemented Staff management interface for memberships with `staff.view`, as well as dashboard, trusted organization selection, and logout. Learner and academic management cards remain disabled; their existing APIs are documented separately.
