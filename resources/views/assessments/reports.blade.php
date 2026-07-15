@@ -1,0 +1,5 @@
+@extends('assessments.layout')
+@section('title','Assessment reports')
+@section('assessment-content')
+<h1>Factual assessment summary</h1><p class="muted">Averages and extrema include marked results only. No pass/fail threshold or ranking is inferred.</p><div class="metric-grid"><article class="metric"><span>Assessments</span><strong>{{ $assessmentCount }}</strong></article><article class="metric"><span>Finalized</span><strong>{{ $finalizedCount }}</strong></article><article class="metric"><span>Marked results</span><strong>{{ $markedCount }}</strong></article><article class="metric"><span>Average</span><strong>{{ $average===null?'—':number_format((float)$average,2).'%' }}</strong></article><article class="metric"><span>Highest</span><strong>{{ $highest===null?'—':$highest.'%' }}</strong></article><article class="metric"><span>Lowest</span><strong>{{ $lowest===null?'—':$lowest.'%' }}</strong></article></div><h2>Result statuses</h2><dl>@foreach($totals as $status=>$count)<div><dt>{{ str_replace('_',' ',$status) }}</dt><dd>{{ $count }}</dd></div>@endforeach</dl>
+@endsection

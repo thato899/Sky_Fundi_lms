@@ -1,0 +1,5 @@
+@extends('assessments.layout')
+@section('title','Learner results')
+@section('assessment-content')
+<h1>{{ $learner->first_name }} {{ $learner->last_name }} · results</h1><p class="muted">Administrative history includes withheld and editable records; private notes are excluded.</p><div class="table-wrap"><table class="table"><thead><tr><th>Assessment</th><th>Category / subject</th><th>Date</th><th>Score</th><th>Percentage</th><th>Status</th><th>Lifecycle / release</th></tr></thead><tbody>@forelse($results as $r)<tr><td>{{ $r->assessment->title }}</td><td>{{ $r->assessment->category->name }} · {{ $r->assessment->subject->name }}</td><td>{{ $r->assessment->assessment_date?->toDateString() ?? '—' }}</td><td>{{ $r->score ?? '—' }} / {{ $r->assessment->maximum_mark }}</td><td>{{ $r->percentage===null?'—':$r->percentage.'%' }}</td><td>{{ $r->result_status->value }}</td><td>{{ $r->assessment->status->value }} · {{ $r->assessment->result_release_status->value }}</td></tr>@empty<tr><td colspan="7">No assessment results.</td></tr>@endforelse</tbody></table></div>{{ $results->links() }}
+@endsection
