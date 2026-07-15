@@ -1,0 +1,5 @@
+@extends('layouts.web')
+@section('title', 'Your access')
+@section('content')
+<section class="form-shell" style="width:min(720px,calc(100% - 2rem))"><div class="eyebrow">Authenticated access</div><h1 style="font-size:2.5rem">Hello, {{ $user->name }}</h1>@if($memberships->isEmpty())<div class="panel"><h2>Access unavailable</h2><p>Your account does not currently have an active membership in an active organization. Contact your organization administrator for access.</p></div>@else<p>Select the organization you want to use. Only active memberships are shown.</p><div class="stack">@foreach($memberships as $membership)<form class="panel membership" method="POST" action="{{ route('access.organization') }}">@csrf<input type="hidden" name="organization_id" value="{{ $membership->organization_id }}"><div><strong>{{ $membership->organization->name }}</strong><div class="meta">{{ $membership->role?->name ?? 'Member' }} · {{ $membership->status->value }}</div></div><button type="submit">Continue</button></form>@endforeach</div>@endif</section>
+@endsection

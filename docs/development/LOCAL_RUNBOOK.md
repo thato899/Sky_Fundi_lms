@@ -16,7 +16,9 @@ docker compose exec app php artisan migrate --seed
 
 `init` is a one-time Compose service. It waits for MySQL, creates `.env` only when it does not exist, installs the dependencies recorded in `composer.lock`, creates runtime directories, generates `APP_KEY` only if missing, and writes a completion marker. The `app`, `queue`, and `scheduler` services depend on its successful completion; they do not compete to initialise the bind-mounted source tree. `.env` is created locally, never overwritten, and remains ignored by Git.
 
-The application is available at `http://localhost:8000` and its public liveness endpoint is `GET /up`. Mailpit is available at `http://localhost:8025`. MySQL is published on host port 3307 and remains available as `mysql:3306` to Compose services.
+The public application entry page is available at `http://localhost:8000`, web login at `http://localhost:8000/login`, and the public liveness endpoint at `GET /up`. Mailpit is available at `http://localhost:8025`. MySQL is published on host port 3307 and remains available as `mysql:3306` to Compose services.
+
+After web login, a Super Admin is sent to `/super-admin`. A user with one active membership in an active organization is sent to the authenticated organization fallback dashboard; multiple active memberships require a trusted organization selection. Accounts without usable access receive a safe authenticated explanation. Role-specific organization, learner, guardian, and teacher dashboards are not implemented. Logout is a CSRF-protected `POST /logout` action that invalidates the session.
 
 ## Verification
 
@@ -47,6 +49,8 @@ docker compose ps queue scheduler
 ## Development Super Admin
 
 Before the first `docker compose exec app php artisan migrate --seed`, set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in your local `.env`. The supplied `SuperAdminUserSeeder` reads these values, creates the account idempotently, and skips creation when either is absent. Do not commit credentials or leave real production credentials in `.env`.
+
+Log in at `http://localhost:8000/login`. Organization users must be provisioned through the existing authenticated administration/API workflows; there is no public registration or school-signup flow.
 
 ## Optional Ollama with direct-WSL Docker Engine
 

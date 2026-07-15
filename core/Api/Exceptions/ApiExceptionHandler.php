@@ -29,6 +29,10 @@ final class ApiExceptionHandler
     public static function register(Exceptions $exceptions): void
     {
         $exceptions->render(function (ValidationException $e, Request $request) {
+            if (! self::shouldRender($request)) {
+                return null;
+            }
+
             return self::error(
                 code: 'validation_failed',
                 message: 'The given data was invalid.',
@@ -39,6 +43,10 @@ final class ApiExceptionHandler
         });
 
         $exceptions->render(function (AccountNotActiveException $e, Request $request) {
+            if (! self::shouldRender($request)) {
+                return null;
+            }
+
             return self::error(
                 code: 'account_not_active',
                 message: $e->getMessage(),
@@ -47,6 +55,10 @@ final class ApiExceptionHandler
         });
 
         $exceptions->render(function (DomainException $e, Request $request) {
+            if (! self::shouldRender($request)) {
+                return null;
+            }
+
             return self::error(
                 code: 'domain_rule_violation',
                 message: $e->getMessage(),
@@ -55,6 +67,10 @@ final class ApiExceptionHandler
         });
 
         $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if (! self::shouldRender($request)) {
+                return null;
+            }
+
             return self::error(
                 code: 'unauthenticated',
                 message: 'Authentication is required to access this resource.',
@@ -63,6 +79,10 @@ final class ApiExceptionHandler
         });
 
         $exceptions->render(function (AuthorizationException $e, Request $request) {
+            if (! self::shouldRender($request)) {
+                return null;
+            }
+
             return self::error(
                 code: 'forbidden',
                 message: $e->getMessage() ?: 'You do not have permission to perform this action.',
@@ -71,6 +91,10 @@ final class ApiExceptionHandler
         });
 
         $exceptions->render(function (ModelNotFoundException $e, Request $request) {
+            if (! self::shouldRender($request)) {
+                return null;
+            }
+
             return self::error(
                 code: 'not_found',
                 message: 'The requested resource could not be found.',
@@ -79,6 +103,10 @@ final class ApiExceptionHandler
         });
 
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if (! self::shouldRender($request)) {
+                return null;
+            }
+
             return self::error(
                 code: 'not_found',
                 message: 'The requested endpoint does not exist.',
@@ -87,6 +115,10 @@ final class ApiExceptionHandler
         });
 
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) {
+            if (! self::shouldRender($request)) {
+                return null;
+            }
+
             return self::error(
                 code: 'http_error',
                 message: $e->getMessage() ?: 'An error occurred processing your request.',
@@ -95,6 +127,10 @@ final class ApiExceptionHandler
         });
 
         $exceptions->render(function (Throwable $e, Request $request) {
+            if (! self::shouldRender($request)) {
+                return null;
+            }
+
             $status = 500;
 
             report($e);
@@ -106,6 +142,11 @@ final class ApiExceptionHandler
                 details: config('app.debug') ? ['exception' => $e::class, 'trace' => $e->getTraceAsString()] : null,
             );
         });
+    }
+
+    private static function shouldRender(Request $request): bool
+    {
+        return $request->expectsJson() || $request->is('api/*');
     }
 
     private static function error(

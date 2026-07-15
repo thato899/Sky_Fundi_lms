@@ -15,6 +15,7 @@ use Core\Users\Domain\Enums\UserStatus;
 use Core\Users\Infrastructure\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
 
 /**
  * Orchestrates authentication. Controllers stay thin (see
@@ -36,9 +37,26 @@ final class AuthService
      */
     public function login(string $email, string $password, string $ipAddress, string $deviceName = 'api'): LoginResult
     {
+        $user = $this->authenticate($email, $password, $ipAddress);
+
+        $expiresAt = config('sanctum.expiration')
+            ? now()->addMinutes((int) config('sanctum.expiration'))
+            : null;
+
+        $token = $user->createToken($deviceName, ['*'], $expiresAt);
+
+        return new LoginResult(user: $user, token: $token->plainTextToken);
+    }
+
+    /**
+     * Validate credentials and account state for a first-party session.
+     * API token issuance remains the responsibility of login().
+     */
+    public function authenticate(string $email, string $password, string $ipAddress): User
+    {
         $user = User::query()->where('email', $email)->first();
 
-        if ($user === null || ! Hash::check($password, $user->password)) {
+        if ($user === null || ! Hash::check($password, $user->getAuthPassword())) {
             if ($user !== null) {
                 $this->users->recordFailedLogin($user);
             }
@@ -52,24 +70,20 @@ final class AuthService
         }
 
         $this->assertAccountIsUsable($user);
-
         $this->users->recordSuccessfulLogin($user, $ipAddress);
-
-        $expiresAt = config('sanctum.expiration')
-            ? now()->addMinutes((int) config('sanctum.expiration'))
-            : null;
-
-        $token = $user->createToken($deviceName, ['*'], $expiresAt);
-
         event(new UserLoggedIn($user, $ipAddress));
         $this->auditLog->record(action: 'auth.login', target: $user);
 
-        return new LoginResult(user: $user->fresh(), token: $token->plainTextToken);
+        return $user->fresh();
     }
 
-    public function logout(User $user): void
+    public function logout(User $user, bool $revokeCurrentToken = true): void
     {
-        $user->currentAccessToken()?->delete();
+        $token = $user->currentAccessToken();
+
+        if ($revokeCurrentToken && $token instanceof PersonalAccessToken) {
+            $token->delete();
+        }
 
         event(new UserLoggedOut($user));
         $this->auditLog->record(action: 'auth.logout', target: $user);
@@ -102,7 +116,13 @@ final class AuthService
      */
     private function assertAccountIsUsable(User $user): void
     {
-        match ($user->status) {
+        $status = $user->getAttribute('status');
+
+        if (! $status instanceof UserStatus) {
+            throw AccountNotActiveException::deactivated();
+        }
+
+        match ($status) {
             UserStatus::Locked => throw AccountNotActiveException::locked(),
             UserStatus::Suspended => throw AccountNotActiveException::suspended(),
             UserStatus::Deactivated => throw AccountNotActiveException::deactivated(),

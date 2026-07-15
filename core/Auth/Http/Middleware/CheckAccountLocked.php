@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Core\Auth\Http\Middleware;
 
 use Closure;
+use Core\Users\Domain\Enums\UserStatus;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -26,6 +27,10 @@ final class CheckAccountLocked
 
         if ($user !== null && $user->isLocked()) {
             throw new HttpException(423, 'This account is locked. Contact a platform administrator.');
+        }
+
+        if ($user !== null && ! in_array($user->status, [UserStatus::Active, UserStatus::PendingVerification], true)) {
+            throw new HttpException(403, 'This account is not available. Contact a platform administrator.');
         }
 
         return $next($request);
