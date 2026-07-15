@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Staff\Database\Seeders\StaffPermissionSeeder;
 
 /**
  * Core-only seeding, per docs/roadmap.md v1.0 scope — no educational
@@ -19,6 +20,7 @@ final class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             RoleSeeder::class,
             OrganizationDashboardPermissionSeeder::class,
+            StaffPermissionSeeder::class,
             SettingsSeeder::class,
             BrandingSeeder::class,
             SuperAdminUserSeeder::class,
