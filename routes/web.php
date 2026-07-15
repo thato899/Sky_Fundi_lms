@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\OrganizationDashboardController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\WebAuthController;
 use App\Http\Controllers\WebEntryController;
@@ -29,7 +30,9 @@ Route::middleware(['auth', 'account.not-locked'])->group(function (): void {
     Route::post('/logout', [WebAuthController::class, 'destroy'])->name('logout');
     Route::get('/access', [WebEntryController::class, 'access'])->name('access');
     Route::post('/access/organization', [WebEntryController::class, 'selectOrganization'])->name('access.organization');
-    Route::get('/dashboard', [WebEntryController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard', OrganizationDashboardController::class)
+        ->middleware('organization.context')
+        ->name('dashboard');
 });
 
 Route::middleware(['auth', 'account.not-locked', 'permission:core.roles.manage'])->prefix('super-admin')->name('super-admin.')->group(function (): void {

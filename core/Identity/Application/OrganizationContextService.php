@@ -26,6 +26,17 @@ final class OrganizationContextService
 
     public function fromRequest(Request $request): ?Membership
     {
-        return $request->user() ? $this->membership($request->user(), $request->header('X-Organization-Id')) : null;
+        if (! $request->user() instanceof User) {
+            return null;
+        }
+
+        $organizationId = $request->header('X-Organization-Id');
+
+        if ($organizationId === null && $request->hasSession()) {
+            $selected = $request->session()->get('organization_id');
+            $organizationId = is_string($selected) ? $selected : null;
+        }
+
+        return $this->membership($request->user(), $organizationId);
     }
 }
