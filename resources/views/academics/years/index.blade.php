@@ -1,0 +1,6 @@
+@extends('academics.layout')
+@section('title','Academic years')
+@section('academic-content')
+<div class="academic-nav"><div><h1>Academic years</h1><p>Dates, lifecycle and nested terms and calendars.</p></div>@if(in_array('academics.academic-years.manage',$permissions,true))<a class="button" href="{{ route('academics.web.years.create') }}">Create academic year</a>@endif</div>
+@if($years->isEmpty())<p class="empty">No academic years exist for this organization.</p>@else<div class="table-wrap"><table class="academic-table"><thead><tr><th>Name</th><th>Dates</th><th>Status</th><th>Terms</th><th>Grades</th><th>Classes</th><th>Actions</th></tr></thead><tbody>@foreach($years as $year)<tr><td><a href="{{ route('academics.web.years.show',$year) }}">{{ $year->name }}</a>@if($year->is_current) <span class="badge">Current</span>@endif</td><td>{{ $year->start_date->toDateString() }} – {{ $year->end_date->toDateString() }}</td><td>{{ ucfirst($year->status->value) }}</td><td>{{ $year->terms_count }}</td><td>{{ $year->grades_count }}</td><td>{{ $year->classes_count }}</td><td><a href="{{ route('academics.web.terms.index',$year) }}">Terms</a> · <a href="{{ route('academics.web.calendar.index',$year) }}">Calendar</a></td></tr>@endforeach</tbody></table></div>@include('academics.partials.pagination',['paginator'=>$years])@endif
+@endsection

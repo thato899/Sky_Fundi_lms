@@ -47,6 +47,12 @@ Run `php artisan db:seed --class="Modules\Academics\Database\Seeders\AcademicsDa
 
 All routes are under `/api/v1/academics/...`, authenticated, and individually gated by the permissions above — see `routes/api.php`. Examples: `GET/POST /academic-years`, `POST /academic-years/{id}/set-current`, `GET/POST /academic-years/{id}/terms`, `GET/POST /grades`, `POST /grades/reorder`, `GET/POST /classes`, `GET/POST /subjects`, `PUT /subjects/{id}/curriculum`, `GET/POST /academic-years/{id}/calendar-entries`, `GET/POST /timetable-periods`.
 
+## Web management
+
+Authorized organization members can use `/academics` for academic years, nested terms, curricula, grades, classes, departments, subjects, timetable periods, and academic-year calendar entries. Writes delegate to the existing Application services. Trusted context supplies ownership, related UUIDs are organization-scoped, and invalid nested or foreign records return 404.
+
+Current year and term actions retain existing service semantics. Year lifecycle and curriculum activation use explicit POST actions. Calendar deletion is supported; timetable-period deletion is not exposed because the backend does not implement it. Education settings remain platform-global Core Settings, so the web page documents the limitation without exposing an unsafe tenant form. Timetable generation, assignments, enrolment history, attendance, assessments, marks, reports, content, portals, AI, and mobile workflows remain excluded.
+
 ## Allowed Dependencies
 
 `Core\Users`, `Core\RBAC`, `Core\Settings`, `Core\AuditLogs`, `Core\Support`, `Core\Api` — all Core, per [Module System](../../docs/architecture/module-system.md#module-isolation-rules). No other module exists yet to depend on or be depended upon.
