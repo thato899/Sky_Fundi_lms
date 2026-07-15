@@ -47,7 +47,7 @@
     <section class="section" aria-labelledby="management-heading"><h2 id="management-heading">Management areas</h2><div class="manage-grid">
         @if(in_array('learners.view', $permissions ?? [], true))<article class="feature"><h3>Learner management</h3><p>Search and manage organization learner profiles, placement and status.</p><a href="{{ route('learners.index') }}">Open learner management</a></article>@else<article class="feature disabled"><h3>Learner management</h3><p>You do not have permission to view learner management.</p></article>@endif
         @if(in_array('staff.view', $permissions ?? [], true))<article class="feature"><h3>Staff management</h3><p>Manage organization staff profiles and employment status.</p><a href="{{ route('staff.index') }}">Open staff management</a></article>@else<article class="feature disabled"><h3>Staff management</h3><p>You do not have permission to view staff management.</p></article>@endif
-        <article class="feature disabled"><h3>Academic management</h3><p>API available; web interface coming later.</p><span class="meta">Not available yet</span></article>
+        @if(in_array('academics.academic-years.view', $permissions ?? [], true))<article class="feature"><h3>Academic management</h3><p>Manage organization academic structures, calendars and timetable periods.</p><a href="{{ route('academics.web.index') }}">Open academic management</a></article>@else<article class="feature disabled"><h3>Academic management</h3><p>You do not have permission to view academic management.</p></article>@endif
     </div></section>
 </div>
 @endsection

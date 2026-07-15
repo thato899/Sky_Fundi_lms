@@ -1,5 +1,7 @@
 # Local development runbook
 
+After signing in at `/login` and selecting an active organization, authorized members can open `/academics` directly or through the Academic management dashboard card. Verify protected pages with authenticated automated tests.
+
 ## Prerequisites
 
 Use Docker Engine, Docker Compose v2, and Git. This repository was executable-verified with Docker Engine running directly inside WSL Ubuntu, not Docker Desktop. Allocate at least 4 GB RAM to Docker for the PHP and MySQL containers. Ollama is optional; no Laravel service requires it to boot.

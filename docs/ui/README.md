@@ -4,6 +4,8 @@
 
 The organization-scoped [Learner management interface](learner-management.md) is available to authorized members at `/learners`. The [organization administrator dashboard](organization-admin-dashboard.md) links to it when the active membership has `learners.view`.
 
+The [Academic management interface](academic-management.md) is available at `/academics` and reuses existing Academics permissions and services.
+
 The frontend is server-rendered **Blade**. Thin web controllers reuse the same application services, policies, validation, organization context, and domain workflows as the versioned REST API (see [`../api/conventions.md`](../api/conventions.md)); views contain presentation logic only.
 
 ## Future Frontends

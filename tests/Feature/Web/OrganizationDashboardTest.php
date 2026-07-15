@@ -39,7 +39,7 @@ final class OrganizationDashboardTest extends TestCase
         $response = $this->actingAs($user)->withSession(['organization_id' => $membership->organization_id])->get(route('dashboard'));
 
         $response->assertOk()->assertSee('Trusted Academy')->assertSee('2026')->assertSee('Total learners')->assertSee('>2<', false)
-            ->assertSee('Total staff')->assertDontSee('Other Academy')->assertSee('Log out')->assertSee('Not available yet');
+            ->assertSee('Total staff')->assertDontSee('Other Academy')->assertSee('Log out')->assertSee('You do not have permission to view academic management.');
     }
 
     public function test_dashboard_requires_permission_active_membership_and_active_organization(): void
