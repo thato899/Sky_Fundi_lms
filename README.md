@@ -18,7 +18,7 @@ docker compose up -d
 docker compose exec app php artisan migrate --seed
 ```
 
-The first command starts MySQL, creates `.env` only when it is absent, installs the locked Composer dependencies, generates a missing application key, and exits successfully. The application then opens at `http://localhost:8000`, with Mailpit at `http://localhost:8025`.
+The first command starts MySQL, creates `.env` only when it is absent, installs the locked Composer dependencies, generates a missing application key, and exits successfully. The Sky Fundi entry page then opens at `http://localhost:8000`, web login is at `http://localhost:8000/login`, and Mailpit is at `http://localhost:8025`. Development credentials are supplied through the seeding process described in the local runbook; no credentials are committed.
 
 For the full workflow, verification commands, optional Ollama setup, and troubleshooting, see [the local runbook](docs/development/LOCAL_RUNBOOK.md).
 
