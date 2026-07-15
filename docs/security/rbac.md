@@ -1,5 +1,7 @@
 # RBAC — Role-Based Access Control
 
+Attendance declares `attendance.view`, `attendance.create`, `attendance.record`, `attendance.update`, `attendance.finalize`, `attendance.reopen`, `attendance.cancel`, `attendance.export`, and `attendance.view_reports`. Reopening is deliberately separate and requires a reason. Learner and Guardian roles receive no administrative attendance permissions.
+
 ## Model
 
 - **Users** belong to one or more **Tenants**.

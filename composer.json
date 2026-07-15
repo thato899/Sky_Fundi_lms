@@ -30,6 +30,7 @@
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
             "Modules\\Academics\\Database\\Seeders\\": "modules/Academics/database/seeders/",
+            "Modules\\Attendance\\Database\\Seeders\\": "modules/Attendance/database/seeders/",
             "Modules\\Learners\\Database\\Seeders\\": "modules/Learners/database/seeders/",
             "Modules\\Organizations\\Database\\Seeders\\": "modules/Organizations/database/seeders/",
             "Modules\\Staff\\Database\\Seeders\\": "modules/Staff/database/seeders/"
@@ -39,6 +40,7 @@
         "psr-4": {
             "Tests\\": "tests/",
             "Modules\\Academics\\Tests\\": "modules/Academics/tests/",
+            "Modules\\Attendance\\Tests\\": "modules/Attendance/tests/",
             "Modules\\Learners\\Tests\\": "modules/Learners/tests/",
             "Modules\\Organizations\\Tests\\": "modules/Organizations/tests/",
             "Modules\\Staff\\Tests\\": "modules/Staff/tests/"
