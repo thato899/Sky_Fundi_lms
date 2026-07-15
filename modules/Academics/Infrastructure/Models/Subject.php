@@ -9,9 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Academics\Domain\Enums\AcademicStatus;
+use Modules\Academics\Infrastructure\Concerns\BelongsToOrganization;
 
 final class Subject extends Model
 {
+    use BelongsToOrganization;
     use HasUuidPrimaryKey;
     use SoftDeletes;
 
@@ -20,7 +22,7 @@ final class Subject extends Model
     protected $attributes = ['status' => 'active'];
 
     protected $fillable = [
-        'code', 'name', 'description', 'curriculum_id', 'department_id',
+        'organization_id', 'code', 'name', 'description', 'curriculum_id', 'department_id',
         'colour', 'ai_configuration', 'status',
     ];
 
@@ -40,5 +42,10 @@ final class Subject extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    protected function organizationReferences(): array
+    {
+        return ['curriculum_id' => Curriculum::class, 'department_id' => Department::class];
     }
 }

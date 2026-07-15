@@ -34,9 +34,9 @@ final class LearnerServiceTest extends TestCase
         $updated = $service->update($learner, $actor, ['preferred_name' => 'Avie']);
         $this->assertSame('Avie', $updated->preferred_name);
 
-        $year = AcademicYear::query()->create(['name' => '2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-31', 'status' => 'current']);
-        $grade = Grade::query()->create(['name' => 'Grade 8', 'order' => 8, 'academic_year_id' => $year->id]);
-        $class = ClassGroup::query()->create(['name' => '8A', 'academic_year_id' => $year->id, 'grade_id' => $grade->id]);
+        $year = AcademicYear::query()->create(['organization_id' => $organization->id, 'name' => '2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-31', 'status' => 'current']);
+        $grade = Grade::query()->create(['organization_id' => $organization->id, 'name' => 'Grade 8', 'order' => 8, 'academic_year_id' => $year->id]);
+        $class = ClassGroup::query()->create(['organization_id' => $organization->id, 'name' => '8A', 'academic_year_id' => $year->id, 'grade_id' => $grade->id]);
         $placed = $service->updateAcademicPlacement($updated, $actor, ['current_academic_year_id' => $year->id, 'current_grade_id' => $grade->id, 'current_class_id' => $class->id]);
         $this->assertSame($class->id, $placed->current_class_id);
 

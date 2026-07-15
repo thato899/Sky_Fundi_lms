@@ -64,25 +64,29 @@ final class LearnerProfileTest extends TestCase
 
     public function test_academic_relationships_work(): void
     {
-        $curriculum = Curriculum::create(['name' => 'CAPS', 'code' => 'CAPS']);
+        $organization = $this->organization();
+        $curriculum = Curriculum::create(['organization_id' => $organization->id, 'name' => 'CAPS', 'code' => 'CAPS']);
         $year = AcademicYear::create([
+            'organization_id' => $organization->id,
             'name' => '2026',
             'start_date' => '2026-01-01',
             'end_date' => '2026-12-31',
         ]);
         $grade = Grade::create([
+            'organization_id' => $organization->id,
             'name' => 'Grade 8',
             'order' => 8,
             'curriculum_id' => $curriculum->id,
             'academic_year_id' => $year->id,
         ]);
         $class = ClassGroup::create([
+            'organization_id' => $organization->id,
             'name' => '8A',
             'academic_year_id' => $year->id,
             'grade_id' => $grade->id,
         ]);
         $profile = LearnerProfile::factory()->create([
-            'organization_id' => $this->organization()->id,
+            'organization_id' => $organization->id,
             'current_academic_year_id' => $year->id,
             'current_grade_id' => $grade->id,
             'current_class_id' => $class->id,

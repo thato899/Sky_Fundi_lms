@@ -9,15 +9,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Academics\Domain\Enums\AcademicYearStatus;
+use Modules\Academics\Infrastructure\Concerns\BelongsToOrganization;
 
 final class AcademicYear extends Model
 {
+    use BelongsToOrganization;
     use HasUuidPrimaryKey;
     use SoftDeletes;
 
     protected $table = 'academics_academic_years';
 
-    protected $fillable = ['name', 'start_date', 'end_date', 'status', 'is_current'];
+    protected $fillable = ['organization_id', 'name', 'start_date', 'end_date', 'status', 'is_current'];
 
     protected function casts(): array
     {

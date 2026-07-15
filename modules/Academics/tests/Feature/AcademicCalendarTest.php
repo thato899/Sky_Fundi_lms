@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Academics\Tests\Feature;
 
+use Core\Identity\Infrastructure\Models\Membership;
 use Core\RBAC\Infrastructure\Models\Permission;
 use Core\RBAC\Infrastructure\Models\Role;
 use Core\Users\Infrastructure\Models\User;
@@ -11,11 +12,14 @@ use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Academics\Database\Seeders\AcademicsPermissionSeeder;
 use Modules\Academics\Infrastructure\Models\AcademicYear;
+use Modules\Organizations\Infrastructure\Models\Organization;
 use Tests\TestCase;
 
 final class AcademicCalendarTest extends TestCase
 {
     use RefreshDatabase;
+
+    private Organization $organization;
 
     private function actingAdmin(): User
     {
@@ -27,6 +31,8 @@ final class AcademicCalendarTest extends TestCase
 
         $admin = User::factory()->create();
         $admin->roles()->attach($role->id);
+        $this->organization = Organization::create(['name' => 'School', 'code' => 'school-calendar', 'type' => 'school']);
+        Membership::create(['organization_id' => $this->organization->id, 'user_id' => $admin->id, 'role_id' => $role->id, 'status' => 'active', 'is_default' => true]);
 
         return $admin;
     }
@@ -34,7 +40,7 @@ final class AcademicCalendarTest extends TestCase
     public function test_a_calendar_entry_can_be_added_to_an_academic_year(): void
     {
         $admin = $this->actingAdmin();
-        $year = AcademicYear::create(['name' => '2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-01']);
+        $year = AcademicYear::create(['organization_id' => $this->organization->id, 'name' => '2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-01']);
 
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/academics/academic-years/{$year->id}/calendar-entries", [
@@ -50,10 +56,10 @@ final class AcademicCalendarTest extends TestCase
     public function test_calendar_entries_can_be_filtered_by_type(): void
     {
         $admin = $this->actingAdmin();
-        $year = AcademicYear::create(['name' => '2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-01']);
+        $year = AcademicYear::create(['organization_id' => $this->organization->id, 'name' => '2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-01']);
 
-        $year->calendarEntries()->create(['type' => 'public_holiday', 'name' => 'Holiday', 'start_date' => '2026-03-21', 'end_date' => '2026-03-21']);
-        $year->calendarEntries()->create(['type' => 'exam_period', 'name' => 'Midyear Exams', 'start_date' => '2026-06-01', 'end_date' => '2026-06-14']);
+        $year->calendarEntries()->create(['organization_id' => $this->organization->id, 'type' => 'public_holiday', 'name' => 'Holiday', 'start_date' => '2026-03-21', 'end_date' => '2026-03-21']);
+        $year->calendarEntries()->create(['organization_id' => $this->organization->id, 'type' => 'exam_period', 'name' => 'Midyear Exams', 'start_date' => '2026-06-01', 'end_date' => '2026-06-14']);
 
         $response = $this->actingAs($admin, 'sanctum')
             ->getJson("/api/v1/academics/academic-years/{$year->id}/calendar-entries?type=exam_period")

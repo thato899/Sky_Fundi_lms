@@ -9,15 +9,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Academics\Domain\Enums\AcademicTermStatus;
+use Modules\Academics\Infrastructure\Concerns\BelongsToOrganization;
 
 final class AcademicTerm extends Model
 {
+    use BelongsToOrganization;
     use HasUuidPrimaryKey;
     use SoftDeletes;
 
     protected $table = 'academics_academic_terms';
 
-    protected $fillable = ['academic_year_id', 'term_number', 'name', 'start_date', 'end_date', 'status', 'is_current'];
+    protected $fillable = ['organization_id', 'academic_year_id', 'term_number', 'name', 'start_date', 'end_date', 'status', 'is_current'];
 
     protected function casts(): array
     {
@@ -33,5 +35,10 @@ final class AcademicTerm extends Model
     public function academicYear(): BelongsTo
     {
         return $this->belongsTo(AcademicYear::class);
+    }
+
+    protected function organizationReferences(): array
+    {
+        return ['academic_year_id' => AcademicYear::class];
     }
 }

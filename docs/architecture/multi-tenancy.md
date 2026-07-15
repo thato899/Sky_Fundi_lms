@@ -22,13 +22,14 @@ A `TenantType` is a documented enumeration, not a hardcoded assumption baked int
 Two isolation strategies are supported by the architecture; the choice per deployment is an operational decision, not an application-code decision:
 
 1. **Database-per-tenant** (expected default for production schools/colleges) — each tenant has its own MySQL database. Application code must never assume it can query "all tenants" from a single connection.
-2. **Shared database with tenant scoping** (useful for smaller tutoring centres, trials, or SaaS-style onboarding) — every tenant-owned table carries a `tenant_id` column, and all queries are automatically scoped to the current tenant context.
+2. **Shared database with tenant scoping** (useful for smaller tutoring centres, trials, or SaaS-style onboarding) — implemented organization-owned tables carry `organization_id`, and queries use trusted organization context.
 
 Because both must be supported, **all module and Core code must access tenant data only through tenant-aware abstractions** — never through raw, unscoped Eloquent queries — so the same code works regardless of which isolation strategy a given deployment uses.
 
 ## Tenant Context
 
 - Every authenticated request resolves a **current tenant context** early in the request lifecycle (Core concern, part of `core/Auth` and `core/Api`).
+- Academics uses request-aware query scoping plus an ownership guard for bound route models; services and validation also scope relationship resolution explicitly.
 - Background jobs and queued work must carry tenant context explicitly in their payload — a queue worker is not implicitly scoped to a tenant the way a web request is.
 - Console commands that operate on tenant data must require an explicit `--tenant=` argument; there is no "current tenant" outside a request/job context.
 

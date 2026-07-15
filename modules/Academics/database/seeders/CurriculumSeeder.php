@@ -6,6 +6,7 @@ namespace Modules\Academics\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Academics\Infrastructure\Models\Curriculum;
+use Modules\Organizations\Infrastructure\Models\Organization;
 
 /**
  * Example curricula — CAPS, IEB, Cambridge, and a generic Custom
@@ -24,8 +25,10 @@ final class CurriculumSeeder extends Seeder
 
     public function run(): void
     {
-        foreach (self::CURRICULA as $curriculum) {
-            Curriculum::query()->firstOrCreate(['code' => $curriculum['code']], $curriculum);
+        foreach (Organization::query()->get() as $organization) {
+            foreach (self::CURRICULA as $curriculum) {
+                Curriculum::query()->withoutGlobalScopes()->firstOrCreate(['organization_id' => $organization->getKey(), 'code' => $curriculum['code']], $curriculum);
+            }
         }
     }
 }

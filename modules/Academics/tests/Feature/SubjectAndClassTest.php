@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Academics\Tests\Feature;
 
+use Core\Identity\Infrastructure\Models\Membership;
 use Core\RBAC\Infrastructure\Models\Permission;
 use Core\RBAC\Infrastructure\Models\Role;
 use Core\Users\Infrastructure\Models\User;
@@ -14,11 +15,14 @@ use Modules\Academics\Database\Seeders\DepartmentSeeder;
 use Modules\Academics\Infrastructure\Models\AcademicYear;
 use Modules\Academics\Infrastructure\Models\Department;
 use Modules\Academics\Infrastructure\Models\Grade;
+use Modules\Organizations\Infrastructure\Models\Organization;
 use Tests\TestCase;
 
 final class SubjectAndClassTest extends TestCase
 {
     use RefreshDatabase;
+
+    private Organization $organization;
 
     private function actingAdmin(): User
     {
@@ -30,6 +34,8 @@ final class SubjectAndClassTest extends TestCase
 
         $admin = User::factory()->create();
         $admin->roles()->attach($role->id);
+        $this->organization = Organization::create(['name' => 'School', 'code' => 'school-subject', 'type' => 'school']);
+        Membership::create(['organization_id' => $this->organization->id, 'user_id' => $admin->id, 'role_id' => $role->id, 'status' => 'active', 'is_default' => true]);
 
         return $admin;
     }
@@ -63,8 +69,8 @@ final class SubjectAndClassTest extends TestCase
     public function test_a_class_can_be_created_and_marked_as_a_homeroom(): void
     {
         $admin = $this->actingAdmin();
-        $year = AcademicYear::create(['name' => '2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-01']);
-        $grade = Grade::create(['name' => 'Grade 8', 'order' => 8]);
+        $year = AcademicYear::create(['organization_id' => $this->organization->id, 'name' => '2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-01']);
+        $grade = Grade::create(['organization_id' => $this->organization->id, 'name' => 'Grade 8', 'order' => 8]);
 
         $this->actingAs($admin, 'sanctum')->postJson('/api/v1/academics/classes', [
             'name' => '8A',

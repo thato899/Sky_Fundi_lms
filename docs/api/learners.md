@@ -18,6 +18,8 @@ All endpoints require Sanctum authentication, an active organization membership 
 
 Creation always uses the trusted organization context, produces a profile-only learner with portal access disabled, and generates the learner number through `LearnerNumberService`. Supplying `learner_number` additionally requires `learners.override_number`.
 
+Academic placement references must belong to the learner organization. The year must not be archived; curriculum, grade, and class must be active; and class-to-grade, class-to-year, grade-to-year, and grade-to-curriculum compatibility is enforced.
+
 ## Directory query
 
 `search` matches first, last and preferred names, learner number, and admission number. Filters are `learner_status`, `onboarding_status`, `academic_year_id`, `curriculum_id`, `grade_id`, `class_id`, `portal_access_enabled`, `archived`, `admission_date_from`, and `admission_date_to`. Archived learners are excluded by default; use `archived=true` to return only archived profiles.

@@ -23,8 +23,10 @@ final class AcademicTermService
 
     public function create(AcademicYear $year, array $attributes): AcademicTerm
     {
+        /** @var AcademicTerm $term */
         $term = $year->terms()->create([
             ...$attributes,
+            'organization_id' => $year->getAttribute('organization_id'),
             'status' => $attributes['status'] ?? AcademicTermStatus::Upcoming,
             'is_current' => false,
         ]);
@@ -47,9 +49,9 @@ final class AcademicTermService
     public function setCurrent(AcademicTerm $term): AcademicTerm
     {
         AcademicTerm::query()
-            ->where('academic_year_id', $term->academic_year_id)
+            ->where('academic_year_id', $term->getAttribute('academic_year_id'))
             ->where('is_current', true)
-            ->where('id', '!=', $term->id)
+            ->where('id', '!=', $term->getKey())
             ->each(fn (AcademicTerm $previous) => $previous->update(['is_current' => false, 'status' => AcademicTermStatus::Closed]));
 
         $term->update(['is_current' => true, 'status' => AcademicTermStatus::Current]);
@@ -61,6 +63,9 @@ final class AcademicTermService
 
     public function currentFor(AcademicYear $year): ?AcademicTerm
     {
-        return $year->terms()->where('is_current', true)->first();
+        /** @var AcademicTerm|null $term */
+        $term = $year->terms()->where('is_current', true)->first();
+
+        return $term;
     }
 }

@@ -46,11 +46,14 @@ final class CalendarEntryController extends Controller
 
     public function update(UpdateCalendarEntryRequest $request, AcademicYear $academicYear, CalendarEntry $entry): JsonResponse
     {
+        abort_unless($entry->getAttribute('academic_year_id') === $academicYear->getKey(), 404);
+
         return $this->ok(new CalendarEntryResource($this->calendar->updateEntry($entry, $request->validated())));
     }
 
     public function destroy(AcademicYear $academicYear, CalendarEntry $entry): JsonResponse
     {
+        abort_unless($entry->getAttribute('academic_year_id') === $academicYear->getKey(), 404);
         $this->calendar->removeEntry($entry);
 
         return $this->noContent();
