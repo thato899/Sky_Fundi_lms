@@ -1,0 +1,23 @@
+@extends('learners.layout')
+@section('title',$learner ? 'Edit learner' : 'Add learner')
+@section('learner-content')
+<h1>{{ $learner ? 'Edit learner profile' : 'Add learner profile' }}</h1><p>{{ $learner ? 'Update supported identity and contact information.' : 'Create a profile-only learner. No login account or membership will be created.' }}</p>
+<form method="POST" action="{{ $learner ? route('learners.update',$learner->uuid) : route('learners.store') }}" class="learner-form">@csrf @if($learner)@method('PUT')@endif
+@php($value=fn($name,$fallback='')=>old($name,$learner?->getAttribute($name)??$fallback))
+<fieldset><legend>Identity</legend>
+ @if(!$learner && in_array('learners.override_number',$permissions,true))<div><label for="learner_number">Manual learner number</label><input id="learner_number" name="learner_number" value="{{ old('learner_number') }}" aria-describedby="number-help"><span id="number-help" class="help">Optional. Leave blank to generate the next learner number.</span>@error('learner_number')<span class="field-error">{{ $message }}</span>@enderror</div>@endif
+ @foreach([['first_name','First name',true],['middle_name','Middle name',false],['last_name','Last name',true],['preferred_name','Preferred name',false],['admission_number','Admission number',false]] as [$name,$label,$required])<div><label for="{{ $name }}">{{ $label }}</label><input id="{{ $name }}" name="{{ $name }}" value="{{ $value($name) }}" @required($required)>@error($name)<span class="field-error">{{ $message }}</span>@enderror</div>@endforeach
+ <div><label for="date_of_birth">Date of birth</label><input id="date_of_birth" type="date" name="date_of_birth" value="{{ $value('date_of_birth') instanceof Carbon\CarbonInterface ? $value('date_of_birth')->toDateString() : $value('date_of_birth') }}">@error('date_of_birth')<span class="field-error">{{ $message }}</span>@enderror</div>
+</fieldset>
+@if(!$learner)<fieldset><legend>Current academic placement</legend>
+ @foreach([['current_academic_year_id','Academic year',$academicYears],['curriculum_id','Curriculum',$curricula],['current_grade_id','Grade',$grades],['current_class_id','Class',$classes]] as [$name,$label,$options])<div><label for="{{ $name }}">{{ $label }}</label><select id="{{ $name }}" name="{{ $name }}"><option value="">Not assigned</option>@foreach($options as $option)<option value="{{ $option->id }}" @selected(old($name)===$option->id) @if($name==='current_grade_id') data-year="{{ $option->academic_year_id }}" data-curriculum="{{ $option->curriculum_id }}" @elseif($name==='current_class_id') data-grade="{{ $option->grade_id }}" data-year="{{ $option->academic_year_id }}" @endif>{{ $option->name }}</option>@endforeach</select>@error($name)<span class="field-error">{{ $message }}</span>@enderror</div>@endforeach
+</fieldset>@endif
+<fieldset><legend>Admission and learning</legend>
+ @foreach([['admission_date','Admission date','date'],['expected_completion_date','Expected completion date','date'],['previous_institution','Previous institution','text'],['language_of_instruction','Language of instruction','text'],['home_language','Home language','text'],['learning_mode','Learning mode','text']] as [$name,$label,$type])<div><label for="{{ $name }}">{{ $label }}</label><input id="{{ $name }}" type="{{ $type }}" name="{{ $name }}" value="{{ $value($name) instanceof Carbon\CarbonInterface ? $value($name)->toDateString() : $value($name) }}">@error($name)<span class="field-error">{{ $message }}</span>@enderror</div>@endforeach
+</fieldset>
+<fieldset><legend>Contact</legend>
+ @foreach([['learner_email','Learner email','email'],['learner_phone','Learner phone','tel'],['city','City','text'],['province','Province','text'],['country','Country code','text'],['postal_code','Postal code','text']] as [$name,$label,$type])<div><label for="{{ $name }}">{{ $label }}</label><input id="{{ $name }}" type="{{ $type }}" name="{{ $name }}" value="{{ $value($name) }}">@error($name)<span class="field-error">{{ $message }}</span>@enderror</div>@endforeach
+ <div class="wide"><label for="residential_address">Residential address</label><textarea id="residential_address" name="residential_address" rows="4">{{ $value('residential_address') }}</textarea>@error('residential_address')<span class="field-error">{{ $message }}</span>@enderror</div>
+</fieldset>
+<div class="wide actions-inline"><button type="submit">{{ $learner ? 'Save changes' : 'Create learner profile' }}</button><a class="button secondary" href="{{ $learner ? route('learners.show',$learner->uuid) : route('learners.index') }}">Cancel</a></div></form>
+@endsection

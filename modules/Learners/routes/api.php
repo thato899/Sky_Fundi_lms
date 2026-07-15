@@ -7,7 +7,7 @@ use Modules\Learners\Http\Controllers\Api\V1\LearnerController;
 
 Route::middleware(['auth:sanctum', 'account.not-locked', 'organization.context'])
     ->prefix('learners')
-    ->name('learners.')
+    ->name('api.learners.')
     ->group(function (): void {
         Route::get('/', [LearnerController::class, 'index'])->name('index');
         Route::post('/', [LearnerController::class, 'store'])->name('store');

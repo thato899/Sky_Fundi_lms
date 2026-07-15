@@ -26,6 +26,6 @@ Academic placement references must belong to the learner organization. The year 
 
 Allowed `sort` values are `learner_number`, `first_name`, `last_name`, `admission_date`, `learner_status`, and `created_date`; `direction` is `asc` or `desc`. Pagination uses `page` and `per_page`, defaults to 25, and is capped at 100.
 
-Status, archive, and restore requests require a reason. Status history is immutable, newest first, and exposes the previous/new status, safe actor identity, reason, and timestamp. There are no history write endpoints.
+Status, archive, and restore requests accept an optional reason. Status history is immutable, newest first, and exposes the previous/new status, safe actor identity, reason, and timestamp. There are no history write endpoints.
 
 Learner accounts, memberships, invitations, portals, guardians, imports, documents, consent, enrolment history, attendance, assessments, reports, and AI are outside this API.

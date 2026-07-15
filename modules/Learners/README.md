@@ -22,6 +22,12 @@ Supported ordinary transitions are:
 
 No-op transitions and other transitions are rejected. Terminal statuses can still be archived and subsequently restored to that terminal status.
 
+## Web management interface
+
+The authenticated interface at `GET /learners` uses the same directory, learner, numbering, status, policy, organization-context, and audit services as the API. It provides server-side search, organization-owned academic filters, whitelisted sorting, query-preserving pagination, profile-only creation, safe profile display, identity/contact editing, current-placement updates, valid status transitions, archive/restore, and newest-first immutable status history.
+
+The active organization always comes from trusted web-session context. Learner UUIDs are resolved inside that organization, foreign academic values are rejected, and action links/forms are shown only for the applicable `learners.*` permission. Manual learner numbers appear only with `learners.override_number`; creation otherwise uses `LearnerNumberService`. Portal access remains disabled and no User or Membership is created.
+
 ## Administration API
 
 The versioned endpoints under `/api/v1/learners` support directory search, filters, whitelisted sorting, pagination, profile-only creation, profile and current-placement updates, status transitions, archive/restore, and newest-first immutable status history. See [`docs/api/learners.md`](../../docs/api/learners.md) for the endpoint and query contract.
@@ -38,4 +44,4 @@ docker compose exec app php artisan db:seed --class="Modules\\Learners\\Database
 
 This grants all learner permissions to Super Admin and Organization Administrator, and all except number override to Academic Administrator. Teacher, Tutor, and Learner receive no learner-administration permissions by default. Authorization checks permissions rather than role names.
 
-Learner login accounts, invitations, portal workflows, guardians, imports, documents, consent, attendance, homework, assessments, marks, reports, historical enrolments, RAG/AI features, Blade UI, mobile functionality, and the neighboring milestones are explicitly not implemented.
+Learner login accounts, invitations, portal workflows, guardians, imports, documents, consent, attendance, homework, assessments, marks, reports, historical enrolments, RAG/AI features, mobile functionality, and the neighboring milestones are explicitly not implemented.
