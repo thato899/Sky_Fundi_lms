@@ -6,4 +6,4 @@ Assessments progress through draft/open, finalized/locked, and cancelled states.
 
 Eligibility uses the learner's trusted current class and admitted/active status. Historical accuracy is therefore limited until enrolment history exists. Teacher-class and teacher-subject assignment are not implemented, so teacher/tutor permissions are conservative but cannot enforce an assignment boundary.
 
-Report cards, promotion decisions, ranking, online examinations, question banks, submissions, guardian notifications, learner/guardian portals, AI grading, moderation, and mobile marking are excluded.
+The separate Reports module consumes finalized results for immutable administrative report-card snapshots. Promotion decisions, ranking, online examinations, question banks, submissions, guardian notifications, learner/guardian portals, AI grading, moderation, and mobile marking remain excluded.

@@ -36,6 +36,7 @@ docker compose exec app php artisan about
 docker compose exec app php artisan route:list
 docker compose exec app php artisan migrate:status
 docker compose exec app php artisan test
+docker compose exec app php artisan route:list --path=reports
 ```
 
 The application container health check requests `/up` internally. Detailed health information must be accessed through the existing authorised application facilities; do not expose service configuration or secrets through the public liveness endpoint.

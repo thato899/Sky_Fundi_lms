@@ -1,6 +1,6 @@
 # Organization administrator dashboard
 
-Authorized users see working Attendance and Assessment management cards when `attendance.view` and `assessments.view` are effective for the active organization. Otherwise they are permission-safe and disabled; Learner, Staff, Guardian (when installed), and Academic links are preserved.
+Authorized users see working Attendance, Assessment, and Report-card management cards when `attendance.view`, `assessments.view`, and `reports.view` are effective for the active organization. Otherwise they are permission-safe and disabled; Learner, Staff, Guardian (when installed), and Academic links are preserved.
 
 `GET /dashboard` is the authenticated, read-only organization overview. Access requires an active account, an active membership in an active organization, trusted organization context, and the `organization.dashboard.view` membership-role permission. Organization Administrator and Academic Administrator roles receive the permission idempotently from the database seeders. Teacher, Tutor, Learner, and Guardian roles are not granted it by default.
 
