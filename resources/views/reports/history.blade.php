@@ -1,0 +1,3 @@
+@extends('reports.layout')
+@section('title','Learner report cards')
+@section('reports-content')<h1>{{$learner->first_name}} {{$learner->last_name}} report cards</h1><table class="table"><tr><th>Period</th><th>Version</th><th>Status</th><th>Average</th><th>Generated</th><th>Published</th></tr>@foreach($cards as $c)<tr><td><a href="{{route('reports.show',$c->uuid)}}">{{$c->period->name}}</a></td><td>{{$c->version_number}}</td><td>{{$c->status->value}}</td><td>{{$c->overall_average ?? '—'}}</td><td>{{$c->generated_at?->toDateString()}}</td><td>{{$c->published_at?->toDateString()}}</td></tr>@endforeach</table>{{$cards->links()}}@endsection

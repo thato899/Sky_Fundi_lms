@@ -6,13 +6,14 @@
     "license": "proprietary",
     "require": {
         "php": "^8.3",
+        "aws/aws-sdk-php": "^3.317",
+        "barryvdh/laravel-dompdf": "^3.1",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "league/flysystem-aws-s3-v3": "^3.0",
-        "aws/aws-sdk-php": "^3.317",
-        "symfony/mailgun-mailer": "^7.0",
-        "symfony/http-client": "^7.0"
+        "symfony/http-client": "^7.0",
+        "symfony/mailgun-mailer": "^7.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -34,6 +35,7 @@
             "Modules\\Assessments\\Database\\Seeders\\": "modules/Assessments/database/seeders/",
             "Modules\\Learners\\Database\\Seeders\\": "modules/Learners/database/seeders/",
             "Modules\\Organizations\\Database\\Seeders\\": "modules/Organizations/database/seeders/",
+            "Modules\\Reports\\Database\\Seeders\\": "modules/Reports/database/seeders/",
             "Modules\\Staff\\Database\\Seeders\\": "modules/Staff/database/seeders/"
         }
     },
@@ -45,6 +47,7 @@
             "Modules\\Assessments\\Tests\\": "modules/Assessments/tests/",
             "Modules\\Learners\\Tests\\": "modules/Learners/tests/",
             "Modules\\Organizations\\Tests\\": "modules/Organizations/tests/",
+            "Modules\\Reports\\Tests\\": "modules/Reports/tests/",
             "Modules\\Staff\\Tests\\": "modules/Staff/tests/"
         }
     },
