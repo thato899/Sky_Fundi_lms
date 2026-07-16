@@ -13,6 +13,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Organizations\Infrastructure\Models\Organization;
 
+/**
+ * @property string $user_id
+ * @property string $organization_id
+ */
 final class Membership extends Model
 {
     use HasUuidPrimaryKey;

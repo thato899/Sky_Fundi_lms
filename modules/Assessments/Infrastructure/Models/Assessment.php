@@ -40,7 +40,7 @@ final class Assessment extends Model
     use HasFactory;
     use HasUuidPrimaryKey;
 
-    protected $fillable = ['uuid', 'organization_id', 'academic_year_id', 'academic_term_id', 'grade_id', 'class_id', 'subject_id', 'assessment_category_id', 'staff_profile_id', 'title', 'description', 'assessment_date', 'due_date', 'maximum_mark', 'weighting', 'status', 'result_release_status', 'instructions', 'finalized_at', 'finalized_by', 'reopened_at', 'reopened_by', 'reopen_reason', 'released_at', 'released_by', 'created_by', 'updated_by'];
+    protected $fillable = ['uuid', 'organization_id', 'scheduled_lesson_id', 'academic_year_id', 'academic_term_id', 'grade_id', 'class_id', 'subject_id', 'assessment_category_id', 'staff_profile_id', 'title', 'description', 'assessment_date', 'due_date', 'maximum_mark', 'weighting', 'status', 'result_release_status', 'instructions', 'finalized_at', 'finalized_by', 'reopened_at', 'reopened_by', 'reopen_reason', 'released_at', 'released_by', 'created_by', 'updated_by'];
 
     public function uniqueIds(): array
     {

@@ -10,6 +10,12 @@ use Modules\Academics\Domain\Enums\AcademicStatus;
 use Modules\Academics\Domain\Enums\DayOfWeek;
 use Modules\Academics\Infrastructure\Concerns\BelongsToOrganization;
 
+/**
+ * @property bool $is_break
+ * @property AcademicStatus $status
+ * @property string $start_time
+ * @property string $end_time
+ */
 final class TimetablePeriod extends Model
 {
     use BelongsToOrganization;
@@ -17,7 +23,7 @@ final class TimetablePeriod extends Model
 
     protected $table = 'academics_timetable_periods';
 
-    protected $fillable = ['organization_id', 'name', 'day_of_week', 'start_time', 'end_time', 'is_break', 'order', 'status'];
+    protected $fillable = ['organization_id', 'name', 'code', 'day_of_week', 'start_time', 'end_time', 'is_break', 'order', 'status'];
 
     protected function casts(): array
     {

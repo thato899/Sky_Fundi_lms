@@ -32,6 +32,7 @@ use Modules\Attendance\Providers\AttendanceServiceProvider;
 use Modules\Learners\Providers\LearnersServiceProvider;
 use Modules\Organizations\Providers\OrganizationsServiceProvider;
 use Modules\Reports\Providers\ReportsServiceProvider;
+use Modules\Scheduling\Providers\SchedulingServiceProvider;
 use Modules\Staff\Providers\StaffServiceProvider;
 
 return [
@@ -76,4 +77,5 @@ return [
     AttendanceServiceProvider::class,
     AssessmentsServiceProvider::class,
     ReportsServiceProvider::class,
+    SchedulingServiceProvider::class,
 ];

@@ -1,0 +1,2 @@
+@extends('layouts.web')
+@section('content')<div class="wrap" style="padding:2rem 0"><nav class="actions"><a href="{{ route('scheduling.dashboard') }}">Overview</a><a href="{{ route('scheduling.timetable') }}">Timetable</a><a href="{{ route('scheduling.lessons') }}">Lessons</a><a href="{{ route('scheduling.calendar') }}">Calendar</a><a href="{{ route('scheduling.periods') }}">Periods</a><a href="{{ route('scheduling.rooms') }}">Rooms</a><a href="{{ route('scheduling.templates') }}">Templates</a></nav>@yield('scheduling-content')</div>@endsection

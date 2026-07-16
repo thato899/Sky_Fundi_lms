@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Academics\Domain\Enums\AcademicTermStatus;
 use Modules\Academics\Infrastructure\Concerns\BelongsToOrganization;
 
+/** @property string $academic_year_id */
 final class AcademicTerm extends Model
 {
     use BelongsToOrganization;
