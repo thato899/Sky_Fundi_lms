@@ -1,55 +1,19 @@
-# Multi-Tenancy
+# Organization tenancy
 
-## Principle
+Sky Fundi implements shared-database, row-owned tenancy. `organizations.id` is a UUID; operational records carry `organization_id`. Database-per-organization routing is not implemented.
 
-Sky Fundi is **tenant-aware by design**, even though a given production deployment may run **one database per school/institution** rather than a shared database with row-level tenant isolation. Tenant-awareness must never be an afterthought retrofitted later.
+An authenticated user can have multiple Identity memberships. `ResolveOrganizationContext` establishes one active, authorized organization for a request and verifies relevant state. Module middleware and services then scope list queries, UUID resolution, relationships, uniqueness, writes, exports, and audit context. Client payloads cannot select ownership.
 
-## Tenant Types
+```mermaid
+flowchart LR
+    User --> Membership
+    Membership --> Organization
+    Request --> Context[Resolve organization context]
+    Context --> Permission[Resolve membership permissions]
+    Permission --> Scope[Scoped UUID/query/relationship]
+    Scope --> Owned[(organization_id rows)]
+```
 
-The platform recognizes the following tenant types today, with room for more in the future:
+Foreign organization identifiers return `404` or scoped validation errors. A platform-wide exception requires an explicit Core service, platform permission, and audit trail. Queue jobs and commands operating on organization data must carry context explicitly; workers do not inherit web state.
 
-- School (Primary / Secondary)
-- Tutoring Centre
-- College
-- Training Academy
-- Individual Tutor (a degenerate, single-user "tenant")
-- Future Organisation types
-
-A `TenantType` is a documented enumeration, not a hardcoded assumption baked into module logic. Modules declare which tenant types they support via their manifest (see [`module-system.md`](module-system.md)).
-
-## Isolation Model
-
-Two isolation strategies are supported by the architecture; the choice per deployment is an operational decision, not an application-code decision:
-
-1. **Database-per-tenant** (expected default for production schools/colleges) — each tenant has its own MySQL database. Application code must never assume it can query "all tenants" from a single connection.
-2. **Shared database with tenant scoping** (useful for smaller tutoring centres, trials, or SaaS-style onboarding) — implemented organization-owned tables carry `organization_id`, and queries use trusted organization context.
-
-Because both must be supported, **all module and Core code must access tenant data only through tenant-aware abstractions** — never through raw, unscoped Eloquent queries — so the same code works regardless of which isolation strategy a given deployment uses.
-
-## Tenant Context
-
-- Every authenticated request resolves a **current tenant context** early in the request lifecycle (Core concern, part of `core/Auth` and `core/Api`).
-- Academics uses request-aware query scoping plus an ownership guard for bound route models; services and validation also scope relationship resolution explicitly.
-- Background jobs and queued work must carry tenant context explicitly in their payload — a queue worker is not implicitly scoped to a tenant the way a web request is.
-- Console commands that operate on tenant data must require an explicit `--tenant=` argument; there is no "current tenant" outside a request/job context.
-
-## Cross-Tenant Data Access
-
-By default, **no code path may read or write another tenant's data**. Any legitimate exception (platform admin support tooling, billing aggregation, analytics) must:
-
-- Go through a dedicated, explicitly-named Core service (not ad-hoc queries),
-- Be permission-gated to a platform-admin role (see [RBAC](../security/rbac.md)),
-- Be audit-logged (see [Security → Audit Logs](../security/README.md)).
-
-## Licensing and Billing Interaction
-
-Tenant type and enabled modules together determine licensing/billing (see `core/Billing`, `core/Licensing`). This document only covers data isolation; licensing rules are documented separately as Core is implemented.
-
-## Future Organisation Types
-
-Adding a new tenant type (e.g. "Training Academy") should require:
-- A new entry in the `TenantType` enumeration,
-- Module manifests updated to opt in where relevant,
-- No changes to Core's isolation mechanism itself.
-
-If adding a new tenant type ever requires touching isolation logic in Core, that is a signal the isolation abstraction has a gap and needs to be revisited — not that the new tenant type is a special case to hardcode around.
+Organization `type` is configuration-driven. Manifests declare supported types inconsistently across older modules and the runtime does not use those declarations as an isolation mechanism. Adding a type must not weaken the shared ownership boundary.

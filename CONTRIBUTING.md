@@ -1,51 +1,42 @@
-# Contributing to Sky Fundi Platform
+# Contributing to Sky Fundi
 
-Thank you for contributing to Sky Fundi. This document describes how to propose changes, the standards your changes must meet, and how review works.
+`AGENTS.md` is the authoritative repository policy. This guide summarizes the human contribution path; [the Codex workflow](docs/development/CODEX_WORKFLOW.md) covers AI-assisted work.
 
-## Before You Start
+## Before changing code
 
-1. Read [`docs/architecture/overview.md`](docs/architecture/overview.md) and [`docs/architecture/module-system.md`](docs/architecture/module-system.md). Sky Fundi is strictly modular — Core must never contain educational logic, and modules must never reach into each other's internals.
-2. Read [`docs/development/coding-standards.md`](docs/development/coding-standards.md).
-3. Read [`docs/development/git-workflow.md`](docs/development/git-workflow.md) for branch naming and commit conventions.
+1. Read the owning Core/module README and the relevant documents under `docs/`.
+2. Run `pwd`, `git branch --show-current`, `git status --short`, and `git log -1 --oneline`.
+3. Branch from `main` using `feature/<area>/<description>`, `fix/<area>/<description>`, `chore/<area>`, or `docs/<area>/<description>`.
+4. Preserve unrelated worktree changes and inspect analogous implementation before choosing an abstraction.
 
-## Ground Rules
+## Architecture rules
 
-- **No educational logic in `/core`.** If you find yourself adding a School, Assessment, Homework, or similar concept to Core, it belongs in a module instead.
-- **Modules do not depend on each other directly.** Cross-module interaction happens through documented contracts (events, service interfaces) — see [`docs/modules/module-development-guide.md`](docs/modules/module-development-guide.md).
-- **All AI calls go through the AI Gateway.** Never call an AI provider SDK directly from a module.
-- **Every new folder gets a `README.md`** explaining its purpose, responsibilities, and allowed dependencies, consistent with the rest of the repository.
-- **API-first.** New capability is designed as a REST endpoint under `docs/api/conventions.md` before any Blade/React UI is built against it.
-- **PSR-12** coding style, strict types, and Laravel conventions are mandatory — see coding standards.
+- Platform concerns belong in `core/`; educational and operational bounded contexts belong in `modules/`.
+- Existing module dependencies may be used, but new hard cross-module dependencies require an explicit, documented contract.
+- Controllers validate, invoke an Application service, and shape a response. Eloquent models remain Infrastructure.
+- Organization-owned data is scoped by trusted `Core\Identity` context and `organization_id`; clients never select ownership by payload.
+- All AI-provider access goes through `core/AIGateway`.
+- Use UUIDs, authorization, auditing, migrations, factories, and tests consistently with neighboring code.
 
-## Workflow
+## Verification
 
-1. Fork or branch from `develop` (see [Git Workflow](docs/development/git-workflow.md)).
-2. Create a feature branch: `feature/<module-or-area>/<short-description>`.
-3. Make focused, atomic commits with descriptive messages.
-4. Add or update tests for anything you change (see [Testing Strategy](docs/development/testing-strategy.md)).
-5. Update relevant documentation in the same PR — code and docs must not drift apart.
-6. Open a pull request against `develop` using the PR template. Fill in every section.
-7. Address review feedback. At least one CODEOWNER approval is required before merge.
+Use Docker Compose for PHP tooling. Run the narrowest relevant test first, then the proportional checks:
 
-## Commit Message Format
-
-```
-<type>(<scope>): <short summary>
-
-[optional body]
-
-[optional footer(s)]
+```bash
+docker compose exec app php artisan test modules/Example/tests
+make migrate-check     # migrations/providers
+make test
+make pint
+make analyse
+git diff --check
 ```
 
-Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `build`, `ci`.
-Scope: the module or area affected, e.g. `core-auth`, `module-academics`, `docs`.
+`make verify` runs the complete repository handoff. Never claim a skipped check passed.
 
-Example: `feat(core-rbac): add permission caching layer`
+## Commits and pull requests
 
-## Reporting Issues
+Use `<type>(<scope>): <summary>` commits and target `main`. Keep changes cohesive, update documentation with behavior, and use `.github/PULL_REQUEST_TEMPLATE.md`. Publishing, merging, destructive Git operations, and destructive database/volume operations require explicit authorization. See [Git workflow](docs/development/git-workflow.md).
 
-Use the issue templates under `.github/ISSUE_TEMPLATE`. Provide reproduction steps for bugs, and a clear problem statement plus proposed contract for feature requests or module proposals.
+## Security
 
-## Code of Conduct
-
-Be respectful, be constructive, assume good intent. Disagreements about architecture should be resolved by referring to the documented principles in `docs/architecture/`, not by personal preference.
+Never commit secrets or `.env`, expose cross-organization data, weaken authentication, authorization, validation, audit, or rate limits, log personal data, or call vendor AI SDKs from modules. Report security issues privately to the repository owner until a dedicated disclosure channel exists.

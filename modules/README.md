@@ -1,15 +1,15 @@
 # /modules
 
-Home of every educational and operational feature module for the Sky Fundi Platform: Academics, Schools, Tutoring, Attendance, Homework, Assessments, AI-facing features built on the AI Gateway, Library, Sports, Transport, Finance, Messaging, Newsletters, Reports, Hostel, Clinic, Visitors, Inventory, and any future module.
+Home of the implemented educational and operational modules: Academics, Organizations, Staff, Learners, Attendance, Assessments, Reports, and Scheduling. Future candidates are tracked in the [roadmap](../docs/roadmap.md).
 
-**Purpose**: contain all domain/educational logic, fully isolated from Core and from each other.
+**Purpose**: contain educational and operational bounded contexts outside platform Core.
 
 **Responsibilities**: each subfolder here is one module, following the anatomy and manifest contract defined in [`/docs/architecture/module-system.md`](../docs/architecture/module-system.md). A module owns its own domain logic, database tables (prefixed with its module name — see [Database Conventions](../docs/database/conventions.md)), API routes, permissions, and tests.
 
-**Allowed dependencies**: `/core` (via documented Core service interfaces only), the AI Gateway (via `core/AIGateway`, never a provider SDK directly). Modules must not depend on each other's internal classes — see [Cross-Module Communication](../docs/architecture/module-system.md#cross-module-communication).
+**Allowed dependencies**: `/core`, including AI only through `core/AIGateway`, plus existing module relationships declared and documented by the owning modules. New hard dependencies require an explicit contract and must not be circular.
 
-**Future usage**: as each remaining module in the [Roadmap](../docs/roadmap.md) is built, it gets its own folder here (e.g. `modules/Attendance/`) with its own `README.md` per the standard anatomy.
+**Future usage**: each new module gets its own provider, manifest, README, owned migrations/routes/services/tests, and only the layer folders it needs.
 
-**Built so far**: [`Academics`](Academics/README.md) — the reusable academic engine (academic years, terms, grades, classes, subjects, departments, curricula, calendar, timetable foundation). See its own README for a worked example of the anatomy described below.
+**Built so far**: [`Academics`](Academics/README.md), [`Organizations`](Organizations/README.md), [`Staff`](Staff/README.md), [`Learners`](Learners/README.md), [`Attendance`](Attendance/README.md), [`Assessments`](Assessments/README.md), [`Reports`](Reports/README.md), and [`Scheduling`](Scheduling/README.md).
 
 See also: [Module Development Guide](../docs/modules/module-development-guide.md).

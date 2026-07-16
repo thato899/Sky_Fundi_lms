@@ -4,13 +4,11 @@
 
 > No educational feature exists inside the platform Core. Everything educational is a module.
 
-A module is a self-contained unit of functionality that can be **installed, enabled, disabled, updated, and removed without affecting other modules or Core**.
+A module is a bounded unit with its own provider, manifest, routes, migrations, services, models, permissions, and tests. Core Module Manager records install/enable/disable state, but registered providers currently load code and routes unconditionally; dynamic activation and package removal are not implemented.
 
-## Example Modules (future)
+## Implemented and future modules
 
-Academics, Schools, Tutoring, Attendance, Homework, Assessments, AI, Library, Sports, Transport, Finance, Messaging, Newsletters, Reports, Hostel, Clinic, Visitors, Inventory.
-
-Academics is now implemented — see [`modules/Academics`](../../modules/Academics/README.md). The rest of this list remains future work; this document defines the contract they must follow when built.
+Implemented: Academics, Organizations, Staff, Learners, Attendance, Assessments, Reports, and Scheduling. Future candidates are tracked in the [roadmap](../roadmap.md).
 
 ## Module Anatomy
 
@@ -65,38 +63,38 @@ Every module declares a manifest describing its identity and declared dependenci
 Key fields:
 - `tenantTypes` — which tenant types this module is relevant for. A module can decline to be enabled for a tenant type it doesn't support.
 - `coreDependencies` — Core services this module relies on. Must only reference Core, never other modules.
-- `moduleDependencies` — **discouraged**. See "Cross-Module Communication" below. If listed, it must be a soft/optional dependency, not a hard compile-time one.
+- `moduleDependencies` — established module dependencies required by the implementation. Older manifests use a combined `dependencies` field; registry discovery preserves this metadata rather than enforcing one normalized dependency schema.
 - `provides.events` / `provides.permissions` — the module's public contract exposed to the rest of the platform.
 
 ## Module Lifecycle
 
 | State | Meaning |
 |---|---|
-| **Installed** | Code present, migrations available, not yet active for any tenant. |
-| **Enabled** | Active for one or more tenants; routes, permissions, and scheduled jobs register. |
-| **Disabled** | Code present but inactive; routes/jobs do not register; data is retained. |
+| **Installed** | Registry record says code is installed. Providers and migrations remain explicitly registered at application boot. |
+| **Enabled** | Registry/organization assignment says enabled. Runtime routes are already loaded by the provider. |
+| **Disabled** | Registry/organization assignment says disabled; data is retained, but provider/routes are not dynamically unloaded. |
 | **Updated** | New version installed; module-owned migrations run; manifest version bumped. |
 | **Removed** | Code and (optionally, with explicit confirmation) data removed. |
 
-A module must be able to move through Enabled → Disabled → Enabled without data loss or corruption, and Disabled → Removed only via an explicit, audited action (see [Security → Audit Logs](../security/README.md)).
+Full runtime enable/disable and package/data removal remain future lifecycle work; see [module lifecycle](../modules/module-lifecycle.md).
 
 ## Cross-Module Communication
 
-Modules **must not** import another module's classes directly. Allowed communication paths, in order of preference:
+New dependencies should prefer loose contracts, but implemented education modules also use explicit, validated module relationships and imports where synchronous workflows require them. These dependencies are declared in manifests/READMEs and must not be circular.
 
 1. **Domain events** — a module emits an event (e.g. `academics.subject.created`); other modules subscribe if interested. This is the default and preferred mechanism.
-2. **Published service interfaces via Core** — if two modules genuinely need a synchronous contract (e.g. Attendance needing to know a learner's enrolled Class from Academics), the *interface* is defined and registered through Core's service container, and the consuming module depends on the interface, never the concrete module class. The producing module binds the implementation.
+2. **Published service interfaces** — use an interface when a stable abstraction is warranted; do not create ceremonial interfaces for every relationship.
 3. **Shared Core concepts** — anything both modules need (Users, Organisations/Tenants, Notifications) should probably be a Core concept, not duplicated logic in each module.
 
-What is never allowed: one module's controller, service, or Eloquent model importing another module's internal classes, or two modules writing to the same database table.
+What is never allowed: two modules writing the same table, an undocumented new hard dependency, a circular dependency, or bypassing the owning module's validation/business contract.
 
 ## Module Isolation Rules
 
 - Each module owns its own database tables, prefixed by module name (see [Database Conventions](../database/conventions.md)).
 - Each module owns its own permissions, registered through Core RBAC.
-- Each module can be tested in isolation with Core mocked/faked.
-- Disabling a module must not throw errors elsewhere in the platform — dependents on its events must degrade gracefully (e.g. skip a scheduled report section) rather than fail hard.
+- Module tests live with the module and may exercise declared dependencies.
+- Dynamic runtime disabling is not yet available; dependency-safe disabling remains a target lifecycle property.
 
 ## Where This Is Enforced
 
-The concrete module loader/registry (a Core concern) will live under `core/` once Core is implemented, and will be documented in `core/README.md` at that time. This document defines the contract now so early module scaffolding stays consistent.
+`Core\Modules\Application\ModuleManager` implements discovery and registry transitions. `bootstrap/providers.php` remains the runtime code-loading mechanism; see [runtime architecture](runtime.md).

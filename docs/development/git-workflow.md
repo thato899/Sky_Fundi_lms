@@ -1,37 +1,15 @@
-# Git Workflow
+# Git workflow
 
-## Branching Model
+`main` is the integration and release branch currently used by this repository. There is no implemented `develop` branch workflow.
 
-Sky Fundi uses a **Git Flow**-inspired model:
-
-| Branch | Purpose |
+| Branch | Use |
 |---|---|
-| `main` | Always deployable; reflects production. Tagged per release. |
-| `develop` | Integration branch; latest accepted work, not yet released. |
-| `feature/<area>/<short-description>` | New work, branched from `develop`. |
-| `fix/<area>/<short-description>` | Bug fixes, branched from `develop` (or `release/*` for release-blocking fixes). |
-| `release/vX.Y.0` | Stabilization branch cut from `develop` ahead of a release. See [Release Process](../deployment/release-process.md). |
-| `hotfix/<short-description>` | Urgent production fix, branched from `main`, merged into both `main` and `develop`. |
+| `main` | reviewed, accepted repository state |
+| `feature/<area>/<description>` | product capability |
+| `fix/<area>/<description>` | bug/security correction |
+| `chore/<area>` | maintenance |
+| `docs/<area>/<description>` | documentation-only work |
 
-`<area>` is typically a module name (`academics`, `attendance`) or a Core service (`core-auth`, `core-rbac`) or `docs`.
+Never implement directly on `main`. Branch creation/switching, commits, pushes, rebases, merges, tags, and PR operations are user-controlled for Codex. Preserve dirty worktrees and stage explicit paths when scope is mixed.
 
-Examples: `feature/attendance/register-close-endpoint`, `fix/core-auth/token-refresh-race-condition`, `docs/api-conventions-pagination`.
-
-## Commits
-
-See commit message format in [`../../CONTRIBUTING.md`](../../CONTRIBUTING.md#commit-message-format). Keep commits atomic and focused; avoid mixing unrelated changes (e.g. a formatting pass and a behavior change) in one commit.
-
-## Pull Requests
-
-- Always target `develop` (except `hotfix/*`, which targets `main`).
-- Use the PR template (`.github/PULL_REQUEST_TEMPLATE.md`) and complete the architecture checklist.
-- At least one CODEOWNER approval required (see `CODEOWNERS`).
-- CI (once introduced) must pass: tests, static analysis, code style.
-
-## Merge Strategy
-
-Squash-merge feature/fix branches into `develop` to keep history readable; use a regular merge commit for `release/*` → `main` and `release/*`/`hotfix/*` → `develop` so the release point is traceable.
-
-## Tags
-
-Releases are tagged on `main` as `vX.Y.Z` per [Versioning](../versioning.md).
+Commits use `<type>(<scope>): <summary>`. Pull requests target `main`, use `.github/PULL_REQUEST_TEMPLATE.md`, disclose migrations/rollback, tenant/security impact, exact verification, risks, and skipped checks. `scripts/publish-draft-pr.sh` may be used only after explicit authorization; it commits staged files, pushes, and creates a draft PR but never merges.

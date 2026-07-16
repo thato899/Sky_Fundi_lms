@@ -2,10 +2,10 @@
 
 ## PHP
 
-- PSR-12 coding style, enforced via Laravel Pint (or PHP-CS-Fixer) once tooling is added to the repository.
+- PSR-12 coding style, enforced by the installed Laravel Pint configuration and `make pint`.
 - `declare(strict_types=1);` at the top of every PHP file.
 - Type-hint everything: parameters, return types, property types. No untyped `mixed` unless genuinely necessary and commented why.
-- PSR-4 autoloading; namespace mirrors folder structure (`Modules\Academics\Domain\Subject`, `Core\Auth\Domain\User`, etc. — exact root namespace to be fixed when Core's composer setup is committed).
+- PSR-4 autoloading; `App\`, `Core\`, and `Modules\` map directly to `app/`, `core/`, and `modules/`.
 
 ## Laravel Conventions
 
@@ -26,8 +26,8 @@ See [`../naming-conventions.md`](../naming-conventions.md) for platform-wide nam
 
 ## Static Analysis
 
-PHPStan (or equivalent) at a meaningful strictness level is expected to be introduced alongside first real Core code, run in CI (see [Git Workflow](git-workflow.md)).
+PHPStan is installed and `make analyse` checks changed production PHP. `ANALYSE_ALL=1 make analyse` performs an explicit repository-wide audit. Hosted CI is not currently configured.
 
 ## Formatting Automation
 
-Formatting (Pint) and static analysis are expected to run as pre-commit/CI checks once the Laravel application skeleton exists — not manually enforced by convention alone.
+Run `make pint` and `make analyse`, or the aggregate `make verify`, before handoff.

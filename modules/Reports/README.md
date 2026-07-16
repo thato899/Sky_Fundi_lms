@@ -13,3 +13,15 @@ Reports move `generated → under_review → approved → published → withdraw
 Templates accept only whitelisted booleans, plain footer text, and `A4`/`LETTER`; arbitrary HTML, CSS, JavaScript, and file paths are not accepted. Comments are plain text and escaped. Administrative/principal comment types require approval permission. Teacher assignment data does not exist, so assignment enforcement is not claimed.
 
 This module does not implement promotion, progression, ranking, AI comments/decisions, portals, notifications, transcripts, certificates, electronic signatures, payment gating, or mobile workflows. Historical accuracy is limited by current placement because historical enrolment is not implemented.
+
+## Implementation inventory
+
+- **Responsibilities:** grading configuration, periods/templates, snapshot calculation/versioning, lifecycle/comments, PDF, and CSV.
+- **Database/models:** grading scales/bands, reporting periods, templates, report cards, subject results, and comments; seven matching Infrastructure models.
+- **Services:** `ReportConfigurationService`, `ReportCardCalculationService`, and `ReportCardService`.
+- **Policies:** `ReportCardPolicy` and `ReportConfigurationPolicy`, registered for four resource types.
+- **Controllers/routes:** API `ReportController`, Blade `ReportWebController`, resource-scoping middleware, `/api/v1/reports`, and `/reports` routes.
+- **Permissions/events:** thirteen seeded permissions; no module event classes.
+- **Dependencies:** Academics, Learners, Attendance, Assessments, Staff, Organizations/Identity/RBAC, PDF library, and current organization branding.
+- **Testing:** `ReportManagementTest` covers configuration, calculation edge cases, snapshots, lifecycles, permissions/isolation, PDF/CSV safety, and regressions.
+- **Known limitations/future roadmap:** historical enrolment, promotion/ranking, portals/notifications, transcripts/certificates, signatures, payments, AI, and mobile are absent.

@@ -55,7 +55,7 @@ Current year and term actions retain existing service semantics. Year lifecycle 
 
 ## Allowed Dependencies
 
-`Core\Users`, `Core\RBAC`, `Core\Settings`, `Core\AuditLogs`, `Core\Support`, `Core\Api` — all Core, per [Module System](../../docs/architecture/module-system.md#module-isolation-rules). No other module exists yet to depend on or be depended upon.
+`Core\Users`, `Core\Identity`, `Core\RBAC`, `Core\Settings`, `Core\AuditLogs`, `Core\Support`, `Core\Api`, and Organizations ownership. Learners, Staff, Attendance, Assessments, Reports, and Scheduling use established Academics relationships; Scheduling owns concrete templates and lessons.
 
 ## Organization ownership
 
@@ -64,3 +64,14 @@ All nine Academics entities are organization-owned operational data: curricula, 
 Authenticated APIs require trusted organization context. Lists, filters, relationships, model lookups, and UUID route resolution are scoped to it; foreign UUIDs return `404`, and payload `organization_id` values are never trusted. Related records must share ownership, including term/year, grade/curriculum/year, class/grade/year, subject/curriculum/department, and calendar/year relationships. Tenant Academics endpoints—including Super Admin calls—require an explicit active organization membership; cross-organization platform support access is not provided by these routes.
 
 The upgrade migration adds nullable ownership first, backfills only when existing academic rows coexist with exactly one organization, then enforces non-null foreign keys. It fails with a clear error when ownership is ambiguous; operators must explicitly assign those rows before retrying. Rollback removes the scoped unique constraints, ownership foreign keys, and columns. Education settings still use the existing platform-global Core Settings store and are not academic entity records.
+
+## Implementation inventory
+
+- **Responsibilities/tables/models:** owns `academics_curricula`, `academics_departments`, `academics_academic_years`, `academics_academic_terms`, `academics_grades`, `academics_classes`, `academics_subjects`, `academics_calendar_entries`, and `academics_timetable_periods`, represented by the nine models listed above.
+- **Services:** the ten Application services listed above own CRUD, lifecycle, relationship validation, ordering, calendar, periods, and settings orchestration.
+- **Policies:** no Laravel policy classes; permission middleware/Form Request authorization, `EnforceAcademicOrganization`, scoped service lookups, and relationship validation enforce access.
+- **Controllers/routes:** ten API controllers under `Http/Controllers/Api/V1`, `AcademicManagementController` for Blade, and the registered `routes/api.php` plus `routes/web.php` surfaces.
+- **Permissions/events:** eighteen manifest permissions and eight auditable event classes, listed above.
+- **Dependencies:** Core Auth/RBAC/Users/Identity/Settings/Audit/API/Support and Organizations ownership; Scheduling, Learners, Attendance, Assessments, Reports, and Staff consume academic records through established relationships.
+- **Testing:** eight Feature/Unit test files cover years, calendars, grades/curricula, subjects/classes, web management, ownership migration, organization isolation, and service behavior.
+- **Known limitations/future roadmap:** education settings remain platform-global; no timetable-period delete; historical enrolment, automated scheduling, portals, content, and AI workflows remain future work. Scheduling now owns template/lesson generation rather than Academics.

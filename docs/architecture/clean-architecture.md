@@ -35,8 +35,8 @@ Sky Fundi organizes code, within both Core and each module, into four concentric
 
 ### Application / Service Layer
 - Use cases / services that orchestrate domain objects to fulfill a request (e.g. `EnrollLearnerService`).
-- Depends only on Domain (and abstractions it defines).
-- Emits domain events; has no knowledge of HTTP, queues, or specific persistence technology.
+- Owns use-case orchestration and remains independent of HTTP presentation.
+- Uses dependency injection. Existing simple services may use Infrastructure Eloquent models directly; repository interfaces are introduced where query complexity or substitutability justifies them.
 
 ### Interface / Adapters
 - Controllers, Form Requests, API Resources/Transformers, Console Commands.
@@ -51,10 +51,10 @@ Sky Fundi organizes code, within both Core and each module, into four concentric
 
 1. Controllers must be thin: validate input (via Form Requests), call a Service, return a Response/Resource. No business logic in controllers.
 2. Eloquent models are Infrastructure. Domain logic does not live in Eloquent model methods beyond simple relationships/casts.
-3. Services depend on repository **interfaces**, injected via the container; the concrete Eloquent repository is bound in a module's or Core's Service Provider.
+3. Services use injected collaborators. Repositories/interfaces are used where useful; simple services may follow the established direct-Eloquent pattern.
 4. Cross-cutting concerns (logging, audit, notifications) are invoked through Core service interfaces, never instantiated directly inside a module's domain/application code.
 5. Every module and Core sub-package structures its own code using these same four layers — the pattern is fractal, not just applied once at the top level.
 
 ## Why Repository Pattern Is "Where Useful," Not Mandatory Everywhere
 
-Clean Architecture requires that Domain not depend on Infrastructure — that's non-negotiable, and is achieved via repository *interfaces*. Whether a given entity needs a full custom repository implementation (versus a thin wrapper around Eloquent) is a per-case decision documented in [`../database/conventions.md`](../database/conventions.md). Prefer repositories where: query logic is non-trivial, the same aggregate is read/written from multiple services, or the module anticipates swapping storage technology (e.g. a reporting module reading from a data warehouse instead of MySQL).
+Domain code remains framework-independent where a bounded context has a distinct Domain layer. A repository is not mandatory for every Eloquent-backed service. Prefer one where query logic is non-trivial, an aggregate is shared across services, or persistence substitutability is a real requirement.

@@ -17,7 +17,11 @@ This directory contains all architecture, development, and operations documentat
 | [`ai/`](ai/) | AI Gateway abstraction and provider integration |
 | [`ui/`](ui/) | Frontend/UI conventions (Blade today, React/Flutter future) |
 | [`testing/`](testing/) | Test strategy and conventions detail |
+| [`operations/`](operations/) | Runtime diagnosis, backup, queue, scheduler, and incident expectations |
+| [`adr/`](adr/) | Accepted architecture decisions |
 
 Root-level docs (`roadmap.md`, `versioning.md`, `naming-conventions.md`, `environment-variables.md`) apply platform-wide and don't fit a single subfolder.
 
 Documentation is treated as a first-class deliverable: any PR that changes behavior described here must update the relevant document in the same PR.
+
+The dated [documentation audit](documentation-audit.md) records the evidence reviewed, stale claims corrected, and remaining gaps.
