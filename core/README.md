@@ -44,11 +44,11 @@ The Sky Fundi Platform Core — infrastructure and cross-cutting services every 
 - **Support** — Developer Tools: shared traits, contracts, exceptions, and the `make:core-service` scaffolding generator ([Support/README.md](Support/README.md))
 
 ### Module System
-- **Modules** — the module manager/registry ([Modules/README.md](Modules/README.md); see [Module System](../docs/architecture/module-system.md)). No modules are shipped in this repository — this is only the framework they will plug into.
+- **Modules** — the module manager/registry ([Modules/README.md](Modules/README.md); see [Module System](../docs/architecture/module-system.md)). Runtime module providers are explicitly registered in `bootstrap/providers.php`.
 
 ### Not Yet Implemented
 - **FileManagement** — shared upload validation/virus-scanning utilities beyond raw storage (`Storage` covers file persistence today).
 
 **Allowed dependencies**: none upward — Core never depends on a module. Core services depend only on each other where explicitly documented in each service's own README, and on the Domain/Application/Infrastructure layering described in [Clean Architecture](../docs/architecture/clean-architecture.md).
 
-**Status**: v1.0 Core (Auth, RBAC, Users, Settings, Branding, Notifications, AuditLogs, Storage, AIGateway, Modules, Api, Logging) plus the Enterprise Infrastructure Layer (Licensing, Subscriptions, Deployment, Mail, Health, FeatureFlags, Analytics, Security, Backup, Scheduler, Installer, Queue, Events, Support) are implemented. No educational features exist anywhere in this repository. `FileManagement` remains unimplemented pending later work.
+**Status**: v1.0 Core (Auth, RBAC, Users, Identity, Settings, Branding, Notifications, AuditLogs, Storage, AIGateway, Modules, Api, Logging) plus the Enterprise Infrastructure Layer (Licensing, Subscriptions, Deployment, Mail, Health, FeatureFlags, Analytics, Security, Backup, Scheduler, Installer, Queue, Events, Support) are implemented. Educational features live in `modules/`; `FileManagement` remains unimplemented beyond the Storage abstraction.

@@ -1,26 +1,9 @@
-# Testing Strategy
+# Testing strategy
 
-## Layers of Testing
+Unit tests cover isolated model/service rules. Feature tests boot Laravel for HTTP, database, migration, authorization, organization-isolation, and integration behavior. Root `tests/` contains platform-wide Core/web tests; module tests live under `modules/<Name>/tests`. A separate `tests/Integration` suite is not currently configured.
 
-| Type | Scope | Location |
-|---|---|---|
-| Unit | Domain and Application layer classes, in isolation, no database/HTTP | `modules/<Name>/tests/Unit`, `core/<Service>/tests/Unit` |
-| Feature | Http layer end-to-end against a real test database (in-memory/SQLite or a disposable MySQL test DB) | `modules/<Name>/tests/Feature`, `core/<Service>/tests/Feature` |
-| Integration | Cross-service behavior within Core (e.g. RBAC + Auth together), or a module's declared Core dependencies | `tests/Integration` (platform-level) |
+PHPUnit uses in-memory SQLite, array cache/session/mail, and synchronous queues by default. Factories produce valid records; seeders are not fixtures. External providers are faked or mocked. Tests must be independent of order, external networks, wall-clock races, and real tenant databases.
 
-`/tests` at the repository root is reserved for platform-wide/integration tests that intentionally span more than one module or Core service; module- and Core-service-specific tests live alongside that code, per [Module Anatomy](../architecture/module-system.md#module-anatomy).
+Every behavior change covers the happy path and relevant validation, permission, lifecycle, failure, and cross-organization cases. Migrations receive schema/constraint/rollback coverage when practical. No blanket coverage percentage is configured.
 
-## Principles
-
-- Domain layer tests require no framework bootstrapping — pure PHPUnit against plain PHP objects. This is a direct payoff of [Clean Architecture](../architecture/clean-architecture.md): Domain has no Laravel dependency, so it's fast and trivial to test.
-- Application layer tests fake/mock Core service interfaces (e.g. a fake AI Gateway, a fake Notifications service) rather than hitting real infrastructure.
-- Feature tests use module/Core factories and a disposable test database; never run against a real tenant database.
-- Multi-tenancy: feature tests must cover that data from one tenant is never visible/writable from another tenant's context (see [Multi-Tenancy](../architecture/multi-tenancy.md)).
-
-## Coverage Expectations
-
-Precise coverage thresholds will be set once CI is introduced alongside first real code; the target is high coverage on Domain/Application (business rules) and meaningful coverage on Http (happy path + auth/validation failure paths), rather than a blanket percentage chased for its own sake.
-
-## Test Data
-
-Factories, not hand-built fixtures, are the default way to construct test data, consistent with Laravel convention. Seeders (see [Migration Standards](../database/migration-standards.md#seeders)) are for local dev demo data, not test fixtures.
+See the executable commands and CI status in [Testing](../testing/README.md).

@@ -1,40 +1,35 @@
 # Module Lifecycle — Operational Detail
 
-Complements the lifecycle states defined in [`../architecture/module-system.md`](../architecture/module-system.md#module-lifecycle). This document describes what happens operationally at each transition, for whoever builds the Core module registry.
+Complements the lifecycle states in [`../architecture/module-system.md`](../architecture/module-system.md#module-lifecycle). It distinguishes current registry behavior from the intended runtime lifecycle.
 
 ## Install
 
-- Module code is present in `/modules/<Name>` (via composer package or direct inclusion, TBD when Core package management is implemented).
-- Module's migrations are registered but **not run** until Enabled for at least one tenant.
-- Module does not yet appear in any tenant's active feature set.
+- Module code is present under `modules/<Name>` and its provider is explicitly listed in `bootstrap/providers.php`.
+- The provider registers migrations and routes independently of registry state.
+- `ModuleManager::install()` creates the registry record; package installation is not implemented.
 
 ## Enable (per tenant)
 
-- Module's migrations run against the target tenant's database (or shared DB, tenant-scoped, per the tenant's isolation strategy).
-- Module's routes register for that tenant's context.
-- Module's declared permissions become assignable via RBAC for that tenant.
-- Module's scheduled jobs/queue listeners activate for that tenant.
-- An audit log entry is recorded (who enabled it, when, for which tenant).
+- Registry and organization-module assignment state is updated and audited by the applicable service.
+- Permissions are registered by idempotent seeders, not dynamically from route enablement.
+- Routes, migrations, and listeners are already loaded by the provider; enable does not dynamically activate them.
 
 ## Disable (per tenant)
 
-- Routes, permissions, and scheduled jobs deactivate for that tenant.
-- Data is retained untouched.
-- Other modules' event listeners for this module's events must degrade gracefully (skip, not error).
-- Audit log entry recorded.
+- Registry/assignment state is updated and data is retained.
+- Routes, providers, permissions, and scheduled jobs are not dynamically unloaded.
+- Dependency-aware runtime deactivation remains future work.
 
 ## Update
 
-- New module version's migrations run (additive by default; destructive migrations require an explicit, documented upgrade note).
-- Manifest version bumped.
-- Changelog entry expected in the module's own README or a `CHANGELOG.md` inside the module folder.
+- Code deployment and normal Laravel migration execution apply updates; the registry can record manifest version changes.
+- Additive migration and rollback rules still apply.
 
 ## Remove
 
-- Requires explicit confirmation and elevated (platform-admin) permission.
-- Two-step by default: Disable first, then a separate, audited "Remove" action.
-- Data removal is opt-in and irreversible — must be logged with who/when/what was deleted.
+- Registry removal exists, but package deletion and module-table data removal are not automated.
+- Any future destructive removal requires explicit confirmation, elevated authorization, audit, and a backup/rollback plan.
 
 ## Tenant-Type Gating
 
-A module may declare (via `tenantTypes` in its manifest) that it is not applicable to a given tenant type. The registry should prevent enabling a module for an unsupported tenant type rather than allowing a silent no-op.
+Some manifests declare `tenantTypes`; others use newer compact schemas. Runtime tenant-type gating is not consistently enforced and remains a normalization gap.

@@ -22,7 +22,7 @@ The platform is built on:
 - **PSR Standards** — PSR-4 autoloading, PSR-12 coding style.
 - **REST API First** — every capability is designed as an API before any UI consumes it.
 - **Secure by Default** — authentication, authorization, and audit logging are Core concerns present from day one, not retrofitted.
-- **Multi-Tenant Ready** — the domain model is tenant-aware even where a given deployment is single-tenant per database.
+- **Organization scoped** — the implemented shared database isolates operational rows by trusted organization context and `organization_id`.
 - **Mobile API Ready** — the API is designed for consumption by web, Flutter, and native mobile clients equally; no server-rendered-only assumptions leak into the API layer.
 - **AI Ready** — AI capability is available to every module through a single gateway abstraction.
 
@@ -41,20 +41,20 @@ The platform is built on:
                                  │
 ┌────────────────────────────────▼───────────────────────────────┐
 │                             MODULES                              │
-│  Academics · Attendance · Homework · Assessments · Library ·    │
-│  Sports · Transport · Finance · Messaging · Reports · ...       │
+│  Academics · Staff · Learners · Attendance · Assessments ·       │
+│  Reports · Scheduling                                            │
 │  (each module: own domain, services, repositories, migrations)  │
 └────────────────────────────────┬───────────────────────────────┘
                                  │ uses (never bypasses)
 ┌────────────────────────────────▼───────────────────────────────┐
 │                          PLATFORM CORE                           │
 │  Auth · RBAC · Users · Branding · Settings · Notifications ·    │
-│  Audit Logs · Storage · Billing · Licensing · AI Gateway ·       │
-│  Logging · File Management                                      │
+│  Audit Logs · Storage · Licensing · Subscriptions · AI Gateway · │
+│  Health · Security · Scheduler · Backup · Logging                │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-Modules depend on Core. Core never depends on a module. Modules do not depend on each other directly — see [`module-system.md`](module-system.md) for how cross-module communication is handled.
+Modules depend on Core. Core does not depend on educational modules. Implemented, declared module relationships also use validated foreign keys and Application services; new hard dependencies require an explicit contract. See [`module-system.md`](module-system.md).
 
 ## Why This Shape
 

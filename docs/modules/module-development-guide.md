@@ -34,7 +34,7 @@ Fill in `module.json` per the schema in [`../architecture/module-system.md`](../
 
 ## 4. Domain First
 
-Start in `Domain/`. Define entities and value objects that express the module's business rules without any Laravel dependency. Define repository interfaces here.
+Start with framework-independent domain code where the module has rules that benefit from it. Do not create placeholder entities or ceremonial repository interfaces.
 
 ## 5. Application Layer
 
@@ -42,7 +42,7 @@ Write services/use-cases in `Application/` that orchestrate the domain. Emit dom
 
 ## 6. Infrastructure and Interface
 
-Implement Eloquent models, migrations, and repository implementations in `Infrastructure/`. Implement controllers, Form Requests, and API Resources in `Http/`, following [API conventions](../api/conventions.md).
+Implement Eloquent models, migrations, and any warranted repositories in `Infrastructure/`. Implement controllers, Form Requests, and API Resources in `Http/`, following [API conventions](../api/conventions.md).
 
 ## 7. Permissions
 
@@ -58,11 +58,11 @@ Write the module's own `README.md` (purpose, responsibilities, allowed dependenc
 
 ## 10. Review
 
-Open a PR using the standard template. A CODEOWNER must confirm the module respects isolation rules (no direct cross-module class imports, no shared tables, no direct AI provider calls) before merge.
+Open a PR using the standard template. Review module ownership, dependency direction, organization isolation, and the prohibition on direct AI-provider calls.
 
 ## Anti-Patterns to Avoid
 
-- Reaching into another module's Eloquent models or services directly.
+- Introducing an undocumented or circular cross-module dependency, or writing another module's table.
 - Putting business logic in a controller or an Eloquent model.
 - Calling an AI provider SDK directly instead of going through the AI Gateway.
 - Assuming a single-database, single-tenant context (see [Multi-Tenancy](../architecture/multi-tenancy.md)).

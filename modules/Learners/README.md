@@ -45,3 +45,14 @@ docker compose exec app php artisan db:seed --class="Modules\\Learners\\Database
 This grants all learner permissions to Super Admin and Organization Administrator, and all except number override to Academic Administrator. Teacher, Tutor, and Learner receive no learner-administration permissions by default. Authorization checks permissions rather than role names.
 
 Administrative report-card history is provided by the separate Reports module. Learner login accounts, invitations, portal workflows, guardians, imports, documents, consent, homework, historical enrolments, RAG/AI features, and mobile functionality are explicitly not implemented here. The separate Attendance and Assessments modules read trusted current placement and expose administrative histories without modifying learner records; assessment and report history accuracy is limited by the absence of historical enrolment.
+
+## Implementation inventory
+
+- **Responsibilities/tables/models:** learner administration, numbering, current placement, lifecycle/history across `learner_profiles`, `learner_number_sequences`, and `learner_status_histories`; corresponding three Infrastructure models.
+- **Services:** `LearnerService`, `LearnerDirectoryService`, `LearnerNumberService`, and `LearnerStatusService`.
+- **Policies:** `LearnerPolicy`, plus `ResolveOrganizationLearner` middleware.
+- **Controllers/routes:** API `LearnerController`, Blade `LearnerWebController`, `/api/v1/learners`, and `/learners` routes.
+- **Permissions/events:** nine permissions and `LearnerStatusChanged`, `LearnerArchived`, and `LearnerRestored`.
+- **Dependencies:** Organizations, Identity, Users/RBAC/Audit, and Academics; Attendance, Assessments, and Reports consume learner data.
+- **Testing:** nine Unit/Feature files cover schema, service behavior, numbering, status, directory/API/web management, isolation, and regressions.
+- **Known limitations/future roadmap:** profile-only administration and current placement are intentional; accounts/portals, guardians, imports, documents, historical enrolment, AI, and mobile remain future work.

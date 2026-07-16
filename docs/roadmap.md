@@ -1,51 +1,36 @@
-# Roadmap
+# Implementation roadmap
 
-This roadmap reflects intended sequencing, not committed dates. It will evolve as Core and modules are actually built.
+This is an implementation-status document, not a promise of dates. Executable code, registered providers/routes, migrations, and tests determine status.
 
-## v1.0 — Foundation Goes Live
+## Completed
 
-- Platform Core: Authentication, RBAC, Users, Settings, Branding, Notifications, Audit Logs, Storage, File Management, Logging — **Core implemented** (Authentication, RBAC, Users, Settings, Branding, Notifications, Audit Logs, Storage, Logging, Module Manager, API foundation); File Management not yet started.
-- AI Gateway (initial provider(s) wired, gateway contract enforced) — **implemented**: Ollama and DeepSeek are live providers; OpenAI, Claude, and Gemini are registered, plug-and-play placeholders per [AI Gateway](ai/ai-gateway.md).
-- Public REST API (v1) covering Core capabilities — **implemented** for the Core surface above; no educational endpoints exist.
-- Schools module (baseline: institution profile, staff, learners, classes) — not started. The reusable academic engine it will build on ([`Academics`](../modules/Academics/README.md)) is now implemented — see below.
-- Tutoring module (baseline: individual tutor/tutoring centre profile, students, sessions) — not started.
-- Billing and Licensing (baseline: tenant subscription/module entitlement) — **implemented**: see [Licensing](../core/Licensing/README.md) and [Subscriptions](../core/Subscriptions/README.md).
+- Laravel 12/PHP 8.3 modular platform foundation, versioned REST API, Blade entry/login, Super Admin surfaces, and organization administrator dashboard.
+- Core Users, Auth/Sanctum, RBAC, Identity/memberships, Audit Logs, Settings, Branding, Notifications, Storage, Mail, AI Gateway, module registry, licensing, subscriptions, deployment profiles, health, feature flags, analytics recording, Security Centre, backup, scheduler, installer, API conventions, and logging foundations.
+- Shared-database organization tenancy with UUID ownership, active membership context, scoped relationship validation, and cross-organization tests.
+- Academics: curricula, departments, years, terms, grades, classes, subjects, calendar, and timetable periods.
+- Staff and Learner administration, including placement, learner numbering, lifecycle history, and web/API management.
+- Learner Attendance, Assessments/mark sheets/gradebooks, Reports/report-card snapshots/PDF/CSV, and Scheduling/rooms/templates/lessons/conflict handling.
+- Docker development stack with app, MySQL, Mailpit, queue worker, scheduler, init job, and optional Redis profile.
+- PHPUnit unit/feature/security/regression suites plus migration, Pint, PHPStan, health, and aggregate verification scripts.
 
-## Enterprise Infrastructure Layer — implemented
+## In progress
 
-Built between v1.0 Core and the first educational module, per the same "no educational features" discipline: Licensing, Subscriptions, Deployment profiles, expanded Storage (S3 live; Azure/GCS placeholders), Mail provider abstraction, expanded Notifications (SMS/WhatsApp/push placeholders), expanded Audit Centre (category search), Health monitoring, API Gateway additions (rate limiting, request logging/metrics, reusable query helpers), the platform's named-queue taxonomy, a Backup framework (restore is future work), Scheduler wiring, Feature Flags, Platform Analytics (infrastructure only, no dashboards), a Security Centre (trusted devices, IP restrictions, session management, suspicious-login detection), and an interactive Installer (`platform:install`). See each service's own README under `/core` for detail — [`core/README.md`](../core/README.md) is the index.
+- Repository documentation and architecture alignment (this milestone).
+- Hardening breadth is ongoing: some implemented Core adapters are explicit placeholders, and module registry enable/disable state does not dynamically unload registered providers.
 
-## Education Domain Foundation — implemented
+## Planned
 
-[`modules/Academics`](../modules/Academics/README.md) — the platform's first real module, and the first genuinely educational content in this repository: academic years, terms, grades, classes, subjects, departments, curricula (database-driven, not hardcoded), academic calendar, and a reusable timetable foundation (no scheduling/generation logic yet). Deliberately independent of any organisation type — Schools, Tutoring Centres, Training Academies, and Colleges are all expected to build on this same engine rather than each defining their own. Known gap: no organisation/tenancy scoping exists yet on its tables — see the module's own README for detail.
+- Historical enrolment/placement so attendance, assessment, and reporting history does not depend on current placement.
+- Guardian and learner portals, invitations/account linking, and results notifications.
+- Homework and learning-content workflows.
+- Production deployment automation and a tested restore workflow for backups.
+- Stronger authentication features such as enforced two-factor authentication.
+- Assignment-aware teacher authorization once teacher/class/subject assignments exist.
 
-## v1.5 — Day-to-Day Academic Operations
+## Future ideas
 
-- Attendance module
-- Homework module
-- Assessments module
-- Reports module (built against Attendance/Homework/Assessments data via events/service interfaces, per [Module System](architecture/module-system.md))
+- Library, transport, finance/fees, messaging, sports, clinic, hostel, visitors, and inventory modules.
+- Mobile/offline clients, calendar/conferencing integrations, online examinations, and timetable optimization.
+- Additional live AI/storage/mail/notification adapters through the existing gateways.
 
-## v2.0 — Institution Breadth and Mobile
-
-- Library module
-- Sports module
-- Transport module
-- Finance module (broader than Billing — fees, invoicing per institution)
-- Messaging module
-- Mobile (Flutter/Android clients against the existing v1 API — see [Mobile](mobile/README.md))
-- Offline AI (Ollama-first offline capability via the AI Gateway — see [AI Gateway](ai/ai-gateway.md))
-
-## Later / Unscheduled
-
-- Newsletters, Hostel, Clinic, Visitors, Inventory modules
-- Additional tenant types beyond the initial set (see [Multi-Tenancy](architecture/multi-tenancy.md))
-- Additional AI providers as the Gateway's adapter set grows
-
-## Organization Management — implemented
-
-`modules/Organizations` is the organization tenancy foundation: lifecycle, organization-scoped settings, inherited branding, administrator membership, licensing metadata, encrypted AI configuration, and module assignment. New tenant-owned modules should reference and scope queries by `organization_id`.
-
-## How This Roadmap Is Maintained
-
-Each item, once actively being built, should be tracked as GitHub issues/milestones referencing this roadmap section. This document stays the high-level index; issue tracking carries the detail.
+Completed functionality is described in [architecture](architecture/overview.md), [module READMEs](../modules/), and [API documentation](api/README.md). Explicit non-goals remain in each owning README.
