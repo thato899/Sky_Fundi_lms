@@ -13,6 +13,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Organizations\Domain\Enums\OrganizationStatus;
 
+/**
+ * @property string $id
+ * @property string $timezone
+ */
 final class Organization extends Model
 {
     use HasUuidPrimaryKey;

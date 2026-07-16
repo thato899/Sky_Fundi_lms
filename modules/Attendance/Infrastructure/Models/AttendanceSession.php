@@ -17,11 +17,12 @@ use Modules\Attendance\Domain\Enums\AttendanceSessionStatus;
 use Modules\Attendance\Domain\Enums\AttendanceSessionType;
 use Modules\Staff\Infrastructure\Models\StaffProfile;
 
+/** @property AttendanceSessionStatus $status */
 final class AttendanceSession extends Model
 {
     use HasUuidPrimaryKey;
 
-    protected $fillable = ['uuid', 'organization_id', 'academic_year_id', 'academic_term_id', 'class_id', 'subject_id', 'timetable_period_id', 'staff_profile_id', 'session_date', 'start_time', 'end_time', 'session_type', 'title', 'status', 'notes', 'finalized_at', 'finalized_by', 'reopened_at', 'reopened_by', 'reopen_reason', 'created_by', 'updated_by'];
+    protected $fillable = ['uuid', 'organization_id', 'scheduled_lesson_id', 'academic_year_id', 'academic_term_id', 'class_id', 'subject_id', 'timetable_period_id', 'staff_profile_id', 'session_date', 'start_time', 'end_time', 'session_type', 'title', 'status', 'notes', 'finalized_at', 'finalized_by', 'reopened_at', 'reopened_by', 'reopen_reason', 'created_by', 'updated_by'];
 
     public function uniqueIds(): array
     {

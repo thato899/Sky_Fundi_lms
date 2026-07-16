@@ -17,7 +17,7 @@ final class CalendarEntry extends Model
 
     protected $table = 'academics_calendar_entries';
 
-    protected $fillable = ['organization_id', 'academic_year_id', 'type', 'name', 'start_date', 'end_date', 'description'];
+    protected $fillable = ['organization_id', 'academic_year_id', 'academic_term_id', 'type', 'name', 'start_date', 'end_date', 'description', 'affects_teaching', 'closure_scope', 'grade_id', 'class_id', 'status'];
 
     protected function casts(): array
     {
@@ -25,6 +25,7 @@ final class CalendarEntry extends Model
             'type' => CalendarEntryType::class,
             'start_date' => 'date',
             'end_date' => 'date',
+            'affects_teaching' => 'boolean',
         ];
     }
 

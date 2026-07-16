@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Academics\Infrastructure\Models;
 
+use Carbon\CarbonImmutable;
 use Core\Support\Traits\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +12,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Academics\Domain\Enums\AcademicYearStatus;
 use Modules\Academics\Infrastructure\Concerns\BelongsToOrganization;
 
+/**
+ * @property CarbonImmutable $start_date
+ * @property CarbonImmutable $end_date
+ */
 final class AcademicYear extends Model
 {
     use BelongsToOrganization;

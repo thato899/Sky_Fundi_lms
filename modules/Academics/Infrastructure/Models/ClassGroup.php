@@ -16,6 +16,10 @@ use Modules\Academics\Infrastructure\Concerns\BelongsToOrganization;
  * PHP — see the migration's own docblock. The database table and API
  * surface still say "class" throughout.
  */
+/**
+ * @property string $grade_id
+ * @property string $academic_year_id
+ */
 final class ClassGroup extends Model
 {
     use BelongsToOrganization;
