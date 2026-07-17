@@ -42,8 +42,8 @@ final class QueueHealthCheck implements HealthCheckInterface
             }
 
             return HealthCheckResult::healthy($this->name(), "{$pending} pending job(s)", ['pending' => $pending, 'failed' => $failed]);
-        } catch (Throwable $e) {
-            return HealthCheckResult::unhealthy($this->name(), 'Could not read queue tables: '.$e->getMessage());
+        } catch (Throwable) {
+            return HealthCheckResult::unhealthy($this->name(), 'Could not read queue storage.');
         }
     }
 }

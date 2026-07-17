@@ -16,7 +16,7 @@ final class HealthEndpointTest extends TestCase
         $response = $this->getJson('/api/v1/health');
 
         $response->assertOk();
-        $this->assertContains($response->json('status'), ['healthy', 'degraded']);
+        $response->assertJsonPath('status', 'ready');
     }
 
     public function test_the_detailed_health_endpoint_requires_authentication(): void

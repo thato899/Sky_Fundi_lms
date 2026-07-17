@@ -28,16 +28,33 @@ final class HealthCheckManager
      */
     public function runAll(): array
     {
+        return $this->run((array) config('health.checks', []));
+    }
+
+    /**
+     * @return HealthCheckResult[]
+     */
+    public function runReadiness(): array
+    {
+        return $this->run((array) config('health.readiness_checks', []));
+    }
+
+    /**
+     * @param  array<class-string<HealthCheckInterface>>  $checkClasses
+     * @return HealthCheckResult[]
+     */
+    private function run(array $checkClasses): array
+    {
         $results = [];
 
-        foreach (config('health.checks', []) as $checkClass) {
+        foreach ($checkClasses as $checkClass) {
             /** @var HealthCheckInterface $check */
             $check = $this->container->make($checkClass);
 
             try {
                 $results[] = $check->check();
-            } catch (\Throwable $e) {
-                $results[] = HealthCheckResult::unhealthy($check->name(), 'Check threw an exception: '.$e->getMessage());
+            } catch (\Throwable) {
+                $results[] = HealthCheckResult::unhealthy($check->name(), 'Health check failed.');
             }
         }
 

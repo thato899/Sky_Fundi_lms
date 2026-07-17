@@ -6,7 +6,6 @@ namespace Core\Logging\Application;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -55,22 +54,24 @@ final class PlatformLogger
 
     private function write(string $channel, string $level, string $message, array $context): void
     {
-        Log::channel($channel)->log($level, $message, array_merge($this->baseContext(), $context));
+        Log::channel($channel)->log($level, $message, array_merge($context, $this->baseContext()));
     }
 
     /**
      * Context every log line carries regardless of caller, so any log
      * entry can be traced back to the request/user that produced it.
-     * Extended with tenant_id once Core\Tenancy exists — see
-     * docs/architecture/multi-tenancy.md.
+     * Tenant and membership identifiers come only from trusted request
+     * attributes populated by organization-context middleware.
      */
     private function baseContext(): array
     {
+        $request = function_exists('request') ? request() : null;
+
         return array_filter([
-            'request_id' => function_exists('request') && request()?->hasHeader('X-Request-Id')
-                ? request()->header('X-Request-Id')
-                : (app()->bound('request_id') ? app('request_id') : (string) Str::uuid()),
+            'request_id' => app()->bound('request_id') ? app('request_id') : null,
             'actor_id' => Auth::id(),
+            'membership_id' => $request?->attributes->get('organization_membership')?->getKey(),
+            'organization_id' => $request?->attributes->get('organization')?->getKey(),
         ], static fn ($value) => $value !== null);
     }
 }

@@ -23,13 +23,16 @@ final class HealthController extends Controller
      */
     public function index(): JsonResponse
     {
-        $results = $this->manager->runAll();
+        $results = $this->manager->runReadiness();
         $overall = $this->manager->overallStatus($results);
 
-        return response()->json(
-            ['status' => $overall->value],
-            $overall->value === 'unhealthy' ? 503 : 200,
-        );
+        return response()->json([
+            'status' => $overall->value === 'unhealthy' ? 'not_ready' : 'ready',
+            'checks' => array_map(static fn ($result): array => [
+                'name' => $result->name,
+                'status' => $result->status->value,
+            ], $results),
+        ], $overall->value === 'unhealthy' ? 503 : 200);
     }
 
     /**
