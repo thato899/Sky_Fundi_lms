@@ -294,11 +294,16 @@ final class OrganizationApiTest extends TestCase
             ->assertForbidden();
         $this->postJson("/api/v1/organizations/{$foreign->id}/administrators", ['user_id' => $candidate->id])
             ->assertForbidden();
+        $this->postJson('/api/v1/identity/memberships/invite', [
+            'user_id' => $candidate->id,
+            'organization_id' => $foreign->id,
+        ])->assertForbidden();
 
         $this->assertDatabaseMissing('organization_settings', ['organization_id' => $foreign->id]);
         $this->assertDatabaseMissing('organization_ai_configurations', ['organization_id' => $foreign->id]);
         $this->assertDatabaseMissing('organization_modules', ['organization_id' => $foreign->id]);
         $this->assertDatabaseMissing('organization_administrators', ['organization_id' => $foreign->id, 'user_id' => $candidate->id]);
+        $this->assertDatabaseMissing('organization_memberships', ['organization_id' => $foreign->id, 'user_id' => $candidate->id]);
         $this->assertDatabaseMissing('audit_logs', ['target_id' => $foreign->id]);
         $this->assertSame('foreign-organization', $foreign->fresh()->code);
     }

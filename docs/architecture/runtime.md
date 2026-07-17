@@ -27,7 +27,7 @@ sequenceDiagram
     D-->>C: Resource/JSON or Blade redirect/view
 ```
 
-The API group prepends `ForceJsonResponse` and appends API request logging plus `throttle:api-default`. Route groups add Sanctum, account-lock, permission, organization-context, and resource-scoping middleware as needed. Web forms use Laravel's `web` middleware and CSRF protection.
+The API group prepends `ForceJsonResponse` and appends authenticated account-state enforcement, API request logging, and `throttle:api-default`. Middleware priority ensures the account check runs after Sanctum authentication. Route groups add permission, organization-context, and resource-scoping middleware as needed. Web forms use Laravel's `web` middleware and CSRF protection. A global response middleware adds the compatible security-header baseline documented in the security policy.
 
 ## Organization isolation, UUIDs, and RBAC
 
