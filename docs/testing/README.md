@@ -27,6 +27,13 @@ Behavior changes require happy-path plus relevant validation, authentication, pe
 
 `tests/Feature/ApiContract` is the focused cross-platform HTTP contract suite. It protects forced JSON responses, stable safe error envelopes, malformed JSON handling, non-debug server errors, and deliberate Core-specific success shapes. Module-owned suites remain authoritative for resource, mutation, pagination, tenant-isolation, and sensitive-serialization behavior.
 
+Performance regressions use deterministic query-count assertions beside the
+owning module when the fixture depends on that module's domain setup. They
+assert bounded query growth rather than elapsed time. The Scheduling feature
+suite, for example, protects conflict detection from per-lesson staff queries.
+See [the database performance audit](../performance/database-performance-audit.md)
+for measured fixtures and deferred risks.
+
 ## CI status
 
 The repository currently contains issue/PR templates but no `.github/workflows` CI workflow. Local Docker verification is therefore the executable quality gate; do not describe hosted CI as present until a workflow is committed.

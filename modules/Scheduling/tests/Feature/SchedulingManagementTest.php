@@ -9,7 +9,9 @@ use Core\Identity\Infrastructure\Models\Membership;
 use Core\RBAC\Infrastructure\Models\Role;
 use Core\Users\Infrastructure\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Modules\Academics\Infrastructure\Models\AcademicTerm;
 use Modules\Academics\Infrastructure\Models\AcademicYear;
 use Modules\Academics\Infrastructure\Models\CalendarEntry;
@@ -59,6 +61,44 @@ final class SchedulingManagementTest extends TestCase
         $this->assertSame([], app(ScheduleConflictService::class)->lesson($c['organization']->id, $proposal));
         CalendarEntry::query()->create(['organization_id' => $c['organization']->id, 'academic_year_id' => $c['year']->id, 'type' => 'public_holiday', 'name' => 'Closure', 'start_date' => '2026-02-03', 'end_date' => '2026-02-03', 'affects_teaching' => true, 'closure_scope' => 'organization']);
         $this->assertSame('closure', app(ScheduleConflictService::class)->lesson($c['organization']->id, $this->normalized($c, '2026-02-03', '09:00', '10:00'))[0]['type']);
+    }
+
+    public function test_lesson_conflict_query_count_is_bounded_as_overlapping_lessons_grow(): void
+    {
+        $c = $this->context('conflict-query-count');
+        $attributes = $this->lessonData($c) + [
+            'organization_id' => $c['organization']->id,
+            'starts_at' => CarbonImmutable::parse('2026-02-02 09:00', $c['organization']->timezone)->utc(),
+            'ends_at' => CarbonImmutable::parse('2026-02-02 10:00', $c['organization']->timezone)->utc(),
+            'created_by' => $c['user']->id,
+        ];
+
+        foreach (range(1, 5) as $number) {
+            $lesson = ScheduledLesson::query()->create($attributes + ['title' => 'Overlap '.$number]);
+            $lesson->staff()->attach($c['staff']->id, [
+                'id' => (string) Str::uuid(),
+                'organization_id' => $c['organization']->id,
+                'assignment_type' => 'teacher',
+                'is_primary' => true,
+            ]);
+        }
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        try {
+            $conflicts = app(ScheduleConflictService::class)->lesson(
+                $c['organization']->id,
+                $this->normalized($c, '2026-02-02', '09:15', '09:45', ['staff_ids' => [$c['staff']->id]]),
+            );
+            $selects = collect(DB::getQueryLog())->filter(
+                fn (array $query): bool => str_starts_with(strtolower(ltrim($query['query'])), 'select'),
+            );
+        } finally {
+            DB::disableQueryLog();
+        }
+
+        $this->assertCount(10, $conflicts);
+        $this->assertCount(2, $selects);
     }
 
     public function test_template_activation_materialization_closure_skip_and_idempotency(): void

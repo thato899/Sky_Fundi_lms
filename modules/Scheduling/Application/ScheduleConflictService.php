@@ -15,8 +15,14 @@ final class ScheduleConflictService
     public function lesson(string $organizationId, array $proposal, ?string $excludeId = null): array
     {
         $query = ScheduledLesson::query();
+        $staffIds = $proposal['staff_ids'] ?? [];
         $query->where('organization_id', $organizationId)->whereDate('lesson_date', $proposal['lesson_date'])
             ->whereNotIn('status', ['cancelled', 'rescheduled'])->where('starts_at', '<', $proposal['ends_at'])->where('ends_at', '>', $proposal['starts_at']);
+        if ($staffIds) {
+            $query->withExists([
+                'staff as proposed_staff_conflict' => fn ($staff) => $staff->whereIn('staff_profiles.id', $staffIds),
+            ]);
+        }
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
         }
@@ -27,8 +33,7 @@ final class ScheduleConflictService
                     $conflicts->push($this->detail($type, $existing));
                 }
             }
-            $staffIds = $proposal['staff_ids'] ?? [];
-            if ($staffIds && $existing->staff()->whereIn('staff_profiles.id', $staffIds)->exists()) {
+            if ($staffIds && $existing->getAttribute('proposed_staff_conflict')) {
                 $conflicts->push($this->detail('staff', $existing));
             }
         }
@@ -49,8 +54,14 @@ final class ScheduleConflictService
     public function templateEntry(string $organizationId, array $proposal, ?string $excludeId = null): array
     {
         return TimetableTemplateEntry::query()->where('organization_id', $organizationId)->where('weekday', $proposal['weekday'])->where('status', 'active')
-            ->where('start_time', '<', $proposal['end_time'])->where('end_time', '>', $proposal['start_time'])->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))->get()
-            ->filter(fn ($e) => $e->class_id === ($proposal['class_id'] ?? null) || (($proposal['room_id'] ?? null) && $e->room_id === $proposal['room_id']))
+            ->where('start_time', '<', $proposal['end_time'])->where('end_time', '>', $proposal['start_time'])
+            ->where(function ($query) use ($proposal): void {
+                $query->where('class_id', $proposal['class_id']);
+                if ($proposal['room_id'] ?? null) {
+                    $query->orWhere('room_id', $proposal['room_id']);
+                }
+            })
+            ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))->get()
             ->map(fn ($e) => $this->detail($e->class_id === ($proposal['class_id'] ?? null) ? 'class' : 'room', $e))->values()->all();
     }
 
