@@ -6,6 +6,7 @@ namespace Modules\Organizations\Http\Controllers\Api\V1;
 
 use Core\Api\Http\Controllers\Controller;
 use Core\Api\Http\Responses\ApiResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Organizations\Application\OrganizationService;
@@ -22,6 +23,7 @@ use Modules\Organizations\Infrastructure\Repositories\OrganizationRepository;
 final class OrganizationController extends Controller
 {
     use ApiResponse;
+    use AuthorizesRequests;
 
     public function __construct(private readonly OrganizationService $organizations, private readonly OrganizationRepository $repository) {}
 
@@ -111,7 +113,7 @@ final class OrganizationController extends Controller
     {
         $this->authorize('update', $organization);
 
-        return $this->ok($this->organizations->configureAi($organization, $request->validated()));
+        return $this->ok($this->organizations->configureAi($organization, $request->validated())->toArray());
     }
 
     public function setModule(UpdateOrganizationModuleRequest $request, Organization $organization): JsonResponse
@@ -119,6 +121,6 @@ final class OrganizationController extends Controller
         $this->authorize('update', $organization);
         $data = $request->validated();
 
-        return $this->ok($this->organizations->setModule($organization, $data['module_name'], $data['enabled'], $request->user()?->id));
+        return $this->ok($this->organizations->setModule($organization, $data['module_name'], $data['enabled'], $request->user()?->id)->toArray());
     }
 }

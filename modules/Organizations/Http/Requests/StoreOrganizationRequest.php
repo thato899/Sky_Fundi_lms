@@ -7,7 +7,7 @@ namespace Modules\Organizations\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-final class StoreOrganizationRequest extends FormRequest
+class StoreOrganizationRequest extends FormRequest
 {
     public function authorize(): bool
     {
