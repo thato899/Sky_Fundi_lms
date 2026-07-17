@@ -1,0 +1,29 @@
+# Local-only production simulation. All writable state is redirected beneath
+# STAGING_TEST_ROOT; no normal development or production Docker volume is used.
+services:
+  mysql:
+    volumes: !override
+      - ${STAGING_TEST_ROOT:?Set STAGING_TEST_ROOT}/mysql:/var/lib/mysql
+
+  app:
+    volumes: !override
+      - ${STAGING_TEST_ROOT:?Set STAGING_TEST_ROOT}/storage:/var/www/html/storage
+      - ${STAGING_TEST_ROOT:?Set STAGING_TEST_ROOT}/bootstrap-cache:/var/www/html/bootstrap/cache
+
+  queue:
+    volumes: !override
+      - ${STAGING_TEST_ROOT:?Set STAGING_TEST_ROOT}/storage:/var/www/html/storage
+      - ${STAGING_TEST_ROOT:?Set STAGING_TEST_ROOT}/bootstrap-cache:/var/www/html/bootstrap/cache
+
+  scheduler:
+    volumes: !override
+      - ${STAGING_TEST_ROOT:?Set STAGING_TEST_ROOT}/storage:/var/www/html/storage
+      - ${STAGING_TEST_ROOT:?Set STAGING_TEST_ROOT}/bootstrap-cache:/var/www/html/bootstrap/cache
+
+  web:
+    ports: !override
+      - "127.0.0.1:${STAGING_TEST_HTTP_PORT:-18080}:80"
+    volumes: !override
+      - ${STAGING_TEST_ROOT:?Set STAGING_TEST_ROOT}/storage:/var/www/html/storage:ro
+      - ${STAGING_TEST_ROOT:?Set STAGING_TEST_ROOT}/caddy-data:/data
+      - ${STAGING_TEST_ROOT:?Set STAGING_TEST_ROOT}/caddy-config:/config

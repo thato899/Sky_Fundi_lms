@@ -1,7 +1,8 @@
 #!/bin/sh
 set -eu
 
-# Runtime services deliberately do not initialise the shared source tree.
-# The Compose init service owns that work and records completion before app,
-# queue, and scheduler are started.
+# Runtime startup is deliberately side-effect free. Migrations, cache
+# generation, and the storage link are explicit deployment actions.
+umask 0002
+
 exec "$@"
