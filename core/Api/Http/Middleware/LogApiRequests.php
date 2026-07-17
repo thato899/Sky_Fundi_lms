@@ -9,6 +9,7 @@ use Core\Analytics\Application\AnalyticsRecorder;
 use Core\Analytics\Domain\Enums\AnalyticsMetric;
 use Core\Logging\Application\PlatformLogger;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
@@ -35,23 +36,22 @@ final class LogApiRequests
     {
         $start = hrtime(true);
 
-        $response = $next($request);
+        try {
+            $response = $next($request);
+        } catch (Throwable $exception) {
+            $this->logFailure($request, $exception, $this->durationMs($start));
 
-        $durationMs = round((hrtime(true) - $start) / 1_000_000, 2);
+            throw $exception;
+        }
 
         try {
-            $route = $request->route();
-            $context = [
-                'method' => $request->method(),
-                'route' => $route->getName(),
-                'path' => $route->uri(),
+            $context = $this->requestContext($request, $this->durationMs($start)) + [
                 'status' => $response->getStatusCode(),
-                'duration_ms' => $durationMs,
             ];
 
             $slowThreshold = (int) config('observability.slow_request_ms', 1000);
             $isStreamed = $response instanceof StreamedResponse;
-            $level = $slowThreshold > 0 && ! $isStreamed && $durationMs >= $slowThreshold ? 'warning' : 'info';
+            $level = $slowThreshold > 0 && ! $isStreamed && $context['duration_ms'] >= $slowThreshold ? 'warning' : 'info';
 
             $this->logger->application($level, 'http.request.completed', $context + [
                 'outcome' => $level === 'warning' ? 'slow' : 'completed',
@@ -65,5 +65,42 @@ final class LogApiRequests
         }
 
         return $response;
+    }
+
+    private function logFailure(Request $request, Throwable $exception, float $durationMs): void
+    {
+        try {
+            $this->logger->application('error', 'http.request.failed', $this->requestContext($request, $durationMs) + [
+                'outcome' => 'failed',
+                'exception_class' => $exception::class,
+            ]);
+        } catch (Throwable) {
+            // Logging must never replace or mask the original exception.
+        }
+    }
+
+    /**
+     * @return array{method: string, route: string|null, path: string, duration_ms: float}
+     */
+    private function requestContext(Request $request, float $durationMs): array
+    {
+        $route = $this->resolvedRoute($request);
+
+        return [
+            'method' => $request->method(),
+            'route' => $route instanceof Route ? $route->getName() : null,
+            'path' => $route instanceof Route ? $route->uri() : $request->path(),
+            'duration_ms' => $durationMs,
+        ];
+    }
+
+    private function resolvedRoute(Request $request): mixed
+    {
+        return $request->route();
+    }
+
+    private function durationMs(int $start): float
+    {
+        return round((hrtime(true) - $start) / 1_000_000, 2);
     }
 }
