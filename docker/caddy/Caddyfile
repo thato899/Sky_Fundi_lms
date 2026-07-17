@@ -1,0 +1,43 @@
+{
+	email {$ACME_EMAIL}
+	servers {
+		trusted_proxies static private_ranges
+		client_ip_headers X-Forwarded-For X-Real-IP
+	}
+}
+
+{$APP_DOMAIN} {
+	root * /var/www/html/public
+	encode zstd gzip
+
+	request_body {
+		max_size {$CADDY_MAX_UPLOAD_SIZE:25MB}
+	}
+
+	@dotfiles {
+		path_regexp dotfiles "(^|/)\."
+		not path /.well-known/*
+	}
+	respond @dotfiles 404
+
+	@sensitive path /composer.json /composer.lock /artisan /bootstrap/* /config/* /database/* /docker/* /modules/* /routes/* /storage/* /vendor/*
+	respond @sensitive 404
+
+	php_fastcgi app:9000 {
+		read_timeout {$CADDY_APP_READ_TIMEOUT:60s}
+		write_timeout {$CADDY_APP_WRITE_TIMEOUT:60s}
+		header_up X-Request-ID {http.request.header.X-Request-ID}
+	}
+
+	file_server
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+http://127.0.0.1 {
+	root * /var/www/html/public
+	php_fastcgi app:9000
+}

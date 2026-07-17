@@ -1,0 +1,159 @@
+name: sky-fundi-production
+
+x-app-environment: &app-environment
+  env_file:
+    - path: ${PRODUCTION_ENV_FILE:-.env.production}
+      required: true
+
+x-logging: &bounded-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  init:
+    profiles: ["development"]
+
+  mailpit:
+    profiles: ["development"]
+    ports: !reset []
+
+  redis:
+    profiles: ["development"]
+
+  mysql:
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:?Set DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME:?Set DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: !reset null
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+    ports: !reset []
+    volumes:
+      - mysql-production:/var/lib/mysql
+    secrets:
+      - mysql_root_password
+    restart: unless-stopped
+    logging: *bounded-logging
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  app:
+    <<: *app-environment
+    image: ${APP_IMAGE:-sky-fundi-app}:${APP_IMAGE_TAG:-staging}
+    build:
+      context: .
+      target: runtime
+    command: ["php-fpm", "-F"]
+    ports: !reset []
+    volumes:
+      - storage-production:/var/www/html/storage
+      - bootstrap-cache:/var/www/html/bootstrap/cache
+    extra_hosts: !reset []
+    depends_on: !override
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *bounded-logging
+    healthcheck:
+      test: ["CMD", "php", "artisan", "platform:diagnose"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 45s
+
+  queue:
+    <<: *app-environment
+    image: ${APP_IMAGE:-sky-fundi-app}:${APP_IMAGE_TAG:-staging}
+    build:
+      context: .
+      target: runtime
+    command:
+      - php
+      - artisan
+      - queue:work
+      - --sleep=3
+      - --tries=3
+      - --timeout=90
+      - --memory=256
+      - --max-time=3600
+    volumes:
+      - storage-production:/var/www/html/storage
+      - bootstrap-cache:/var/www/html/bootstrap/cache
+    extra_hosts: !reset []
+    depends_on: !override
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 2m
+    logging: *bounded-logging
+
+  scheduler:
+    <<: *app-environment
+    image: ${APP_IMAGE:-sky-fundi-app}:${APP_IMAGE_TAG:-staging}
+    build:
+      context: .
+      target: runtime
+    command: ["php", "artisan", "schedule:work"]
+    volumes:
+      - storage-production:/var/www/html/storage
+      - bootstrap-cache:/var/www/html/bootstrap/cache
+    extra_hosts: !reset []
+    depends_on: !override
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 1m
+    logging: *bounded-logging
+
+  web:
+    image: ${WEB_IMAGE:-sky-fundi-web}:${APP_IMAGE_TAG:-staging}
+    build:
+      context: .
+      target: web
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL}
+      CADDY_MAX_UPLOAD_SIZE: ${CADDY_MAX_UPLOAD_SIZE:-25MB}
+      CADDY_APP_READ_TIMEOUT: ${CADDY_APP_READ_TIMEOUT:-60s}
+      CADDY_APP_WRITE_TIMEOUT: ${CADDY_APP_WRITE_TIMEOUT:-60s}
+    ports:
+      - "${HTTP_BIND_ADDRESS:-0.0.0.0}:${HTTP_PORT:-80}:80"
+      - "${HTTPS_BIND_ADDRESS:-0.0.0.0}:${HTTPS_PORT:-443}:443"
+      - "${HTTPS_BIND_ADDRESS:-0.0.0.0}:${HTTPS_PORT:-443}:443/udp"
+    volumes:
+      - storage-production:/var/www/html/storage:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *bounded-logging
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "--header", "Host: localhost", "http://127.0.0.1/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  mysql-production:
+    name: ${COMPOSE_PROJECT_NAME:-sky-fundi-production}_mysql
+  storage-production:
+    name: ${COMPOSE_PROJECT_NAME:-sky-fundi-production}_storage
+  caddy-data:
+    name: ${COMPOSE_PROJECT_NAME:-sky-fundi-production}_caddy_data
+  caddy-config:
+    name: ${COMPOSE_PROJECT_NAME:-sky-fundi-production}_caddy_config
+  bootstrap-cache:
+    name: ${COMPOSE_PROJECT_NAME:-sky-fundi-production}_bootstrap_cache
+
+secrets:
+  mysql_root_password:
+    file: ${MYSQL_ROOT_PASSWORD_FILE:-./secrets/mysql_root_password}

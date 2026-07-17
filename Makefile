@@ -2,7 +2,7 @@ SHELL := /bin/bash
 COMPOSE := docker compose
 APP := $(COMPOSE) exec -T app
 
-.PHONY: build init up down restart migrate migrate-check seed test test-learners pint analyse verify status logs shell health
+.PHONY: build init up down restart migrate migrate-check seed test test-learners pint analyse verify status logs shell health deployment-validate
 
 up:
 	$(COMPOSE) up -d
@@ -54,3 +54,6 @@ shell:
 
 health:
 	./scripts/health.sh
+
+deployment-validate:
+	./scripts/validate-deployment.sh

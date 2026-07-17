@@ -1,0 +1,38 @@
+name: Deployment validation
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - compose.yaml
+      - compose.production.yaml
+      - compose.staging-test.yaml
+      - .env.production.example
+      - docker/**
+      - scripts/deploy.sh
+      - scripts/backup-database.sh
+      - scripts/restore-database-validation.sh
+      - scripts/validate-production-env.sh
+      - scripts/validate-deployment.sh
+      - scripts/simulate-staging.sh
+      - .github/workflows/deployment-validation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate production contract and Compose
+        run: ./scripts/validate-deployment.sh
+
+      - name: Build production images
+        run: |
+          docker build --target runtime --tag sky-fundi-app:ci .
+          docker build --target web --tag sky-fundi-web:ci .

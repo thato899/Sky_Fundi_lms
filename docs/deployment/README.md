@@ -1,6 +1,8 @@
 # Deployment and runtime operations
 
-The committed deployment artifact is a development-oriented Docker Compose stack. Production orchestration and infrastructure-as-code are not implemented.
+The repository includes a development Compose stack and a single-Ubuntu-VPS
+production-like override. See the practical
+[staging deployment runbook](../operations/staging-deployment.md).
 
 ## Compose services
 
@@ -55,5 +57,11 @@ Use `.env.example` and [environment variable reference](../environment-variables
 - configure worker supervision, log aggregation/retention, rate-limit-aware proxies, and database/storage backups;
 - test restore procedures separately: `platform:backup` exists, but automated restore does not;
 - do not deploy Mailpit, `artisan serve`, committed development database credentials, or bind MySQL publicly as production defaults.
+
+`compose.production.yaml` implements these single-server controls with Caddy,
+PHP-FPM, immutable images, private internal services, durable volumes, one
+scheduler, a bounded queue worker, and explicit deployment/backup scripts.
+External secret custody, off-server encrypted backups, monitoring/alerting,
+firewall administration, and recovery approval remain operator-owned.
 
 See [environments](environments.md) and [operations](../operations/README.md) for limitations and runbooks.
