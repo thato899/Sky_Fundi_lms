@@ -7,6 +7,7 @@ namespace Tests\Feature\ApiContract;
 use Core\Support\Exceptions\DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -91,8 +92,25 @@ final class ApiErrorContractTest extends TestCase
             ->assertHeader('Content-Type', 'application/json')
             ->assertJsonPath('error.code', 'server_error')
             ->assertJsonPath('error.message', 'An unexpected error occurred.')
+            ->assertJsonStructure(['error' => ['request_id']])
             ->assertJsonMissingPath('error.details')
             ->assertJsonMissingPath('exception')
+            ->assertJsonMissingPath('trace');
+
+        $this->assertTrue(Str::isUuid($response->headers->get('X-Request-ID')));
+        $this->assertSame($response->headers->get('X-Request-ID'), $response->json('error.request_id'));
+        $this->assertStringNotContainsString('internal fixture detail', $response->getContent());
+        $this->assertStringNotContainsString(base_path(), $response->getContent());
+    }
+
+    public function test_unexpected_errors_remain_generic_when_debug_is_enabled(): void
+    {
+        config()->set('app.debug', true);
+
+        $response = $this->getJson('/api/v1/contract-fixtures/unexpected')
+            ->assertInternalServerError()
+            ->assertJsonPath('error.message', 'An unexpected error occurred.')
+            ->assertJsonMissingPath('error.details')
             ->assertJsonMissingPath('trace');
 
         $this->assertStringNotContainsString('internal fixture detail', $response->getContent());

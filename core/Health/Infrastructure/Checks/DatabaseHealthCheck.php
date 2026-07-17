@@ -28,8 +28,8 @@ final class DatabaseHealthCheck implements HealthCheckInterface
             return $elapsedMs > 500
                 ? HealthCheckResult::degraded($this->name(), "Query succeeded but took {$elapsedMs}ms", ['latency_ms' => $elapsedMs])
                 : HealthCheckResult::healthy($this->name(), 'Connected', ['latency_ms' => $elapsedMs]);
-        } catch (Throwable $e) {
-            return HealthCheckResult::unhealthy($this->name(), 'Database connection failed: '.$e->getMessage());
+        } catch (Throwable) {
+            return HealthCheckResult::unhealthy($this->name(), 'Database connection failed.');
         }
     }
 }

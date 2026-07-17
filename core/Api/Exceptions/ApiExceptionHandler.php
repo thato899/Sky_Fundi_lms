@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -131,15 +130,10 @@ final class ApiExceptionHandler
                 return null;
             }
 
-            $status = 500;
-
-            report($e);
-
             return self::error(
                 code: 'server_error',
-                message: config('app.debug') ? $e->getMessage() : 'An unexpected error occurred.',
-                status: $status,
-                details: config('app.debug') ? ['exception' => $e::class, 'trace' => $e->getTraceAsString()] : null,
+                message: 'An unexpected error occurred.',
+                status: 500,
             );
         });
     }
@@ -170,7 +164,15 @@ final class ApiExceptionHandler
             $payload['errors'] = $validationErrors;
         }
 
-        return response()->json($payload, $status)
-            ->header('X-Request-Id', request()->header('X-Request-Id', (string) Str::uuid()));
+        $header = (string) config('observability.request_id_header', 'X-Request-ID');
+        $requestId = app()->bound('request_id') ? (string) app('request_id') : null;
+
+        if ($requestId !== null) {
+            $payload['error']['request_id'] = $requestId;
+        }
+
+        $response = response()->json($payload, $status);
+
+        return $requestId === null ? $response : $response->header($header, $requestId);
     }
 }

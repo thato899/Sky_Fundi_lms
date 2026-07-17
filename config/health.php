@@ -21,6 +21,11 @@ use Core\Health\Infrastructure\Checks\StorageHealthCheck;
 */
 
 return [
+    'readiness_checks' => [
+        DatabaseHealthCheck::class,
+        CacheHealthCheck::class,
+        StorageHealthCheck::class,
+    ],
     'checks' => [
         ApiHealthCheck::class,
         DatabaseHealthCheck::class,

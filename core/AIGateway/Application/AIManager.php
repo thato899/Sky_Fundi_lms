@@ -83,7 +83,7 @@ final class AIManager
         $this->logger->ai('warning', 'ai.provider_failed', [
             'provider' => $failedProvider,
             'fallback' => $fallback,
-            'error' => $original->getMessage(),
+            'exception_class' => $original::class,
         ]);
 
         if (! $fallback || $fallback === $failedProvider) {

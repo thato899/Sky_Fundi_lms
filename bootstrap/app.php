@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Core\Api\Exceptions\ApiExceptionHandler;
 use Core\Api\Http\Middleware\AddSecurityHeaders;
+use Core\Api\Http\Middleware\AssignRequestId;
 use Core\Api\Http\Middleware\ForceJsonResponse;
 use Core\Api\Http\Middleware\LogApiRequests;
 use Core\Auth\Http\Middleware\CheckAccountLocked;
@@ -22,7 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(AssignRequestId::class);
         $middleware->append(AddSecurityHeaders::class);
+        $middleware->append(LogApiRequests::class);
 
         $middleware->api(prepend: [
             ForceJsonResponse::class,
@@ -30,7 +33,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(append: [
             CheckAccountLocked::class,
-            LogApiRequests::class,
             'throttle:api-default',
         ]);
 
@@ -46,6 +48,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->context(static fn (): array => array_filter([
+            'request_id' => app()->bound('request_id') ? app('request_id') : null,
+            'actor_id' => request()->user()?->getAuthIdentifier(),
+            'organization_id' => request()->attributes->get('organization')?->getKey(),
+        ], static fn (mixed $value): bool => $value !== null));
+
         ApiExceptionHandler::register($exceptions);
     })
     ->create();

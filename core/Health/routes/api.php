@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/health', [HealthController::class, 'index'])->name('health');
+Route::get('/ready', [HealthController::class, 'index'])->name('readiness');
 
 Route::get('/health/detailed', [HealthController::class, 'detailed'])
     ->middleware(['auth:sanctum', 'permission:core.health.view'])
