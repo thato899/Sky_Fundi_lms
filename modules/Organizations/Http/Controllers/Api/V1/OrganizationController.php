@@ -8,9 +8,9 @@ use Core\Api\Http\Controllers\Controller;
 use Core\Api\Http\Responses\ApiResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Modules\Organizations\Application\OrganizationService;
 use Modules\Organizations\Http\Requests\AssignOrganizationAdministratorRequest;
+use Modules\Organizations\Http\Requests\IndexOrganizationRequest;
 use Modules\Organizations\Http\Requests\StoreOrganizationRequest;
 use Modules\Organizations\Http\Requests\UpdateOrganizationAiRequest;
 use Modules\Organizations\Http\Requests\UpdateOrganizationModuleRequest;
@@ -27,9 +27,9 @@ final class OrganizationController extends Controller
 
     public function __construct(private readonly OrganizationService $organizations, private readonly OrganizationRepository $repository) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(IndexOrganizationRequest $request): JsonResponse
     {
-        return $this->ok(OrganizationResource::collection($this->repository->paginate($request->only(['search', 'status', 'type', 'sort', 'direction', 'per_page']), $request->user()?->can('organizations.manage') ? null : $request->user()?->id)));
+        return $this->ok(OrganizationResource::collection($this->repository->paginate($request->validated(), $request->user()?->can('organizations.manage') ? null : $request->user()?->id)));
     }
 
     public function store(StoreOrganizationRequest $request): JsonResponse

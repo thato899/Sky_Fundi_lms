@@ -27,11 +27,15 @@ Public API routes are login/password reset, public branding, and minimal health.
 
 ## Requests, validation, and responses
 
-The exact body contract for each write endpoint is its referenced `Http/Requests/*Request::rules()`; controller-local validation is authoritative where no Form Request exists. Create endpoints normally return `201`, reads/updates/actions `200`, and deletes/logout may return `200` or `204` as implemented. Validation returns `422`, unauthenticated `401`, forbidden `403`, scoped/not-found `404`, throttling `429`, and conflicts/domain-state failures use the exception mapping documented in [error handling](error-handling.md). Resources wrap records using the platform API response conventions; exports return CSV/PDF rather than JSON.
+The canonical compatibility-aware contract and per-area deviations are recorded in the [API contract standardization audit](api-contract-standardization-audit.md). The exact body contract for each write endpoint is its referenced `Http/Requests/*Request::rules()`; controller-local validation is authoritative where no Form Request exists.
+
+Normal resources use `{"data": {...}}`; unpaginated collections use `{"data": [...]}`; paginated JSON Resource collections add `links` and `meta`. The platform does not add empty `message` or `meta` fields to every response. Create endpoints normally return `201`, body-returning reads/updates/actions `200`, and intentional empty responses use `204`. Public health and aggregate/summary endpoints retain deliberate product-specific shapes.
+
+Errors use `{"error": {"code": "...", "message": "...", "details": {...}}}`. Validation returns `422` and also includes the Laravel-compatible field-keyed `errors` object; malformed JSON returns `400`; unauthenticated returns `401`; forbidden returns `403`; scoped/not-found returns `404`; throttling returns `429`; domain-state failures use [error handling](error-handling.md). Exports return CSV/PDF rather than JSON.
 
 ## Pagination, filtering, and sorting
 
-Only endpoints whose controller/query service implements these features accept them. Typical list responses use Laravel pagination metadata. Learners, organizations, attendance, assessments, reports, and scheduling document their supported query fields in their module API document or request class. Unknown sort fields are rejected or ignored according to that implementation; never advertise arbitrary database-column sorting.
+Only endpoints whose controller/query service implements these features accept them. Typical list responses use Laravel JSON Resource pagination metadata. Learners and Organizations validate sort/direction/page size; other modules use controller allowlists, fixed ordering, or normalized defaults as documented in the audit. Never advertise or pass arbitrary database-column sorting.
 
 ## Web routes
 

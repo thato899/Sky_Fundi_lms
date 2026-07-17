@@ -10,6 +10,7 @@ Run from the repository root:
 
 ```bash
 docker compose exec app php artisan test modules/Learners/tests
+docker compose exec -T app php artisan test tests/Feature/ApiContract
 make test-learners
 make test
 make migrate-check
@@ -23,6 +24,8 @@ make verify
 ## Coverage expectations
 
 Behavior changes require happy-path plus relevant validation, authentication, permission, lifecycle, and cross-organization cases. Migrations need constraint/rollback coverage where practical. Security tests verify that foreign UUIDs do not disclose records, payload ownership is ignored/rejected, and permissions cannot be bypassed.
+
+`tests/Feature/ApiContract` is the focused cross-platform HTTP contract suite. It protects forced JSON responses, stable safe error envelopes, malformed JSON handling, non-debug server errors, and deliberate Core-specific success shapes. Module-owned suites remain authoritative for resource, mutation, pagination, tenant-isolation, and sensitive-serialization behavior.
 
 ## CI status
 

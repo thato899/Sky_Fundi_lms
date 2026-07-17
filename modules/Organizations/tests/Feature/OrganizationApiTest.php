@@ -109,6 +109,27 @@ final class OrganizationApiTest extends TestCase
             ->assertJsonPath('data.0.code', 'beta');
     }
 
+    public function test_directory_rejects_unsafe_sort_direction_and_page_size_without_querying(): void
+    {
+        $manager = $this->userWithPermissions('organizations.view', 'organizations.manage');
+        $this->organization();
+
+        foreach ([
+            'sort' => 'license_key',
+            'direction' => 'sideways',
+            'per_page' => 101,
+            'page' => 0,
+        ] as $field => $value) {
+            $this->actingAs($manager, 'sanctum')
+                ->getJson('/api/v1/organizations?'.http_build_query([$field => $value]))
+                ->assertUnprocessable()
+                ->assertJsonPath('error.code', 'validation_failed')
+                ->assertJsonValidationErrors($field);
+        }
+
+        $this->assertDatabaseCount('organizations', 1);
+    }
+
     public function test_creation_and_update_validation_reject_invalid_or_duplicate_values(): void
     {
         $admin = $this->userWithPermissions('organizations.manage');
