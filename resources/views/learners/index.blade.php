@@ -1,7 +1,7 @@
 @extends('learners.layout')
 @section('title','Learner management')
 @section('learner-content')
-<h1>Learner management</h1><p>Search and manage learner profiles in the active organization. Archived learners are excluded by default.</p>
+<div class="learner-heading"><div><h1>Learner management</h1><p>Search and manage learner profiles in the active organization. Archived learners are excluded by default.</p></div>@if(in_array('guardians.view',$permissions,true))<a class="button secondary" href="{{ route('guardians.index') }}">Guardian management</a>@endif</div>
 <form method="GET" action="{{ route('learners.index') }}" class="filters">
  <div class="wide"><label for="search">Search</label><input id="search" name="search" value="{{ request('search') }}" placeholder="Number or learner name"></div>
  <div><label for="learner_status">Learner status</label><select id="learner_status" name="learner_status"><option value="">All statuses</option>@foreach(Modules\Learners\Domain\Enums\LearnerStatus::cases() as $status)<option value="{{ $status->value }}" @selected(request('learner_status')===$status->value)>{{ ucfirst(str_replace('_',' ',$status->value)) }}</option>@endforeach</select></div>

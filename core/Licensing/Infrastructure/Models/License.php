@@ -30,7 +30,7 @@ final class License extends Model
     protected $fillable = [
         'licensee_type', 'licensee_id', 'license_key', 'tier', 'status',
         'activation_date', 'expiry_date', 'renewal_date',
-        'max_users', 'max_storage_mb', 'enabled_modules', 'ai_provider',
+        'max_users', 'max_learners', 'max_storage_mb', 'enabled_modules', 'ai_provider',
         'support_level', 'metadata', 'created_by', 'updated_by',
     ];
 
@@ -59,11 +59,15 @@ final class License extends Model
 
     public function isExpired(): bool
     {
-        return $this->expiry_date !== null && $this->expiry_date->isPast();
+        $expiryDate = $this->getAttribute('expiry_date');
+
+        return $expiryDate !== null && $expiryDate->isPast();
     }
 
     public function allowsModule(string $moduleName): bool
     {
-        return $this->enabled_modules === null || in_array($moduleName, $this->enabled_modules, true);
+        $enabledModules = $this->getAttribute('enabled_modules');
+
+        return $enabledModules === null || in_array($moduleName, $enabledModules, true);
     }
 }

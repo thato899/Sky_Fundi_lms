@@ -18,6 +18,7 @@ use Modules\Academics\Infrastructure\Models\AcademicYear;
 use Modules\Academics\Infrastructure\Models\ClassGroup;
 use Modules\Academics\Infrastructure\Models\Curriculum;
 use Modules\Academics\Infrastructure\Models\Grade;
+use Modules\Learners\Application\GuardianPortalAccessService;
 use Modules\Learners\Application\LearnerDirectoryService;
 use Modules\Learners\Application\LearnerService;
 use Modules\Learners\Application\LearnerStatusService;
@@ -29,6 +30,7 @@ use Modules\Learners\Http\Requests\StoreLearnerRequest;
 use Modules\Learners\Http\Requests\TransitionLearnerStatusRequest;
 use Modules\Learners\Http\Requests\UpdateAcademicPlacementRequest;
 use Modules\Learners\Http\Requests\UpdateLearnerRequest;
+use Modules\Learners\Infrastructure\Models\GuardianProfile;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Organizations\Application\OrganizationService;
 use Modules\Organizations\Infrastructure\Models\Organization;
@@ -41,6 +43,7 @@ final class LearnerWebController
         private readonly LearnerStatusService $statuses,
         private readonly PermissionResolver $permissions,
         private readonly OrganizationService $organizations,
+        private readonly GuardianPortalAccessService $guardianAccess,
     ) {}
 
     public function index(LearnerIndexRequest $request): View
@@ -83,7 +86,16 @@ final class LearnerWebController
         $learner = $this->learner($learner);
         [$organization, $membership] = $this->context($request);
         Gate::authorize('view', $learner);
+        $canUpdateLearner = Gate::allows('update', $learner);
+        $canManageGuardians = Gate::allows('manageGuardians', $learner);
         $learner->load(['currentAcademicYear', 'currentGrade', 'currentClass', 'curriculum']);
+        if ($canManageGuardians) {
+            $learner->load(['guardianRelationships' => fn ($query) => $query->with('guardian')->where('status', 'active'), 'consents.guardian']);
+        } else {
+            $actor = $this->actor($request);
+            $learner->setRelation('guardianRelationships', $this->guardianAccess->relationships($actor, $learner)->with('guardian')->get());
+            $learner->setRelation('consents', collect());
+        }
         $history = Gate::allows('viewStatusHistory', $learner)
             ? $learner->statusHistory()->with('actor:id,name')->orderByDesc('changed_at')->orderByDesc('id')->get()
             : collect();
@@ -92,6 +104,9 @@ final class LearnerWebController
             'learner' => $learner,
             'history' => $history,
             'transitions' => Gate::allows('manageStatus', $learner) ? $this->statuses->availableTransitions($learner) : [],
+            'availableGuardians' => $canManageGuardians ? GuardianProfile::query()->where('organization_id', $organization->getKey())->whereNull('archived_at')->where('status', 'active')->orderBy('last_name')->get() : collect(),
+            'canUpdateLearner' => $canUpdateLearner,
+            'canManageGuardians' => $canManageGuardians,
         ]);
     }
 

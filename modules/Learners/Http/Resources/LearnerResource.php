@@ -19,6 +19,8 @@ final class LearnerResource extends JsonResource
         assert($learner instanceof LearnerProfile);
         $status = $learner->getAttribute('learner_status');
         assert($status instanceof LearnerStatus);
+        $canUpdate = $request->user()?->can('update', $learner) ?? false;
+        $canManage = $request->user()?->can('viewAny', LearnerProfile::class) ?? false;
 
         return [
             'uuid' => $learner->getAttribute('uuid'),
@@ -31,11 +33,11 @@ final class LearnerResource extends JsonResource
             'date_of_birth' => $this->date($learner->getAttribute('date_of_birth')),
             'learner_email' => $learner->getAttribute('learner_email'),
             'learner_phone' => $learner->getAttribute('learner_phone'),
-            'residential_address' => $learner->getAttribute('residential_address'),
-            'city' => $learner->getAttribute('city'),
-            'province' => $learner->getAttribute('province'),
-            'country' => $learner->getAttribute('country'),
-            'postal_code' => $learner->getAttribute('postal_code'),
+            'residential_address' => $this->when($canUpdate, $learner->getAttribute('residential_address')),
+            'city' => $this->when($canUpdate, $learner->getAttribute('city')),
+            'province' => $this->when($canUpdate, $learner->getAttribute('province')),
+            'country' => $this->when($canUpdate, $learner->getAttribute('country')),
+            'postal_code' => $this->when($canUpdate, $learner->getAttribute('postal_code')),
             'admission_date' => $this->date($learner->getAttribute('admission_date')),
             'expected_completion_date' => $this->date($learner->getAttribute('expected_completion_date')),
             'previous_institution' => $learner->getAttribute('previous_institution'),
@@ -50,12 +52,12 @@ final class LearnerResource extends JsonResource
             ],
             'learner_status' => $status->value,
             'academic_status' => $learner->getAttribute('academic_status'),
-            'onboarding_status' => $learner->getAttribute('onboarding_status'),
-            'portal_access_enabled' => $learner->getAttribute('portal_access_enabled'),
-            'archived' => $learner->getAttribute('archived_at') !== null,
-            'archived_at' => $this->timestamp($learner->getAttribute('archived_at')),
-            'created_at' => $this->timestamp($learner->getAttribute('created_at')),
-            'updated_at' => $this->timestamp($learner->getAttribute('updated_at')),
+            'onboarding_status' => $this->when($canManage, $learner->getAttribute('onboarding_status')),
+            'portal_access_enabled' => $this->when($canManage, $learner->getAttribute('portal_access_enabled')),
+            'archived' => $this->when($canManage, $learner->getAttribute('archived_at') !== null),
+            'archived_at' => $this->when($canManage, $this->timestamp($learner->getAttribute('archived_at'))),
+            'created_at' => $this->when($canManage, $this->timestamp($learner->getAttribute('created_at'))),
+            'updated_at' => $this->when($canManage, $this->timestamp($learner->getAttribute('updated_at'))),
         ];
     }
 

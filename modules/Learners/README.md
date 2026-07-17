@@ -44,15 +44,21 @@ docker compose exec app php artisan db:seed --class="Modules\\Learners\\Database
 
 This grants all learner permissions to Super Admin and Organization Administrator, and all except number override to Academic Administrator. Teacher, Tutor, and Learner receive no learner-administration permissions by default. Authorization checks permissions rather than role names.
 
-Administrative report-card history is provided by the separate Reports module. Learner login accounts, invitations, portal workflows, guardians, imports, documents, consent, homework, historical enrolments, RAG/AI features, and mobile functionality are explicitly not implemented here. The separate Attendance and Assessments modules read trusted current placement and expose administrative histories without modifying learner records; assessment and report history accuracy is limited by the absence of historical enrolment.
+Guardian administration owns `guardian_profiles`, `learner_guardian_relationships`, and the deliberately bounded `learner_consents` records. Profiles do not imply identities: an optional identity link must reference an existing invited or active organization membership. Active relationships are many-to-many, organization-scoped, unique per learner/guardian pair, and permit one primary contact per learner. Primary replacement locks the learner row and is backed by a generated-column uniqueness constraint. Removed links are soft-deleted and restored in place on relink. Relationship writes, guardian archival, and consent writes are transactional and audited.
+
+Guardian portal visibility is centralized in `GuardianPortalAccessService`: guardian and relationship must be active and current, neither may be archived/deleted, and the learner must be in a portal-visible non-archived lifecycle state. Administrative views may load all relationships and consent summaries; linked guardians receive only their own relationship and no consent data.
+
+An organization license may set `max_learners`. `LearnerCapacityService` locks the active entitlement and counts non-archived learner profiles before creation or restoration. Missing licenses and null limits preserve the existing unlimited behavior.
+
+Administrative report-card history is provided by Reports. Bulk imports, documents, historical enrolments, automatic guardian invitations, broad compliance automation, homework, RAG/AI, and mobile remain explicit non-goals. Attendance and Assessments continue to read trusted current placement.
 
 ## Implementation inventory
 
-- **Responsibilities/tables/models:** learner administration, numbering, current placement, lifecycle/history across `learner_profiles`, `learner_number_sequences`, and `learner_status_histories`; corresponding three Infrastructure models.
-- **Services:** `LearnerService`, `LearnerDirectoryService`, `LearnerNumberService`, and `LearnerStatusService`.
-- **Policies:** `LearnerPolicy`, plus `ResolveOrganizationLearner` middleware.
-- **Controllers/routes:** API `LearnerController`, Blade `LearnerWebController`, `/api/v1/learners`, and `/learners` routes.
+- **Responsibilities/tables/models:** learner and guardian administration, relationships, consent, numbering, placement and lifecycle/history across six owned tables.
+- **Services:** learner directory/number/status/capacity services plus transactional `GuardianService`.
+- **Policies:** `LearnerPolicy`, `GuardianPolicy`, and organization-scoped learner/guardian resolution middleware.
+- **Controllers/routes:** versioned learner/guardian APIs and Blade management at `/learners` and `/guardians`.
 - **Permissions/events:** nine permissions and `LearnerStatusChanged`, `LearnerArchived`, and `LearnerRestored`.
 - **Dependencies:** Organizations, Identity, Users/RBAC/Audit, and Academics; Attendance, Assessments, and Reports consume learner data.
 - **Testing:** nine Unit/Feature files cover schema, service behavior, numbering, status, directory/API/web management, isolation, and regressions.
-- **Known limitations/future roadmap:** profile-only administration and current placement are intentional; accounts/portals, guardians, imports, documents, historical enrolment, AI, and mobile remain future work.
+- **Known limitations/future roadmap:** profiles remain identity-optional; imports, documents, historical enrolment, automated invitations, AI, and mobile remain future work.

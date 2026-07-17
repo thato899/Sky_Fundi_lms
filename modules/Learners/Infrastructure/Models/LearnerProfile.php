@@ -107,4 +107,14 @@ final class LearnerProfile extends Model
     {
         return $this->hasMany(LearnerStatusHistory::class);
     }
+
+    public function guardianRelationships(): HasMany
+    {
+        return $this->hasMany(LearnerGuardianRelationship::class);
+    }
+
+    public function consents(): HasMany
+    {
+        return $this->hasMany(LearnerConsent::class);
+    }
 }

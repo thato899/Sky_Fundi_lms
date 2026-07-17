@@ -15,23 +15,27 @@ final class LicenseResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $license = $this->resource;
+        assert($license instanceof License);
+
         return [
-            'id' => $this->id,
-            'license_key' => $this->license_key,
-            'tier' => $this->tier->value,
-            'status' => $this->status->value,
-            'licensee_type' => $this->licensee_type,
-            'licensee_id' => $this->licensee_id,
-            'activation_date' => $this->activation_date?->toDateString(),
-            'expiry_date' => $this->expiry_date?->toDateString(),
-            'renewal_date' => $this->renewal_date?->toDateString(),
-            'max_users' => $this->max_users,
-            'max_storage_mb' => $this->max_storage_mb,
-            'enabled_modules' => $this->enabled_modules,
-            'ai_provider' => $this->ai_provider,
-            'support_level' => $this->support_level,
-            'is_valid' => $this->status->isUsable() && ! $this->isExpired(),
-            'created_at' => $this->created_at?->toIso8601String(),
+            'id' => $license->getKey(),
+            'license_key' => $license->getAttribute('license_key'),
+            'tier' => $license->getAttribute('tier')->value,
+            'status' => $license->getAttribute('status')->value,
+            'licensee_type' => $license->getAttribute('licensee_type'),
+            'licensee_id' => $license->getAttribute('licensee_id'),
+            'activation_date' => $license->getAttribute('activation_date')?->toDateString(),
+            'expiry_date' => $license->getAttribute('expiry_date')?->toDateString(),
+            'renewal_date' => $license->getAttribute('renewal_date')?->toDateString(),
+            'max_users' => $license->getAttribute('max_users'),
+            'max_learners' => $license->getAttribute('max_learners'),
+            'max_storage_mb' => $license->getAttribute('max_storage_mb'),
+            'enabled_modules' => $license->getAttribute('enabled_modules'),
+            'ai_provider' => $license->getAttribute('ai_provider'),
+            'support_level' => $license->getAttribute('support_level'),
+            'is_valid' => $license->getAttribute('status')->isUsable() && ! $license->isExpired(),
+            'created_at' => $license->getAttribute('created_at')?->toIso8601String(),
         ];
     }
 }
