@@ -17,4 +17,8 @@ docker compose exec app php artisan route:list --path=learners
 
 Open `/login`, select an organization at `/access` when prompted, then use the Learner management card on `/dashboard`.
 
-Learner accounts/portal, guardians, bulk import, documents, consent, historical or subject enrolment, attendance, homework, assessments, marks, report cards, AI/RAG, and mobile features remain excluded.
+The learner detail view includes linked guardians, primary/emergency/pickup and communication flags, relationship removal, a bounded consent summary, and consent recording. `/guardians` provides a searchable guardian directory plus create, detail, edit, linked-learner, and archive screens. A guardian profile never creates portal credentials. Existing invited/active organization identities may be linked only through the supported identity workflow.
+
+Configured learner licence capacity is enforced during creation and restoration; validation feedback is returned without partial writes. Archived learners and guardians are excluded from normal directories. Guardian archival deactivates active relationships without deleting historical rows.
+
+Bulk import, documents, historical enrolment, automatic guardian invitations, credential creation, and broader legal-compliance automation remain excluded.

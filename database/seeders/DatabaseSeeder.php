@@ -7,6 +7,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Modules\Assessments\Database\Seeders\AssessmentsPermissionSeeder;
 use Modules\Attendance\Database\Seeders\AttendancePermissionSeeder;
+use Modules\Learners\Database\Seeders\LearnersPermissionSeeder;
 use Modules\Reports\Database\Seeders\ReportsPermissionSeeder;
 use Modules\Scheduling\Database\Seeders\SchedulingPermissionSeeder;
 use Modules\Staff\Database\Seeders\StaffPermissionSeeder;
@@ -25,6 +26,7 @@ final class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             OrganizationDashboardPermissionSeeder::class,
             StaffPermissionSeeder::class,
+            LearnersPermissionSeeder::class,
             AttendancePermissionSeeder::class,
             AssessmentsPermissionSeeder::class,
             ReportsPermissionSeeder::class,

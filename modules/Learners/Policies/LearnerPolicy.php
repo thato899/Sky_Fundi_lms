@@ -7,13 +7,17 @@ namespace Modules\Learners\Policies;
 use Core\Identity\Application\PermissionResolver;
 use Core\Identity\Infrastructure\Models\Membership;
 use Core\Users\Infrastructure\Models\User;
+use Modules\Learners\Application\GuardianPortalAccessService;
 use Modules\Learners\Domain\Enums\LearnerStatus;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Organizations\Domain\Enums\OrganizationStatus;
 
 final class LearnerPolicy
 {
-    public function __construct(private readonly PermissionResolver $permissions) {}
+    public function __construct(
+        private readonly PermissionResolver $permissions,
+        private readonly GuardianPortalAccessService $guardianAccess,
+    ) {}
 
     public function viewAny(User $user): bool
     {
@@ -27,7 +31,7 @@ final class LearnerPolicy
 
     public function view(User $user, LearnerProfile $learner): bool
     {
-        return $this->allows($user, 'learners.view', $learner);
+        return $this->allows($user, 'learners.view', $learner) || $this->guardianAccess->allows($user, $learner);
     }
 
     public function update(User $user, LearnerProfile $learner): bool
@@ -38,6 +42,11 @@ final class LearnerPolicy
     public function manageAcademicProfile(User $user, LearnerProfile $learner): bool
     {
         return $this->allows($user, 'learners.manage_academic_profile', $learner) && $this->status($learner) !== LearnerStatus::Archived;
+    }
+
+    public function manageGuardians(User $user, LearnerProfile $learner): bool
+    {
+        return $this->allows($user, 'guardians.manage_relationships', $learner) && $this->status($learner) !== LearnerStatus::Archived;
     }
 
     public function manageStatus(User $user, LearnerProfile $learner): bool

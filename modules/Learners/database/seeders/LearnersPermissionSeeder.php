@@ -21,12 +21,19 @@ final class LearnersPermissionSeeder extends Seeder
         'learners.restore' => 'Restore archived learners',
         'learners.view_status_history' => 'View immutable learner status history',
         'learners.override_number' => 'Supply a manual learner number during creation',
+        'guardians.view' => 'View guardian profiles and learner relationships',
+        'guardians.create' => 'Create guardian profiles',
+        'guardians.update' => 'Update guardian profiles',
+        'guardians.archive' => 'Archive guardian profiles',
+        'guardians.manage_relationships' => 'Manage learner guardian relationships and consent',
     ];
 
     private const ADMIN_PERMISSIONS = [
         'learners.view', 'learners.create', 'learners.update',
         'learners.manage_academic_profile', 'learners.manage_status',
         'learners.archive', 'learners.restore', 'learners.view_status_history',
+        'guardians.view', 'guardians.create', 'guardians.update', 'guardians.archive',
+        'guardians.manage_relationships',
     ];
 
     public function run(RoleService $roles): void

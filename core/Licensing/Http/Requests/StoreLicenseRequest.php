@@ -23,6 +23,7 @@ final class StoreLicenseRequest extends FormRequest
             'expiry_date' => ['sometimes', 'nullable', 'date'],
             'renewal_date' => ['sometimes', 'nullable', 'date'],
             'max_users' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            'max_learners' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'max_storage_mb' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'enabled_modules' => ['sometimes', 'nullable', 'array'],
             'enabled_modules.*' => ['string'],

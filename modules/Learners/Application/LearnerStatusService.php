@@ -14,9 +14,12 @@ use Modules\Learners\Events\LearnerRestored;
 use Modules\Learners\Events\LearnerStatusChanged;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Learners\Infrastructure\Models\LearnerStatusHistory;
+use Modules\Organizations\Infrastructure\Models\Organization;
 
 final class LearnerStatusService
 {
+    public function __construct(private readonly LearnerCapacityService $capacity) {}
+
     /** @var array<string, list<LearnerStatus>> */
     private const TRANSITIONS = [
         'pending' => [LearnerStatus::Admitted],
@@ -78,6 +81,9 @@ final class LearnerStatusService
             if ($archiveHistory === null || $this->previousStatus($archiveHistory) === LearnerStatus::Archived) {
                 throw new DomainException('The learner has no previous non-archived status to restore.');
             }
+
+            $organization = Organization::query()->findOrFail($this->organizationId($locked));
+            $this->capacity->assertAvailable($organization);
 
             $restoredStatus = $this->previousStatus($archiveHistory);
             $locked->forceFill([

@@ -37,11 +37,13 @@ final class LearnerService
         private readonly LearnerNumberService $numbers,
         private readonly LearnerStatusService $statuses,
         private readonly AuditLogService $audit,
+        private readonly LearnerCapacityService $capacity,
     ) {}
 
     public function create(Organization $organization, User $actor, array $data, bool $allowManualNumber): LearnerProfile
     {
         return DB::transaction(function () use ($organization, $actor, $data, $allowManualNumber): LearnerProfile {
+            $this->capacity->assertAvailable($organization);
             $manualNumber = $data['learner_number'] ?? null;
             if ($manualNumber !== null && ! $allowManualNumber) {
                 throw new DomainException('Manual learner numbers require learners.override_number.');

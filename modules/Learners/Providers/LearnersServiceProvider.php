@@ -8,8 +8,11 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
+use Modules\Learners\Http\Middleware\ResolveOrganizationGuardian;
 use Modules\Learners\Http\Middleware\ResolveOrganizationLearner;
+use Modules\Learners\Infrastructure\Models\GuardianProfile;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
+use Modules\Learners\Policies\GuardianPolicy;
 use Modules\Learners\Policies\LearnerPolicy;
 
 final class LearnersServiceProvider extends ServiceProvider
@@ -18,7 +21,9 @@ final class LearnersServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->app->make(Router::class)->aliasMiddleware('learner.context', ResolveOrganizationLearner::class);
+        $this->app->make(Router::class)->aliasMiddleware('guardian.context', ResolveOrganizationGuardian::class);
         Gate::policy(LearnerProfile::class, LearnerPolicy::class);
+        Gate::policy(GuardianProfile::class, GuardianPolicy::class);
 
         Route::middleware('api')
             ->prefix('api/v1')
