@@ -27,6 +27,14 @@ Behavior changes require happy-path plus relevant validation, authentication, pe
 
 `tests/Feature/ApiContract` is the focused cross-platform HTTP contract suite. It protects forced JSON responses, stable safe error envelopes, malformed JSON handling, non-debug server errors, and deliberate Core-specific success shapes. Module-owned suites remain authoritative for resource, mutation, pagination, tenant-isolation, and sensitive-serialization behavior.
 
+`tests/Feature/Security` protects cross-cutting controls that are not owned by a
+single module, including the global browser security-header baseline.
+Authentication lifecycle coverage remains in `tests/Feature/Auth`, while
+module-owned suites protect object authorization and tenant non-mutation.
+
+See the [platform security hardening audit](../security/platform-security-hardening-audit.md)
+for the threat model, confirmed defects, controls, and residual risks.
+
 Performance regressions use deterministic query-count assertions beside the
 owning module when the fixture depends on that module's domain setup. They
 assert bounded query growth rather than elapsed time. The Scheduling feature

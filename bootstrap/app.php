@@ -3,11 +3,13 @@
 declare(strict_types=1);
 
 use Core\Api\Exceptions\ApiExceptionHandler;
+use Core\Api\Http\Middleware\AddSecurityHeaders;
 use Core\Api\Http\Middleware\ForceJsonResponse;
 use Core\Api\Http\Middleware\LogApiRequests;
 use Core\Auth\Http\Middleware\CheckAccountLocked;
 use Core\RBAC\Http\Middleware\EnsurePermission;
 use Core\Security\Http\Middleware\EnforceIpRestriction;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,14 +22,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(AddSecurityHeaders::class);
+
         $middleware->api(prepend: [
             ForceJsonResponse::class,
         ]);
 
         $middleware->api(append: [
+            CheckAccountLocked::class,
             LogApiRequests::class,
             'throttle:api-default',
         ]);
+
+        $middleware->appendToPriorityList(
+            AuthenticatesRequests::class,
+            CheckAccountLocked::class,
+        );
 
         $middleware->alias([
             'account.not-locked' => CheckAccountLocked::class,

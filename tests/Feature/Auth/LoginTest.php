@@ -72,4 +72,19 @@ final class LoginTest extends TestCase
 
         $response->assertStatus(423);
     }
+
+    public function test_account_state_is_enforced_across_authenticated_api_routes(): void
+    {
+        $locked = User::factory()->locked()->create();
+
+        $this->actingAs($locked, 'sanctum')
+            ->getJson('/api/v1/notifications/preferences')
+            ->assertStatus(423);
+
+        $suspended = User::factory()->create(['status' => UserStatus::Suspended]);
+
+        $this->actingAs($suspended, 'sanctum')
+            ->getJson('/api/v1/notifications/preferences')
+            ->assertForbidden();
+    }
 }

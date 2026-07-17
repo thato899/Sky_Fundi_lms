@@ -4,6 +4,10 @@
 
 Blade uses Laravel session authentication and APIs use Sanctum bearer tokens. Login and password-reset endpoints are throttled. Authenticated groups apply account-lock checks; logout revokes access. Email verification endpoints exist. Session listing/revocation and trusted devices are implemented. Two-factor authentication is not enforced.
 
+The API pipeline enforces active account state after Sanctum authentication, so
+locked, suspended, or deactivated users cannot retain access through routes
+that omit a local account-state declaration.
+
 ## Authorization and RBAC
 
 Namespaced permissions are stored in Core RBAC and assigned through roles/memberships. Enforcement occurs through `permission` middleware, Form Request `authorize()`, Laravel policies, and service-level invariants. UI visibility is convenience only. Registered policies cover Organizations, Learners, Attendance, Assessments/categories, Reports/configuration, and Scheduling resources.
@@ -19,6 +23,9 @@ Identity context verifies active membership and organization state. Tenant-owned
 - Models use explicit mass-assignment configuration; services supply trusted ownership fields.
 - Passwords are hashed by Laravel. Organization AI credentials use encrypted casts/storage.
 - Template/report/comment output is whitelisted/escaped; CSV exports neutralize spreadsheet formulas.
+- Responses set a compatible baseline against MIME sniffing, framing, referrer
+  leakage, and unused browser features. HTTPS responses include HSTS; a strict
+  CSP remains deferred until required UI sources are mapped.
 - API throttling, forced JSON responses, and request metadata logging are applied by the API pipeline; sensitive payloads must not be logged.
 
 ## IP restrictions and audit

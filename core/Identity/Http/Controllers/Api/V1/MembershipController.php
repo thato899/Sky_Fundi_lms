@@ -9,11 +9,13 @@ use Core\Api\Http\Responses\ApiResponse;
 use Core\Identity\Application\MembershipService;
 use Core\Identity\Application\OrganizationContextService;
 use Core\Identity\Application\PermissionResolver;
+use Core\Identity\Domain\Enums\MembershipStatus;
 use Core\Identity\Http\Resources\MembershipResource;
 use Core\Identity\Infrastructure\Models\Membership;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Organizations\Application\OrganizationService;
+use Modules\Organizations\Infrastructure\Models\Organization;
 
 final class MembershipController extends Controller
 {
@@ -29,6 +31,11 @@ final class MembershipController extends Controller
     public function invite(Request $request): JsonResponse
     {
         $data = $request->validate(['user_id' => ['required', 'uuid', 'exists:users,id'], 'organization_id' => ['required', 'uuid', 'exists:organizations,id'], 'role_id' => ['nullable', 'uuid', 'exists:roles,id']]);
+        $organization = Organization::query()->findOrFail($data['organization_id']);
+        $isPlatformManager = $request->user()->can('organizations.manage');
+        $isOrganizationAdministrator = $organization->administrators()->whereKey($request->user()->getKey())->exists();
+
+        abort_unless($isPlatformManager || $isOrganizationAdministrator, 403);
 
         return $this->created(new MembershipResource($this->memberships->invite($data, $request->user()->id)));
     }
@@ -49,7 +56,7 @@ final class MembershipController extends Controller
 
     public function switch(Membership $membership): JsonResponse
     {
-        abort_unless($membership->user_id === request()->user()->id && $membership->status->value === 'active', 403);
+        abort_unless($membership->user_id === request()->user()->id && $membership->getAttribute('status') === MembershipStatus::Active, 403);
 
         return $this->ok(new MembershipResource($this->memberships->makeDefault($membership)));
     }
@@ -57,8 +64,10 @@ final class MembershipController extends Controller
     public function current(Request $request): JsonResponse
     {
         $membership = $this->context->fromRequest($request);
-        abort_unless($membership, 404);
+        abort_unless($membership !== null, 404);
+        $organization = $membership->getRelation('organization');
+        abort_unless($organization instanceof Organization, 404);
 
-        return $this->ok(['membership' => (new MembershipResource($membership))->resolve(), 'permissions' => $this->permissions->permissions($membership), 'modules' => $membership->organization->modules->where('enabled', true)->pluck('module_name')->values(), 'branding' => app(OrganizationService::class)->branding($membership->organization), 'ai_provider' => $membership->organization->aiConfiguration?->provider]);
+        return $this->ok(['membership' => (new MembershipResource($membership))->resolve(), 'permissions' => $this->permissions->permissions($membership), 'modules' => $organization->modules->where('enabled', true)->pluck('module_name')->values(), 'branding' => app(OrganizationService::class)->branding($organization), 'ai_provider' => $organization->aiConfiguration?->provider]);
     }
 }
