@@ -39,3 +39,5 @@ All 5xx errors are logged through `core/Logging` with a correlation ID that is a
 ## Validation Errors
 
 Always 422, always populate `details` keyed by field name, consistent with Laravel's default Form Request validation failure shape, so mobile/web clients can build one generic error-rendering path.
+
+The response also retains Laravel's top-level `errors` object for compatibility. Syntactically malformed non-empty JSON is distinct from field validation and returns `400` with `error.code` set to `malformed_json`.
