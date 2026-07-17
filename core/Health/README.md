@@ -9,7 +9,7 @@
 - `Domain/Enums/HealthStatus` — `Healthy | Degraded | Unhealthy`, with `worseOf()` to roll up multiple results.
 - `Infrastructure/Checks/{Database,Cache,Queue,Storage,Mail,AIProvider,Api}HealthCheck` — one per dependency. `StorageHealthCheck`/`MailHealthCheck`/`AIProviderHealthCheck` reuse the existing `StorageProviderRegistry`/`MailProviderRegistry`/`AIGateway\ProviderRegistry` rather than re-implementing availability logic.
 - `Application/HealthCheckManager::runReadiness()` — runs only critical internal checks listed in `health.readiness_checks`. `runAll()` retains the complete diagnostic set. Both aggregate via `overallStatus()`.
-- `Console/PlatformDiagnoseCommand` — read-only, secret-safe deployment diagnostics with meaningful success/failure exit codes.
+- `Console/PlatformDiagnoseCommand` — read-only, secret-safe deployment diagnostics with meaningful success/failure exit codes. It uses Laravel's registered migration paths and repository to report an exact pending count without loading or executing migrations; pending migrations or an unavailable repository/database fail the command.
 
 **Allowed dependencies**: `Core\Storage`, `Core\Mail`, `Core\AIGateway` (read-only, via their registries). Never a module.
 

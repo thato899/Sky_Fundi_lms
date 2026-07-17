@@ -45,3 +45,18 @@ restore over live data. Destructive recovery requires an approved tested plan.
 Close only after indicators recover, scoped functional and tenant-isolation
 checks pass, evidence is retained, alert coverage is reviewed, and follow-up
 owners are assigned.
+
+`platform:diagnose` is read-only. It reports `Migration repository:
+available` with `Pending migrations: none` when current, reports the exact
+count and exits non-zero when migrations are pending, and reports only generic
+unavailable/unknown states when the repository or database cannot be read. It
+does not execute, seed, or roll back migrations.
+
+Request lifecycle investigation should correlate `http.request.completed`
+events for returned responses with `http.request.failed` events for thrown
+requests. Failure events contain safe method, best-effort route/template or
+query-free path, duration, request/actor/organization context, and exception
+class only. They exclude exception messages, traces, file paths, SQL, bindings,
+bodies, headers, and query values. Logging failure never replaces the
+application exception, which remains Laravel's responsibility to report and
+render.
