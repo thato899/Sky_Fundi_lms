@@ -39,13 +39,13 @@ final class SchedulerServiceProvider extends ServiceProvider
         $this->app->booted(function (): void {
             $schedule = $this->app->make(Schedule::class);
 
-            $schedule->command('platform:health-check')->hourly();
-            $schedule->command('platform:validate-licenses')->daily();
-            $schedule->command('platform:validate-subscriptions')->daily();
-            $schedule->command('platform:clean-temp')->daily();
-            $schedule->command('platform:clean-queue')->weekly();
-            $schedule->command('platform:clean-ai-cache')->daily();
-            $schedule->command('platform:backup')->weekly();
+            $schedule->command('platform:health-check')->hourly()->withoutOverlapping();
+            $schedule->command('platform:validate-licenses')->daily()->withoutOverlapping();
+            $schedule->command('platform:validate-subscriptions')->daily()->withoutOverlapping();
+            $schedule->command('platform:clean-temp')->daily()->withoutOverlapping();
+            $schedule->command('platform:clean-queue')->weekly()->withoutOverlapping();
+            $schedule->command('platform:clean-ai-cache')->daily()->withoutOverlapping();
+            $schedule->command('platform:backup')->weekly()->withoutOverlapping();
         });
     }
 }

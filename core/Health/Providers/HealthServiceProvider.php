@@ -6,6 +6,7 @@ namespace Core\Health\Providers;
 
 use Core\Health\Application\HealthCheckManager;
 use Core\Health\Console\PlatformDiagnoseCommand;
+use Core\Health\Console\ProcessQueueCommand;
 use Core\Health\Console\ValidateEnvironmentCommand;
 use Core\Health\Http\Controllers\Api\V1\HealthController;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
@@ -23,6 +24,7 @@ final class HealthServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 PlatformDiagnoseCommand::class,
+                ProcessQueueCommand::class,
                 ValidateEnvironmentCommand::class,
             ]);
         }
