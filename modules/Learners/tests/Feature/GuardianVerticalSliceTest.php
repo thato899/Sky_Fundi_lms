@@ -169,7 +169,11 @@ final class GuardianVerticalSliceTest extends TestCase
     {
         $this->seed(DatabaseSeeder::class);
 
-        $this->assertSame(5, Permission::query()->whereIn('name', ['guardians.view', 'guardians.create', 'guardians.update', 'guardians.archive', 'guardians.manage_relationships'])->count());
+        $this->assertSame(8, Permission::query()->whereIn('name', [
+            'guardians.view', 'guardians.create', 'guardians.update', 'guardians.archive',
+            'guardians.manage_relationships', 'guardians.invite',
+            'guardians.view_invitations', 'guardians.revoke_invitations',
+        ])->count());
     }
 
     public function test_guardian_portal_lifecycle_requires_active_current_relationship_and_visible_learner(): void

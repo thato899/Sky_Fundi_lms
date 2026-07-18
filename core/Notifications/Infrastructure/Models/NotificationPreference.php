@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Absence of a row means "use the channel's default" (opt-out model),
  * per NotificationService::isEnabledFor().
  */
+/**
+ * @property bool $enabled
+ */
 final class NotificationPreference extends Model
 {
     use HasUuids;

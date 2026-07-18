@@ -37,6 +37,10 @@ use Laravel\Sanctum\HasApiTokens;
  * Eloquent models are an Infrastructure-layer concern per
  * docs/architecture/clean-architecture.md; domain rules that don't need
  * persistence live in Core\Users\Domain instead (see UserStatus).
+ *
+ * @property string $id
+ * @property string $email
+ * @property UserStatus $status
  */
 final class User extends Model implements AuthenticatableContract, AuthorizableContract, CanResetPasswordContract, MustVerifyEmailContract
 {

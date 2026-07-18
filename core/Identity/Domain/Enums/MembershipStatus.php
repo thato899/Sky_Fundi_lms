@@ -11,4 +11,5 @@ enum MembershipStatus: string
     case Suspended = 'suspended';
     case Rejected = 'rejected';
     case Expired = 'expired';
+    case Revoked = 'revoked';
 }

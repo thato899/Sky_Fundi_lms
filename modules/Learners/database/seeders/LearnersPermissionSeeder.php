@@ -26,6 +26,9 @@ final class LearnersPermissionSeeder extends Seeder
         'guardians.update' => 'Update guardian profiles',
         'guardians.archive' => 'Archive guardian profiles',
         'guardians.manage_relationships' => 'Manage learner guardian relationships and consent',
+        'guardians.invite' => 'Send and resend guardian portal invitations',
+        'guardians.view_invitations' => 'View guardian portal invitation status',
+        'guardians.revoke_invitations' => 'Revoke pending guardian portal invitations',
     ];
 
     private const ADMIN_PERMISSIONS = [
@@ -34,6 +37,7 @@ final class LearnersPermissionSeeder extends Seeder
         'learners.archive', 'learners.restore', 'learners.view_status_history',
         'guardians.view', 'guardians.create', 'guardians.update', 'guardians.archive',
         'guardians.manage_relationships',
+        'guardians.invite', 'guardians.view_invitations', 'guardians.revoke_invitations',
     ];
 
     public function run(RoleService $roles): void
@@ -47,7 +51,7 @@ final class LearnersPermissionSeeder extends Seeder
         $this->grant('Organization Administrator', $all);
         $this->grant('Academic Administrator', self::ADMIN_PERMISSIONS);
 
-        foreach (['Teacher', 'Tutor', 'Learner'] as $roleName) {
+        foreach (['Teacher', 'Tutor', 'Learner', 'Guardian'] as $roleName) {
             Role::query()->firstOrCreate(['name' => $roleName], ['is_system' => false]);
         }
     }

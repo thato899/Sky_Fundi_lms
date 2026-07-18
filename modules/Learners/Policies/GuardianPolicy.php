@@ -49,6 +49,22 @@ final class GuardianPolicy
         return $this->allows($user, 'guardians.manage_relationships', $guardian);
     }
 
+    public function invite(User $user, GuardianProfile $guardian): bool
+    {
+        return $this->allows($user, 'guardians.invite', $guardian)
+            && $guardian->getAttribute('status') === GuardianStatus::Active;
+    }
+
+    public function viewInvitations(User $user, GuardianProfile $guardian): bool
+    {
+        return $this->allows($user, 'guardians.view_invitations', $guardian);
+    }
+
+    public function revokeInvitation(User $user, GuardianProfile $guardian): bool
+    {
+        return $this->allows($user, 'guardians.revoke_invitations', $guardian);
+    }
+
     private function allows(User $user, string $permission, ?GuardianProfile $guardian = null): bool
     {
         $membership = request()->attributes->get('organization_membership');

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Modules\Learners\Http\Controllers\Web\GuardianInvitationController;
 use Modules\Learners\Http\Controllers\Web\GuardianWebController;
 use Modules\Learners\Http\Controllers\Web\LearnerWebController;
 
@@ -31,7 +32,16 @@ Route::middleware(['auth', 'account.not-locked', 'organization.context'])->prefi
         Route::get('/{guardian}/edit', [GuardianWebController::class, 'edit'])->name('edit');
         Route::put('/{guardian}', [GuardianWebController::class, 'update'])->name('update');
         Route::post('/{guardian}/archive', [GuardianWebController::class, 'archive'])->name('archive');
+        Route::post('/{guardian}/invitations', [GuardianInvitationController::class, 'store'])->middleware('throttle:6,1')->name('invitations.store');
+        Route::post('/{guardian}/invitations/{invitation}/resend', [GuardianInvitationController::class, 'resend'])->middleware('throttle:3,1')->name('invitations.resend');
+        Route::post('/{guardian}/invitations/{invitation}/revoke', [GuardianInvitationController::class, 'revoke'])->name('invitations.revoke');
     });
+});
+
+Route::middleware('throttle:30,1')->group(function (): void {
+    Route::get('/guardian-invitations/unavailable', [GuardianInvitationController::class, 'unavailable'])->name('guardian-invitations.unavailable');
+    Route::get('/guardian-invitations/{token}', [GuardianInvitationController::class, 'show'])->name('guardian-invitations.show');
+    Route::post('/guardian-invitations/{token}/accept', [GuardianInvitationController::class, 'accept'])->middleware('throttle:10,1')->name('guardian-invitations.accept');
 });
 
 Route::middleware(['auth', 'account.not-locked', 'organization.context', 'learner.context'])->prefix('learners/{learner}/guardians')->name('learners.guardians.')->group(function (): void {

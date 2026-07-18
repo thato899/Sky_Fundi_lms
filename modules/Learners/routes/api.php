@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Modules\Learners\Http\Controllers\Api\V1\GuardianController;
+use Modules\Learners\Http\Controllers\Api\V1\GuardianInvitationController;
 use Modules\Learners\Http\Controllers\Api\V1\LearnerController;
 
 Route::middleware(['auth:sanctum', 'account.not-locked', 'organization.context'])
@@ -32,6 +33,10 @@ Route::middleware(['auth:sanctum', 'account.not-locked', 'organization.context']
             Route::get('/{guardian}', [GuardianController::class, 'show'])->name('show');
             Route::patch('/{guardian}', [GuardianController::class, 'update'])->name('update');
             Route::post('/{guardian}/archive', [GuardianController::class, 'archive'])->name('archive');
+            Route::get('/{guardian}/invitations', [GuardianInvitationController::class, 'index'])->name('invitations.index');
+            Route::post('/{guardian}/invitations', [GuardianInvitationController::class, 'store'])->middleware('throttle:6,1')->name('invitations.store');
+            Route::post('/{guardian}/invitations/{invitation}/resend', [GuardianInvitationController::class, 'resend'])->middleware('throttle:3,1')->name('invitations.resend');
+            Route::post('/{guardian}/invitations/{invitation}/revoke', [GuardianInvitationController::class, 'revoke'])->name('invitations.revoke');
         });
     });
 

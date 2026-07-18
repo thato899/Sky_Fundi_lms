@@ -9,6 +9,7 @@ This is an implementation-status document, not a promise of dates. Executable co
 - Shared-database organization tenancy with UUID ownership, active membership context, scoped relationship validation, and cross-organization tests.
 - Academics: curricula, departments, years, terms, grades, classes, subjects, calendar, and timetable periods.
 - Staff and Learner administration, including placement, learner numbering, lifecycle history, and web/API management.
+- Guardian invitation and portal onboarding, including hashed expiring tokens, queued email, new/existing-account acceptance, membership activation, and restricted linked-learner access.
 - Learner Attendance, Assessments/mark sheets/gradebooks, Reports/report-card snapshots/PDF/CSV, and Scheduling/rooms/templates/lessons/conflict handling.
 - Docker development stack with app, MySQL, Mailpit, queue worker, scheduler, init job, and optional Redis profile.
 - PHPUnit unit/feature/security/regression suites plus migration, Pint, PHPStan, health, and aggregate verification scripts.
@@ -21,7 +22,7 @@ This is an implementation-status document, not a promise of dates. Executable co
 ## Planned
 
 - Historical enrolment/placement so attendance, assessment, and reporting history does not depend on current placement.
-- Guardian and learner portals, invitations/account linking, and results notifications.
+- Learner portal onboarding and results notifications.
 - Homework and learning-content workflows.
 - Production deployment automation and a tested restore workflow for backups.
 - Stronger authentication features such as enforced two-factor authentication.

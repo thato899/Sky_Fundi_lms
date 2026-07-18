@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Model;
  * A reusable, editable message body per notification type + channel,
  * so copy changes don't require a code deploy. See
  * core/Notifications/README.md.
+ *
+ * @property string|null $subject
+ * @property string $body
  */
 final class NotificationTemplate extends Model
 {

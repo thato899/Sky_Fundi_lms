@@ -10,6 +10,7 @@ use Core\Notifications\Infrastructure\Channels\WhatsAppChannel;
 use Core\Notifications\Infrastructure\Models\NotificationTemplate;
 use Core\Queue\Domain\QueueName;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -22,7 +23,7 @@ use Illuminate\Notifications\Notification;
  * selection, templates, and preferences are handled consistently. See
  * core/Notifications/README.md.
  */
-final class CoreNotification extends Notification implements ShouldQueue
+final class CoreNotification extends Notification implements ShouldBeEncrypted, ShouldQueue
 {
     use Queueable;
 
@@ -72,6 +73,10 @@ final class CoreNotification extends Notification implements ShouldQueue
                 ->line($template->render($this->data));
         } else {
             $mail->subject($this->type)->line((string) ($this->data['message'] ?? $this->type));
+        }
+
+        if (isset($this->data['action_url'])) {
+            $mail->action((string) ($this->data['action_text'] ?? 'Continue'), (string) $this->data['action_url']);
         }
 
         return $mail;
