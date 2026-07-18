@@ -2,7 +2,7 @@ SHELL := /bin/bash
 COMPOSE := docker compose
 APP := $(COMPOSE) exec -T app
 
-.PHONY: build init up down restart migrate migrate-check seed test test-learners pint analyse verify status logs shell health deployment-validate
+.PHONY: build init up down restart migrate migrate-check seed demo-reset test test-learners pint analyse verify status logs shell health deployment-validate
 
 up:
 	$(COMPOSE) up -d
@@ -27,6 +27,12 @@ migrate-check:
 
 seed:
 	$(APP) php artisan db:seed
+
+# LOCAL/DEMO ONLY: destroys the configured database before rebuilding demo data.
+demo-reset:
+	@environment="$$($(APP) php artisan env --no-ansi)"; [[ "$${environment,,}" != *production* ]] || (echo "Refusing demo reset in production" && exit 1)
+	$(APP) php artisan migrate:fresh --seed
+	$(APP) php artisan db:seed --class="Database\\Seeders\\HackathonDemoSeeder"
 
 test:
 	$(APP) php artisan test

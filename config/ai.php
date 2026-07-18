@@ -51,8 +51,11 @@ return [
         // than being silently absent from the registry.
         'openai' => [
             'driver' => OpenAIProvider::class,
+            'base_url' => env('AI_OPENAI_BASE_URL', 'https://api.openai.com/v1'),
             'api_key' => env('AI_OPENAI_API_KEY'),
-            'model' => env('AI_OPENAI_MODEL', 'gpt-4o'),
+            'model' => env('AI_OPENAI_MODEL', 'gpt-5-mini'),
+            'timeout' => (int) env('AI_OPENAI_TIMEOUT', 20),
+            'max_retries' => (int) env('AI_OPENAI_MAX_RETRIES', 1),
             'enabled' => (bool) env('AI_OPENAI_ENABLED', false),
         ],
 

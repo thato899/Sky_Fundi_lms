@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\HackathonSubscriptionController;
 use App\Http\Controllers\OrganizationDashboardController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\WebAuthController;
@@ -33,6 +34,9 @@ Route::middleware(['auth', 'account.not-locked'])->group(function (): void {
     Route::get('/dashboard', OrganizationDashboardController::class)
         ->middleware('organization.context')
         ->name('dashboard');
+    Route::get('/subscription', HackathonSubscriptionController::class)
+        ->middleware('organization.context')
+        ->name('subscription.dashboard');
 });
 
 Route::middleware(['auth', 'account.not-locked', 'permission:core.roles.manage'])->prefix('super-admin')->name('super-admin.')->group(function (): void {

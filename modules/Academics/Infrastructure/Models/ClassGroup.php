@@ -19,6 +19,7 @@ use Modules\Academics\Infrastructure\Concerns\BelongsToOrganization;
 /**
  * @property string $grade_id
  * @property string $academic_year_id
+ * @property string $name
  */
 final class ClassGroup extends Model
 {

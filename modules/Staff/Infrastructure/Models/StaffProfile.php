@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Academics\Infrastructure\Models\Department;
 use Modules\Organizations\Infrastructure\Models\Organization;
 
+/** @property string $user_id */
 final class StaffProfile extends Model
 {
     use HasUuidPrimaryKey,SoftDeletes;

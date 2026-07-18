@@ -11,6 +11,8 @@ final class AnalyticsEvent extends Model
 {
     use HasUuidPrimaryKey;
 
+    public const CREATED_AT = null;
+
     public const UPDATED_AT = null;
 
     protected $table = 'analytics_events';

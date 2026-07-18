@@ -29,7 +29,7 @@ use Modules\Staff\Infrastructure\Models\StaffProfile;
 
 final class AssessmentService
 {
-    private const FIELDS = ['academic_year_id', 'academic_term_id', 'grade_id', 'class_id', 'subject_id', 'assessment_category_id', 'staff_profile_id', 'title', 'description', 'assessment_date', 'due_date', 'maximum_mark', 'weighting', 'instructions'];
+    private const FIELDS = ['academic_year_id', 'academic_term_id', 'grade_id', 'class_id', 'subject_id', 'assessment_category_id', 'staff_profile_id', 'title', 'description', 'assessment_date', 'due_date', 'maximum_mark', 'weighting', 'instructions', 'opens_at', 'closes_at', 'time_limit_minutes', 'attempt_limit'];
 
     public function __construct(private readonly AuditLogService $audit) {}
 
