@@ -7,6 +7,7 @@ namespace Core\Notifications\Application;
 use Core\Notifications\Infrastructure\Models\NotificationPreference;
 use Core\Notifications\Infrastructure\Notifications\CoreNotification;
 use Core\Users\Infrastructure\Models\User;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * The single dispatch path for platform notifications. Core services
@@ -31,6 +32,11 @@ final class NotificationService
         }
 
         $user->notify(new CoreNotification($type, $data, $enabledChannels));
+    }
+
+    public function sendToEmail(string $email, string $type, array $data = []): void
+    {
+        Notification::route('mail', $email)->notify(new CoreNotification($type, $data, ['mail']));
     }
 
     public function isEnabledFor(User $user, string $type, string $channel): bool

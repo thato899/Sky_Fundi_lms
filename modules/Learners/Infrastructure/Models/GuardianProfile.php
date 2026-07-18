@@ -11,9 +11,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Learners\Domain\Enums\GuardianStatus;
 use Modules\Organizations\Infrastructure\Models\Organization;
 
+/**
+ * @property string $uuid
+ * @property string $organization_id
+ * @property string|null $organization_membership_id
+ * @property GuardianStatus $status
+ * @property Carbon|null $archived_at
+ * @property Carbon|null $deleted_at
+ * @property User|null $user
+ * @property Membership|null $organizationMembership
+ */
 final class GuardianProfile extends Model
 {
     use HasUuidPrimaryKey;

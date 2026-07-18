@@ -13,11 +13,15 @@ final class MembershipService
     /** Creates an invitation; access is unavailable until accepted. */
     public function invite(array $attributes, ?string $actorId): Membership
     {
-        return Membership::query()->updateOrCreate(['user_id' => $attributes['user_id'], 'organization_id' => $attributes['organization_id']], [...$attributes, 'status' => MembershipStatus::Invited, 'invited_by' => $actorId, 'invitation_token' => Str::random(64), 'invitation_expires_at' => now()->addDays(7)]);
+        return Membership::query()->updateOrCreate(['user_id' => $attributes['user_id'], 'organization_id' => $attributes['organization_id']], [...$attributes, 'status' => MembershipStatus::Invited, 'invited_by' => $actorId, 'invitation_token' => hash('sha256', Str::random(64)), 'invitation_expires_at' => now()->addDays(7), 'invitation_sent_at' => now()]);
     }
 
     public function accept(Membership $membership): Membership
     {
+        if ($membership->status !== MembershipStatus::Invited || $membership->invitation_expires_at?->isPast()) {
+            throw new \DomainException('This invitation cannot be accepted.');
+        }
+
         $membership->update(['status' => MembershipStatus::Active, 'accepted_at' => now(), 'joined_at' => now(), 'invitation_token' => null]);
 
         return $membership->fresh();

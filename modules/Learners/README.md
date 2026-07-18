@@ -48,9 +48,11 @@ Guardian administration owns `guardian_profiles`, `learner_guardian_relationship
 
 Guardian portal visibility is centralized in `GuardianPortalAccessService`: guardian and relationship must be active and current, neither may be archived/deleted, and the learner must be in a portal-visible non-archived lifecycle state. Administrative views may load all relationships and consent summaries; linked guardians receive only their own relationship and no consent data.
 
+Guardian onboarding reuses the intended guardian profile’s Identity membership. Administrators with explicit invitation permissions can send, inspect, resend, or revoke a seven-day email invitation. Only a SHA-256 token hash is persisted; resend rotates the token and expiry, and accepted/revoked/expired tokens are unusable. New users are created only inside successful acceptance with the established password rules. Existing users authenticate as the exact invited email. Acceptance activates one organization membership and links its User and membership to the active, same-organization guardian profile transactionally. Mail is queued through Core Notifications and contains the organization name, expiry, support guidance, and URL but no learner or consent data.
+
 An organization license may set `max_learners`. `LearnerCapacityService` locks the active entitlement and counts non-archived learner profiles before creation or restoration. Missing licenses and null limits preserve the existing unlimited behavior.
 
-Administrative report-card history is provided by Reports. Bulk imports, documents, historical enrolments, automatic guardian invitations, broad compliance automation, homework, RAG/AI, and mobile remain explicit non-goals. Attendance and Assessments continue to read trusted current placement.
+Administrative report-card history is provided by Reports. Bulk imports, documents, historical enrolments, broad compliance automation, homework, RAG/AI, and mobile remain explicit non-goals. Invitations are administrator-initiated; automatic invitations triggered by profile creation remain excluded. Attendance and Assessments continue to read trusted current placement.
 
 ## Implementation inventory
 
@@ -61,4 +63,4 @@ Administrative report-card history is provided by Reports. Bulk imports, documen
 - **Permissions/events:** nine permissions and `LearnerStatusChanged`, `LearnerArchived`, and `LearnerRestored`.
 - **Dependencies:** Organizations, Identity, Users/RBAC/Audit, and Academics; Attendance, Assessments, and Reports consume learner data.
 - **Testing:** nine Unit/Feature files cover schema, service behavior, numbering, status, directory/API/web management, isolation, and regressions.
-- **Known limitations/future roadmap:** profiles remain identity-optional; imports, documents, historical enrolment, automated invitations, AI, and mobile remain future work.
+- **Known limitations/future roadmap:** profiles remain identity-optional until an invitation is accepted; invitations are email-only and administrator-initiated; imports, documents, historical enrolment, AI, and mobile remain future work.

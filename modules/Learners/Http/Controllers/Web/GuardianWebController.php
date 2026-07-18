@@ -65,7 +65,10 @@ final class GuardianWebController
         $guardian = $this->guardian($guardian);
         [$organization, $membership] = $this->context($request);
         Gate::authorize('view', $guardian);
-        $canManageProfile = Gate::allows('update', $guardian) || Gate::allows('manageRelationships', $guardian);
+        $canManageProfile = Gate::allows('update', $guardian)
+            || Gate::allows('manageRelationships', $guardian)
+            || Gate::allows('viewInvitations', $guardian)
+            || Gate::allows('invite', $guardian);
         if ($canManageProfile) {
             $guardian->load(['organizationMembership', 'relationships' => fn ($query) => $query->with('learner')->where('status', 'active')]);
 

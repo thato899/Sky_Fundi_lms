@@ -18,6 +18,9 @@ All endpoints require Sanctum authentication, an active organization membership 
 | GET/POST | `/api/v1/guardians` | `guardians.view` / `guardians.create` |
 | GET/PATCH | `/api/v1/guardians/{uuid}` | `guardians.view` / `guardians.update` |
 | POST | `/api/v1/guardians/{uuid}/archive` | `guardians.archive` |
+| GET/POST | `/api/v1/guardians/{uuid}/invitations` | `guardians.view_invitations` / `guardians.invite` |
+| POST | `/api/v1/guardians/{uuid}/invitations/{invitation}/resend` | `guardians.invite` |
+| POST | `/api/v1/guardians/{uuid}/invitations/{invitation}/revoke` | `guardians.revoke_invitations` |
 | GET/POST | `/api/v1/learners/{uuid}/guardians` | `learners.view` / `guardians.manage_relationships` |
 | PATCH/DELETE | `/api/v1/learners/{uuid}/guardians/{relationship}` | `guardians.manage_relationships` |
 | POST | `/api/v1/learners/{uuid}/guardians/consents` | `guardians.manage_relationships` |
@@ -34,7 +37,7 @@ Allowed `sort` values are `learner_number`, `first_name`, `last_name`, `admissio
 
 Status, archive, and restore requests accept an optional reason. Status history is immutable, newest first, and exposes the previous/new status, safe actor identity, reason, and timestamp. There are no history write endpoints.
 
-Guardian profiles are organization-owned and may exist without a User. An optional identity link may reference only an existing invited or active membership in the same organization; the workflow never creates credentials. A linked guardian user can view only learners connected through an active relationship and cannot enumerate the learner directory.
+Guardian profiles are organization-owned and may exist without a User. The invitation workflow creates an email-first pending Identity membership without credentials, queues a seven-day link, supports safe token rotation and revocation, and reports sent/expiry/accepted timestamps without exposing token hashes or internal identity IDs. Acceptance creates credentials only for a new invited email; an existing account must authenticate with the exact email. It then activates and links the same-organization membership transactionally. A linked guardian user can view only learners connected through an active relationship and cannot enumerate the learner directory.
 
 Relationships support parent, legal guardian, caregiver, and other types, one current primary contact per learner, emergency/pickup flags, academic/financial communication preferences, and effective dates. Primary changes serialize on the learner and are also protected by a database uniqueness constraint. Inactive relationships are never primary. Removed relationships are restored in place when relinked so their stable identity and audit history are preserved without duplicate active rows.
 
@@ -46,4 +49,4 @@ An active organization license may define `max_learners`. Profile creation and r
 
 Guardian lists exclude archived records by default. `status=archived` requires archive permission and returns only archived profiles. Active and inactive status filters remain archive-excluding.
 
-Bulk import, documents, historical enrolment, automatic guardian invitations, credential creation, and broader legal-compliance automation remain outside this API.
+Bulk import, documents, historical enrolment, automatic invitations on profile creation, and broader legal-compliance automation remain outside this API.
