@@ -197,6 +197,39 @@ final class QuizWorkflowTest extends TestCase
         Notification::assertSentTo($guardianUser, CoreNotification::class);
     }
 
+    public function test_release_succeeds_and_can_retry_plan_generation_after_ai_failure(): void
+    {
+        Notification::fake();
+        $context = $this->context('release-plan-failure');
+        $learnerUser = User::factory()->create();
+        $context['learner']->update(['user_id' => $learnerUser->id]);
+        [$attempt, $answer] = $this->writtenSubmission($context);
+        $approved = app(QuizService::class)->review($attempt->load('assessment'), $context['teacher'], [
+            $answer->uuid => ['marks_awarded' => 2, 'teacher_feedback' => 'Review equality.'],
+        ]);
+        config(['ai.default_provider' => 'openai', 'ai.fallback_provider' => null, 'ai.providers.openai.enabled' => true, 'ai.providers.openai.api_key' => 'test-only', 'ai.providers.openai.base_url' => 'https://api.openai.test/v1']);
+        Http::fakeSequence('https://api.openai.test/v1/responses')
+            ->push(['error' => 'private'], 500)
+            ->push(['output_text' => json_encode($this->studyPlanResponse()), 'usage' => ['input_tokens' => 120, 'output_tokens' => 180]], 200);
+
+        $response = $this->actingAs($context['teacher'])
+            ->withSession(['organization_id' => $context['organization']->id])
+            ->post(route('quizzes.release', $approved->uuid));
+
+        $response->assertRedirect()->assertSessionHas('status', 'Teacher-approved result released.');
+        $this->assertSame('released', $approved->refresh()->status);
+        $this->assertNotNull($approved->released_at);
+        $this->assertSame($context['teacher']->id, $approved->released_by);
+        $this->assertDatabaseCount('quiz_study_plans', 0);
+        Notification::assertSentTo($learnerUser, CoreNotification::class);
+
+        $plan = app(StudyPlanService::class)->generate($approved->refresh()->load('assessment'), $context['teacher'], publish: true);
+        $this->assertSame('published', $plan->status);
+
+        $this->expectException(DomainException::class);
+        app(QuizService::class)->release($approved->refresh()->load('assessment'), $context['teacher']);
+    }
+
     public function test_study_plan_generation_and_regeneration_preserve_published_history(): void
     {
         Notification::fake();
@@ -226,6 +259,33 @@ final class QuizWorkflowTest extends TestCase
         $this->assertDatabaseCount('quiz_study_plans', 2);
     }
 
+    public function test_first_and_updated_plan_publications_use_distinct_notifications(): void
+    {
+        Notification::fake();
+        $context = $this->context('plan-wording');
+        $learnerUser = User::factory()->create();
+        $context['learner']->update(['user_id' => $learnerUser->id]);
+        [$attempt, $answer] = $this->writtenSubmission($context);
+        app(QuizService::class)->review($attempt->load('assessment'), $context['teacher'], [
+            $answer->uuid => ['marks_awarded' => 2, 'teacher_feedback' => 'Review equality.'],
+        ]);
+        $this->fakeAiSequence([$this->studyPlanResponse(), $this->studyPlanResponse('Updated practice.')]);
+        $service = app(StudyPlanService::class);
+
+        $firstDraft = $service->generate($attempt->refresh()->load('assessment'), $context['teacher']);
+        Notification::assertNothingSent();
+        $service->publish($firstDraft, $context['teacher']);
+        Notification::assertSentTo($learnerUser, CoreNotification::class, fn (CoreNotification $notification) => $notification->toDatabase($learnerUser)['type'] === 'assessments.study_plan_available'
+            && $notification->toDatabase($learnerUser)['message'] === 'Your personalized study plan is available.');
+
+        Notification::fake();
+        $updatedDraft = $service->generate($attempt->refresh()->load('assessment'), $context['teacher'], regenerate: true);
+        Notification::assertNothingSent();
+        $service->publish($updatedDraft, $context['teacher']);
+        Notification::assertSentTo($learnerUser, CoreNotification::class, fn (CoreNotification $notification) => $notification->toDatabase($learnerUser)['type'] === 'assessments.study_plan_updated'
+            && $notification->toDatabase($learnerUser)['message'] === 'An updated study plan is available.');
+    }
+
     public function test_study_plan_generation_is_rejected_before_teacher_approval(): void
     {
         $context = $this->context('plan-too-early');
@@ -252,6 +312,10 @@ final class QuizWorkflowTest extends TestCase
         $progress = app(StudyPlanService::class)->recordProgress($plan, $context['learner']->refresh(), ['day-1', 'easy-1'], 35);
         $this->assertSame(50, $progress->completion_percentage);
         $this->assertSame(35, $progress->time_spent_minutes);
+        $progress = app(StudyPlanService::class)->recordProgress($plan, $context['learner']->refresh(), ['easy-1', 'medium-1', 'invalid'], 15);
+        $this->assertSame(75, $progress->completion_percentage);
+        $this->assertSame(50, $progress->time_spent_minutes);
+        $this->assertEqualsCanonicalizing(['day-1', 'easy-1', 'medium-1'], $progress->completed_activities);
 
         $revision = app(StudyPlanService::class)->retest($progress, $context['learner']->refresh(), ['easy-1' => 'Both sides must stay balanced.', 'medium-1' => 'Subtract three.', 'challenge-1' => 'Use the inverse operation.']);
         $this->assertSame('evaluated', $revision->status);
@@ -259,6 +323,47 @@ final class QuizWorkflowTest extends TestCase
         $this->assertSame(['Explain equality.'], $progress->refresh()->mastered_concepts);
         $this->assertSame([], $progress->remaining_concepts);
         $this->assertDatabaseHas('ai_grading_requests', ['request_type' => 'adaptive_retest', 'status' => 'completed']);
+
+        $otherLearner = LearnerProfile::factory()->create(['organization_id' => $context['organization']->id, 'learner_status' => 'active']);
+        try {
+            app(StudyPlanService::class)->recordProgress($progress, $otherLearner, ['challenge-1'], 5);
+            $this->fail('Another learner updated the plan.');
+        } catch (DomainException) {
+        }
+        $progress->update(['status' => 'superseded']);
+        try {
+            app(StudyPlanService::class)->recordProgress($progress->refresh(), $context['learner'], ['challenge-1'], 5);
+            $this->fail('A superseded plan accepted progress.');
+        } catch (DomainException) {
+        }
+    }
+
+    public function test_revision_attempt_numbers_are_sequential_and_ai_failure_preserves_submission(): void
+    {
+        $context = $this->context('revision-sequence');
+        [$attempt, $answer] = $this->writtenSubmission($context);
+        $approved = app(QuizService::class)->review($attempt->load('assessment'), $context['teacher'], [
+            $answer->uuid => ['marks_awarded' => 2, 'teacher_feedback' => 'Practise equality.'],
+        ]);
+        $this->fakeAiSequence([$this->studyPlanResponse(), $this->retestResponse(), $this->retestResponse()]);
+        app(QuizService::class)->release($approved->load('assessment'), $context['teacher']);
+        $plan = QuizStudyPlan::query()->where('quiz_attempt_id', $attempt->id)->firstOrFail();
+        $service = app(StudyPlanService::class);
+
+        $first = $service->retest($plan, $context['learner'], ['easy-1' => 'Balanced']);
+        $second = $service->retest($plan->refresh(), $context['learner'], ['easy-1' => 'Balanced again']);
+        $this->assertSame(1, $first->attempt_number);
+        $this->assertSame(2, $second->attempt_number);
+        $this->assertSame(2, $plan->revisionAttempts()->count());
+
+        Http::fake(['https://api.openai.test/v1/responses' => Http::response(['error' => 'private'], 500)]);
+        try {
+            $service->retest($plan->refresh(), $context['learner'], ['easy-1' => 'Keep my response']);
+            $this->fail('AI failure did not surface.');
+        } catch (DomainException) {
+        }
+        $this->assertDatabaseHas('quiz_revision_attempts', ['quiz_study_plan_id' => $plan->id, 'attempt_number' => 3, 'status' => 'submitted']);
+        $this->assertSame(3, $plan->revisionAttempts()->count());
     }
 
     public function test_learner_dashboard_and_teacher_study_plan_analytics_use_published_progress(): void

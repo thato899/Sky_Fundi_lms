@@ -324,7 +324,11 @@ final class QuizService
         });
         $this->notifyRelease($attempt);
         if (! $attempt->publishedStudyPlan()->exists()) {
-            $this->studyPlans->generate($attempt->refresh(), $teacher, publish: true);
+            try {
+                $this->studyPlans->generate($attempt->refresh(), $teacher, publish: true);
+            } catch (DomainException $exception) {
+                report($exception);
+            }
         }
 
         return $attempt->refresh();

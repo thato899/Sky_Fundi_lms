@@ -9,6 +9,7 @@ use Core\AIGateway\Exceptions\AIGatewayException;
 use Core\AIGateway\Infrastructure\Providers\DeepSeekProvider;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 final class DeepSeekProviderTest extends TestCase
@@ -148,6 +149,78 @@ final class DeepSeekProviderTest extends TestCase
         ));
 
         $this->assertSame($json, $response->content);
+    }
+
+    #[DataProvider('fencedJsonProvider')]
+    public function test_common_outer_markdown_fence_variations_are_removed(string $wrapped): void
+    {
+        Http::fake(['https://api.deepseek.test/chat/completions' => Http::response([
+            'choices' => [['message' => ['content' => $wrapped]]],
+        ])]);
+
+        $response = $this->provider()->complete(new AIRequest(
+            prompt: '{}',
+            metadata: ['json_schema' => ['type' => 'object']],
+        ));
+
+        $this->assertSame('{"result":true}', $response->content);
+    }
+
+    public static function fencedJsonProvider(): array
+    {
+        return [
+            'lowercase json' => ["```json\n{\"result\":true}\n```"],
+            'uppercase JSON' => ["```JSON\n{\"result\":true}\n```"],
+            'no language' => ["```\n{\"result\":true}\n```"],
+            'CRLF and whitespace' => [" \r\n```json\r\n{\"result\":true}\r\n```\r\n "],
+            'unfenced' => [" \n{\"result\":true}\n "],
+        ];
+    }
+
+    public function test_prose_around_structured_json_remains_invalid(): void
+    {
+        Http::fake(['https://api.deepseek.test/chat/completions' => Http::response([
+            'choices' => [['message' => ['content' => 'Result: {"result":true}']]],
+        ])]);
+
+        $this->expectException(AIGatewayException::class);
+        $this->provider()->complete(new AIRequest(prompt: '{}', metadata: ['json_schema' => ['type' => 'object']]));
+    }
+
+    public function test_successful_stream_yields_content_chunks(): void
+    {
+        Http::fake(['https://api.deepseek.test/chat/completions' => Http::response(
+            "data: {\"choices\":[{\"delta\":{\"content\":\"Hello\"}}]}\n\ndata: [DONE]\n",
+        )]);
+
+        $this->assertSame(['Hello'], iterator_to_array($this->provider()->stream(new AIRequest(prompt: 'Hi'))));
+    }
+
+    #[DataProvider('failedStreamingStatusProvider')]
+    public function test_failed_stream_throws_safe_gateway_exception(int $status): void
+    {
+        Http::fake(['https://api.deepseek.test/chat/completions' => Http::response('private provider response', $status)]);
+
+        try {
+            iterator_to_array($this->provider()->stream(new AIRequest(prompt: 'Hi')));
+            $this->fail('Failed stream was accepted.');
+        } catch (AIGatewayException $exception) {
+            $this->assertSame("DeepSeek streaming request failed with status {$status}.", $exception->getMessage());
+            $this->assertStringNotContainsString('private provider response', $exception->getMessage());
+        }
+    }
+
+    public static function failedStreamingStatusProvider(): array
+    {
+        return [[401], [429], [500]];
+    }
+
+    public function test_malformed_stream_event_throws_gateway_exception(): void
+    {
+        Http::fake(['https://api.deepseek.test/chat/completions' => Http::response("data: not-json\n")]);
+
+        $this->expectException(AIGatewayException::class);
+        iterator_to_array($this->provider()->stream(new AIRequest(prompt: 'Hi')));
     }
 
     private function provider(): DeepSeekProvider

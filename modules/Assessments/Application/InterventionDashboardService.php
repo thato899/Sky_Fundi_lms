@@ -25,23 +25,40 @@ final class InterventionDashboardService
     public function dashboard(string $organizationId, User $teacher, bool $organizationWide = false): array
     {
         $attempts = $this->query($organizationId, $teacher, $organizationWide)->get();
-        $learners = $attempts->map(fn (QuizAttempt $attempt): array => $this->learnerRow($attempt));
+        $attemptRows = $attempts->map(fn (QuizAttempt $attempt): array => $this->attemptRow($attempt));
+        // One operational row per learner and subject. The highest current risk wins;
+        // ties use the latest release, so repeated attempts never overweight averages.
+        $learnerSubjectRows = $attemptRows
+            ->groupBy(fn (array $row): string => $row['learner_id'].'|'.$row['subject_id'])
+            ->map(fn (Collection $rows): array => $rows->sortByDesc(fn (array $row): string => sprintf('%02d|%s', $row['risk_score'], $row['released_at']))->first())
+            ->values();
+        $learnerRows = $learnerSubjectRows->groupBy('learner_id')->map(function (Collection $rows): array {
+            $representative = $rows->sortByDesc('risk_score')->first();
+            $representative['score_percentage'] = round((float) $rows->avg('score_percentage'), 1);
+            $representative['completion_percentage'] = round((float) $rows->avg('completion_percentage'), 1);
+            $representative['revision_completion'] = round((float) $rows->avg('revision_completion'), 1);
+
+            return $representative;
+        })->values();
         $concepts = $this->concepts($attempts);
-        $queue = $learners->filter(fn (array $row): bool => in_array($row['risk_level'], ['red', 'orange'], true))
+        $queue = $learnerSubjectRows->filter(fn (array $row): bool => in_array($row['risk_level'], ['red', 'orange'], true))
             ->sortBy([['risk_score', 'desc'], ['last_activity_at', 'asc']])->values();
 
         return [
             'overview' => [
-                'learners' => $learners->pluck('learner_id')->unique()->count(),
-                'average_class_mark' => round((float) $learners->avg('score_percentage'), 1),
-                'average_completion' => round((float) $learners->avg('completion_percentage'), 1),
-                'study_streak_average' => round((float) $learners->avg('study_streak'), 1),
-                'revision_completion' => round((float) $learners->avg('revision_completion'), 1),
+                'learners' => $learnerRows->count(),
+                'released_attempts' => $attemptRows->count(),
+                'learner_subject_rows' => $learnerSubjectRows->count(),
+                'average_class_mark' => round((float) $learnerRows->avg('score_percentage'), 1),
+                'average_completion' => round((float) $learnerRows->avg('completion_percentage'), 1),
+                'study_streak_average' => round((float) $learnerRows->avg('study_streak'), 1),
+                'revision_completion' => round((float) $learnerRows->avg('revision_completion'), 1),
                 'learners_at_risk' => $queue->pluck('learner_id')->unique()->count(),
-                'ready_for_reassessment' => $learners->where('ready_for_reassessment', true)->count(),
+                'ready_for_reassessment' => $learnerRows->where('ready_for_reassessment', true)->count(),
             ],
             'weak_concepts' => $concepts,
-            'learners' => $learners->values(),
+            'learners' => $learnerRows,
+            'attempts' => $attemptRows,
             'intervention_queue' => $queue,
             'mastery' => $this->mastery($attempts),
             'trends' => $this->trends($attempts),
@@ -55,9 +72,9 @@ final class InterventionDashboardService
         $response = $this->ai->complete(new AIRequest(
             prompt: json_encode([
                 'weak_concepts' => collect($dashboard['weak_concepts'])->take(10)->values(),
-                'high_risk_queue' => collect($dashboard['intervention_queue'])->take(20)->map->only([
+                'high_risk_queue' => collect($dashboard['intervention_queue'])->take(20)->map(fn (array $row): array => collect($row)->only([
                     'subject', 'weak_concept', 'risk_level', 'score_percentage', 'completion_percentage',
-                ])->values(),
+                ])->all())->values(),
             ], JSON_THROW_ON_ERROR),
             capability: 'assessment.teacher_interventions',
             tenantId: $organizationId,
@@ -84,6 +101,7 @@ final class InterventionDashboardService
             ],
         ));
         $content = json_decode($response->content, true, flags: JSON_THROW_ON_ERROR);
+        $this->validateRecommendations($content);
         $this->analytics->record(AnalyticsMetric::AdaptiveLearning, $teacher, metadata: ['event' => 'intervention_recommendations_generated', 'suggestion_count' => count($content['suggestions'] ?? [])]);
 
         return $content;
@@ -102,7 +120,7 @@ final class InterventionDashboardService
     }
 
     /** @return array<string, mixed> */
-    private function learnerRow(QuizAttempt $attempt): array
+    private function attemptRow(QuizAttempt $attempt): array
     {
         $plan = $attempt->publishedStudyPlan;
         $maximum = max(1.0, (float) $attempt->assessment->maximum_mark);
@@ -115,12 +133,16 @@ final class InterventionDashboardService
         $risk = ($score < 40 ? 4 : ($score < 60 ? 2 : ($score < 75 ? 1 : 0)))
             + ($completion === 0 ? 3 : ($completion < 40 ? 2 : ($completion < 75 ? 1 : 0)))
             + ($remaining >= 3 ? 2 : ($remaining > 0 ? 1 : 0))
-            + ($revision === null ? 1 : 0) + ($inactive ? 1 : 0) + ($adjustments > 0 ? 1 : 0);
+            + ($revision === null ? 1 : 0) + ($inactive ? 1 : 0) + ($adjustments > 0 ? 1 : 0)
+            - (($revision?->score_percentage ?? 0) >= 70 ? 1 : 0);
+        $risk = max(0, $risk);
         $level = $risk >= 8 ? 'red' : ($risk >= 5 ? 'orange' : ($risk >= 3 ? 'yellow' : 'green'));
         $weak = $plan?->remaining_concepts[0] ?? $attempt->answers->first(fn ($answer) => (float) $answer->marks_awarded < (float) $answer->marks_available)?->question?->key_concepts[0] ?? 'General revision';
 
         return [
             'learner_id' => $attempt->learner_profile_id,
+            'attempt_id' => $attempt->getKey(),
+            'subject_id' => $attempt->assessment->subject_id ?? 'unassigned',
             'learner' => trim($attempt->learner->first_name.' '.$attempt->learner->last_name),
             'subject' => $attempt->assessment->subject?->name ?? 'Unassigned',
             'weak_concept' => $weak,
@@ -136,6 +158,7 @@ final class InterventionDashboardService
             'last_activity_at' => $plan?->last_activity_at?->toIso8601String(),
             'estimated_intervention_minutes' => $level === 'red' ? 30 : ($level === 'orange' ? 20 : 10),
             'ready_for_reassessment' => $completion >= 80 && $remaining === 0,
+            'released_at' => $attempt->released_at?->toIso8601String() ?? '',
         ];
     }
 
@@ -156,6 +179,24 @@ final class InterventionDashboardService
             'yellow' => "Check understanding of {$concept} at the next lesson.",
             default => "Continue independent practice on {$concept}.",
         };
+    }
+
+    private function validateRecommendations(array $content): void
+    {
+        $suggestions = $content['suggestions'] ?? null;
+        if (! is_array($suggestions) || $suggestions === [] || count($suggestions) > 10) {
+            throw new \UnexpectedValueException('AI intervention recommendations were invalid.');
+        }
+        foreach ($suggestions as $suggestion) {
+            if (! is_array($suggestion)
+                || trim((string) ($suggestion['concept'] ?? '')) === ''
+                || trim((string) ($suggestion['action'] ?? '')) === ''
+                || ! is_int($suggestion['estimated_minutes'] ?? null)
+                || $suggestion['estimated_minutes'] < 5
+                || $suggestion['estimated_minutes'] > 120) {
+                throw new \UnexpectedValueException('AI intervention recommendations were invalid.');
+            }
+        }
     }
 
     /** @return Collection<int, array<string, mixed>> */
