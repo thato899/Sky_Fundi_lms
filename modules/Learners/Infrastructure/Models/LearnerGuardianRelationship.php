@@ -8,7 +8,17 @@ use Core\Support\Traits\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $status
+ * @property bool $receives_academic_communication
+ * @property Carbon|null $effective_from
+ * @property Carbon|null $effective_until
+ * @property Carbon|null $deleted_at
+ * @property LearnerProfile $learner
+ * @property GuardianProfile $guardian
+ */
 final class LearnerGuardianRelationship extends Model
 {
     use HasUuidPrimaryKey;

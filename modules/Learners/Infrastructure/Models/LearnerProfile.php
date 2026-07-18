@@ -7,6 +7,7 @@ namespace Modules\Learners\Infrastructure\Models;
 use Core\Identity\Infrastructure\Models\Membership;
 use Core\Support\Traits\HasUuidPrimaryKey;
 use Core\Users\Infrastructure\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +21,14 @@ use Modules\Learners\Database\Factories\LearnerProfileFactory;
 use Modules\Learners\Domain\Enums\LearnerStatus;
 use Modules\Organizations\Infrastructure\Models\Organization;
 
+/**
+ * @property string $organization_id
+ * @property string $first_name
+ * @property string $last_name
+ * @property Grade|null $currentGrade
+ * @property User|null $user
+ * @property Collection<int, LearnerGuardianRelationship> $guardianRelationships
+ */
 final class LearnerProfile extends Model
 {
     use HasFactory;

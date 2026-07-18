@@ -18,6 +18,7 @@ enum AnalyticsMetric: string
     case StorageUsed = 'storage.used';
     case ApiRequest = 'api.request';
     case AIUsage = 'ai.usage';
+    case AdaptiveLearning = 'learning.adaptive';
     case ModuleEnabled = 'module.enabled';
     case Login = 'auth.login';
     case Error = 'system.error';

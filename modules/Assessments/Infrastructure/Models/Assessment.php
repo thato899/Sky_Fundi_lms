@@ -33,14 +33,22 @@ use Modules\Staff\Infrastructure\Models\StaffProfile;
  * @property ResultReleaseStatus $result_release_status
  * @property mixed $finalized_at
  * @property mixed $released_at
+ * @property mixed $opens_at
+ * @property mixed $closes_at
+ * @property int $attempt_limit
+ * @property string $created_by
+ * @property StaffProfile|null $staffProfile
+ * @property Subject|null $subject
+ * @property ClassGroup|null $classGroup
  * @property Collection<int, AssessmentResult> $results
+ * @property Collection<int, AssessmentQuestion> $questions
  */
 final class Assessment extends Model
 {
     use HasFactory;
     use HasUuidPrimaryKey;
 
-    protected $fillable = ['uuid', 'organization_id', 'scheduled_lesson_id', 'academic_year_id', 'academic_term_id', 'grade_id', 'class_id', 'subject_id', 'assessment_category_id', 'staff_profile_id', 'title', 'description', 'assessment_date', 'due_date', 'maximum_mark', 'weighting', 'status', 'result_release_status', 'instructions', 'finalized_at', 'finalized_by', 'reopened_at', 'reopened_by', 'reopen_reason', 'released_at', 'released_by', 'created_by', 'updated_by'];
+    protected $fillable = ['uuid', 'organization_id', 'scheduled_lesson_id', 'academic_year_id', 'academic_term_id', 'grade_id', 'class_id', 'subject_id', 'assessment_category_id', 'staff_profile_id', 'title', 'description', 'assessment_date', 'due_date', 'maximum_mark', 'weighting', 'status', 'result_release_status', 'instructions', 'opens_at', 'closes_at', 'time_limit_minutes', 'attempt_limit', 'finalized_at', 'finalized_by', 'reopened_at', 'reopened_by', 'reopen_reason', 'released_at', 'released_by', 'created_by', 'updated_by'];
 
     public function uniqueIds(): array
     {
@@ -54,12 +62,24 @@ final class Assessment extends Model
 
     protected function casts(): array
     {
-        return ['assessment_date' => 'date', 'due_date' => 'date', 'maximum_mark' => 'decimal:2', 'weighting' => 'decimal:4', 'status' => AssessmentStatus::class, 'result_release_status' => ResultReleaseStatus::class, 'finalized_at' => 'datetime', 'reopened_at' => 'datetime', 'released_at' => 'datetime'];
+        return ['assessment_date' => 'date', 'due_date' => 'date', 'maximum_mark' => 'decimal:2', 'weighting' => 'decimal:4', 'status' => AssessmentStatus::class, 'result_release_status' => ResultReleaseStatus::class, 'opens_at' => 'datetime', 'closes_at' => 'datetime', 'time_limit_minutes' => 'integer', 'attempt_limit' => 'integer', 'finalized_at' => 'datetime', 'reopened_at' => 'datetime', 'released_at' => 'datetime'];
     }
 
     public function results(): HasMany
     {
         return $this->hasMany(AssessmentResult::class);
+    }
+
+    /** @return HasMany<AssessmentQuestion, $this> */
+    public function questions(): HasMany
+    {
+        return $this->hasMany(AssessmentQuestion::class);
+    }
+
+    /** @return HasMany<QuizAttempt, $this> */
+    public function attempts(): HasMany
+    {
+        return $this->hasMany(QuizAttempt::class);
     }
 
     public function category(): BelongsTo

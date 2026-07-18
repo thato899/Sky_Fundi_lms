@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Academics\Domain\Enums\AcademicStatus;
 use Modules\Academics\Infrastructure\Concerns\BelongsToOrganization;
 
+/** @property string $name */
 final class Subject extends Model
 {
     use BelongsToOrganization;

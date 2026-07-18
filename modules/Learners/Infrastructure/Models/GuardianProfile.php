@@ -7,6 +7,7 @@ namespace Modules\Learners\Infrastructure\Models;
 use Core\Identity\Infrastructure\Models\Membership;
 use Core\Support\Traits\HasUuidPrimaryKey;
 use Core\Users\Infrastructure\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -24,6 +25,7 @@ use Modules\Organizations\Infrastructure\Models\Organization;
  * @property Carbon|null $deleted_at
  * @property User|null $user
  * @property Membership|null $organizationMembership
+ * @property Collection<int, LearnerGuardianRelationship> $relationships
  */
 final class GuardianProfile extends Model
 {

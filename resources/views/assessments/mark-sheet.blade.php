@@ -1,6 +1,7 @@
 @extends('assessments.layout')
 @section('title','Assessment mark sheet')
 @section('assessment-content')
+<p><a class="button" href="{{ route('quizzes.show',$assessment->uuid) }}">Open quiz questions and submissions</a></p>
 <h1>{{ $assessment->title }}</h1>
 <p>{{ $assessment->academicTerm->name }} · {{ $assessment->grade->name }} · {{ $assessment->classGroup->name }} · {{ $assessment->subject->name }} · maximum {{ $assessment->maximum_mark }}</p>
 <p><strong>{{ $assessment->status->value }}</strong> · results {{ $assessment->result_release_status->value }}</p>

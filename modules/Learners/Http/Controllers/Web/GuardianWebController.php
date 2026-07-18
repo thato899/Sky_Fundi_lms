@@ -12,6 +12,8 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Modules\Assessments\Infrastructure\Models\QuizAttempt;
+use Modules\Learners\Application\GuardianPortalAccessService;
 use Modules\Learners\Application\GuardianService;
 use Modules\Learners\Http\Requests\StoreGuardianRelationshipRequest;
 use Modules\Learners\Http\Requests\StoreGuardianRequest;
@@ -26,7 +28,7 @@ use Modules\Organizations\Infrastructure\Models\Organization;
 
 final class GuardianWebController
 {
-    public function __construct(private readonly GuardianService $guardians, private readonly PermissionResolver $permissions, private readonly OrganizationService $organizations) {}
+    public function __construct(private readonly GuardianService $guardians, private readonly GuardianPortalAccessService $portalAccess, private readonly PermissionResolver $permissions, private readonly OrganizationService $organizations) {}
 
     public function index(Request $request): View
     {
@@ -85,7 +87,21 @@ final class GuardianWebController
                 ->whereNull('deleted_at')
                 ->whereIn('learner_status', ['admitted', 'active', 'temporarily_inactive', 'suspended']))]);
 
-        return view('guardians.portal-show', $this->shared($organization, $membership) + compact('guardian'));
+        $academicSummaries = [];
+        foreach ($guardian->relationships as $relationship) {
+            if (! $relationship->getAttribute('receives_academic_communication') || ! $this->portalAccess->allows($this->actor($request), $relationship->learner)) {
+                continue;
+            }
+            $academicSummaries[$relationship->learner->getKey()] = QuizAttempt::query()
+                ->where('organization_id', $organization->getKey())
+                ->where('learner_profile_id', $relationship->learner->getKey())
+                ->where('status', 'released')
+                ->with(['assessment.subject', 'result', 'answers.question', 'publishedStudyPlan'])
+                ->latest('released_at')
+                ->first();
+        }
+
+        return view('guardians.portal-show', $this->shared($organization, $membership) + compact('guardian', 'academicSummaries'));
     }
 
     public function edit(Request $request, mixed $guardian): View
