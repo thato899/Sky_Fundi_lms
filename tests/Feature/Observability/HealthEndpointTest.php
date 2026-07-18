@@ -29,6 +29,9 @@ final class HealthEndpointTest extends TestCase
             ])
             ->assertJsonMissing(['message' => 'connected to mysql.internal'])
             ->assertJsonMissingPath('checks.0.meta');
+
+        $this->getJson('/ready')->assertOk()->assertJsonPath('status', 'ready');
+        $this->getJson('/health')->assertOk()->assertJsonPath('status', 'ready');
     }
 
     public function test_failed_readiness_returns_503_without_internal_details(): void

@@ -5,7 +5,10 @@ APP := $(COMPOSE) exec -T app
 .PHONY: build init up down restart migrate migrate-check seed demo-reset test test-learners pint analyse verify status logs shell health deployment-validate
 
 up:
-	$(COMPOSE) up -d
+	$(COMPOSE) up -d --build
+	@echo "Sky Fundi: http://localhost:8000"
+	@echo "Mailpit:   http://localhost:8025"
+	@echo "Health:    http://localhost:8000/ready"
 
 down:
 	$(COMPOSE) down

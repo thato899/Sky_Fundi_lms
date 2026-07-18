@@ -24,7 +24,10 @@ return [
     'readiness_checks' => [
         DatabaseHealthCheck::class,
         CacheHealthCheck::class,
+        QueueHealthCheck::class,
         StorageHealthCheck::class,
+        MailHealthCheck::class,
+        AIProviderHealthCheck::class,
     ],
     'checks' => [
         ApiHealthCheck::class,

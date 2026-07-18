@@ -87,6 +87,29 @@ final class PlatformDiagnoseCommandTest extends TestCase
         $this->artisan('platform:diagnose')->assertFailed();
     }
 
+    public function test_startup_environment_validator_reports_missing_required_configuration_safely(): void
+    {
+        config()->set('app.key', null);
+        config()->set('database.connections.sqlite.password', 'startup-secret');
+
+        $this->artisan('platform:validate-environment')
+            ->expectsOutputToContain('APP_KEY is required.')
+            ->assertFailed();
+
+        $this->assertStringNotContainsString('startup-secret', Artisan::output());
+    }
+
+    public function test_startup_environment_validator_rejects_debug_in_production(): void
+    {
+        $this->app->detectEnvironment(static fn (): string => 'production');
+        config()->set('app.env', 'production');
+        config()->set('app.debug', true);
+
+        $this->artisan('platform:validate-environment')
+            ->expectsOutputToContain('APP_DEBUG must be false in production.')
+            ->assertFailed();
+    }
+
     /**
      * @param  array<string, string>  $files
      * @param  list<string>  $ran

@@ -13,16 +13,9 @@ if [ ! -f vendor/autoload.php ]; then
     composer install --no-interaction --prefer-dist --no-progress
 fi
 
-# Laravel's dotenv format is shell-compatible for the supplied development
-# template. Exporting it lets the bounded MySQL readiness probe use the same
-# settings as Laravel without printing credentials.
-set -a
-. ./.env
-set +a
-
 attempt=1
 max_attempts=60
-until php -r 'new PDO("mysql:host=".getenv("DB_HOST").";port=".getenv("DB_PORT").";dbname=".getenv("DB_DATABASE"), getenv("DB_USERNAME"), getenv("DB_PASSWORD"));' >/dev/null 2>&1; do
+until php artisan db:show --no-interaction >/dev/null 2>&1; do
     if [ "$attempt" -ge "$max_attempts" ]; then
         echo "MySQL did not become ready after $max_attempts attempts." >&2
         exit 1
@@ -36,5 +29,16 @@ if ! grep -q '^APP_KEY=.+' .env; then
     php artisan key:generate --force --no-interaction
 fi
 
+php artisan migrate --force --no-interaction
+php artisan storage:link --relative --force
+
+if [ "${DEMO_MODE:-false}" = "true" ]; then
+    php artisan db:seed --force
+    php artisan db:seed --force --class="Database\\Seeders\\HackathonDemoSeeder"
+else
+    php artisan db:seed --force
+fi
+
+php artisan platform:validate-environment
 touch storage/framework/.skyfundi-initialized
 echo "Sky Fundi initialization completed."

@@ -28,6 +28,8 @@ final class HackathonDemoJourneyTest extends TestCase
         $this->seed(HackathonDemoSeeder::class);
 
         $organization = Organization::query()->where('code', 'UFA-DEMO')->firstOrFail();
+        $this->assertSame('Demo School', $organization->name);
+        $this->assertDatabaseHas('users', ['email' => 'tutor@ubuntu-future.demo']);
         $quiz = Assessment::query()->where('organization_id', $organization->getKey())->where('title', 'Forces and Linear Equations Check-in')->firstOrFail();
         $attempt = QuizAttempt::query()->where('assessment_id', $quiz->getKey())->firstOrFail();
 

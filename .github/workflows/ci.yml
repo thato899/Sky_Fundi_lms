@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare environment
+        run: cp .env.example .env
+
+      - name: Start application stack
+        run: docker compose up -d --build
+
+      - name: Validate Composer metadata
+        run: docker compose exec -T app composer validate --strict
+
+      - name: Verify migrations and rollback
+        run: make migrate-check
+
+      - name: Run PHPUnit
+        run: docker compose exec -T app php artisan test
+
+      - name: Run Pint
+        run: docker compose exec -T app ./vendor/bin/pint --test
+
+      - name: Run PHPStan
+        run: ANALYSE_ALL=1 make analyse
+
+      - name: Show service logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=200
