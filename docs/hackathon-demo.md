@@ -41,7 +41,7 @@ Configure OpenAI per [AI marking](ai-marking.md). If unavailable, objective mark
 
 ## Five-to-seven-minute script
 
-1. Show Ubuntu Future Academy’s administrator dashboard, learners, staff, guardians and subscription card.
+1. Show Demo School’s administrator dashboard, learners, staff, guardians and subscription card.
 2. Show Growth limits, estimated AI cost, contribution margin, assumptions and demo labels.
 3. Sign in as the Mathematics teacher; open the seeded Grade 10 quiz and show types, model answers and rubric.
 4. Open Lerato’s submission; show deterministic marks and the AI rationale/misconception.

@@ -50,7 +50,7 @@ final class DeepSeekProvider implements AIProviderInterface
             ->post('/chat/completions', $payload);
 
         if ($response->failed()) {
-            throw new AIGatewayException("DeepSeek request failed with status {$response->status()}: {$response->body()}");
+            throw new AIGatewayException("DeepSeek request failed with status {$response->status()}.");
         }
 
         $body = $response->json();
@@ -85,8 +85,11 @@ final class DeepSeekProvider implements AIProviderInterface
                 'stream' => true,
             ]);
 
-        $body = $response->toPsrResponse()->getBody();
+        if ($response->failed()) {
+            throw new AIGatewayException("DeepSeek streaming request failed with status {$response->status()}.");
+        }
 
+        $body = $response->toPsrResponse()->getBody();
         while (! $body->eof()) {
             $line = trim($this->readLine($body));
 
@@ -100,7 +103,11 @@ final class DeepSeekProvider implements AIProviderInterface
                 break;
             }
 
-            $chunk = json_decode($payload, true);
+            try {
+                $chunk = json_decode($payload, true, flags: JSON_THROW_ON_ERROR);
+            } catch (\JsonException $exception) {
+                throw new AIGatewayException('DeepSeek returned a malformed streaming response.', previous: $exception);
+            }
             $delta = $chunk['choices'][0]['delta']['content'] ?? null;
 
             if ($delta !== null) {
@@ -151,8 +158,8 @@ final class DeepSeekProvider implements AIProviderInterface
     {
         $content = trim($content);
 
-        if (str_starts_with($content, "```json\n") && str_ends_with($content, "\n```")) {
-            $content = trim(substr($content, 8, -4));
+        if (preg_match('/\A```(?:json)?[ \t]*\R(.*)\R```[ \t]*\z/is', $content, $matches) === 1) {
+            $content = trim($matches[1]);
         }
 
         try {

@@ -1,6 +1,9 @@
 services:
   init:
     build: .
+    environment:
+      DEMO_MODE: ${DEMO_MODE:-false}
+      SKIP_STARTUP_VALIDATION: "true"
     working_dir: /var/www/html
     volumes: [".:/var/www/html", "storage:/var/www/html/storage"]
     command: ["/bin/sh", "docker/init.sh"]

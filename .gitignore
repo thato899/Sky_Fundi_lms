@@ -25,6 +25,7 @@
 .env.*
 !.env.example
 !.env.production.example
+!.env.cpanel.example
 .phpunit.result.cache
 
 # IDE / OS

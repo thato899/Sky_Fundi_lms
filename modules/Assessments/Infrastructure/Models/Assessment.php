@@ -37,6 +37,7 @@ use Modules\Staff\Infrastructure\Models\StaffProfile;
  * @property mixed $closes_at
  * @property int $attempt_limit
  * @property string $created_by
+ * @property string $subject_id
  * @property StaffProfile|null $staffProfile
  * @property Subject|null $subject
  * @property ClassGroup|null $classGroup

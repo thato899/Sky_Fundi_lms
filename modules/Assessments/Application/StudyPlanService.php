@@ -6,6 +6,7 @@ namespace Modules\Assessments\Application;
 
 use Core\AIGateway\Application\AIManager;
 use Core\AIGateway\Application\DTOs\AIRequest;
+use Core\AIGateway\Exceptions\AIGatewayException;
 use Core\Analytics\Application\AnalyticsRecorder;
 use Core\Analytics\Domain\Enums\AnalyticsMetric;
 use Core\AuditLogs\Application\AuditLogService;
@@ -103,10 +104,10 @@ final class StudyPlanService
 
                 return $plan;
             });
-        } catch (\Throwable $exception) {
+        } catch (AIGatewayException|\JsonException|DomainException $exception) {
             $request->update(['status' => 'failed', 'failure_message' => 'Adaptive study plan generation failed.']);
             report($exception);
-            throw new DomainException('The adaptive study plan could not be generated. The released result remains available.');
+            throw new DomainException('The adaptive study plan could not be generated. The released result remains available.', previous: $exception);
         }
 
         $this->audit->record('study_plans.generated', $plan, after: ['organization_id' => $plan->organization_id, 'version' => $plan->version, 'published' => $publish, 'provider' => $response->provider]);
@@ -125,46 +126,63 @@ final class StudyPlanService
         if ($plan->status !== 'draft') {
             throw new DomainException('Only a draft study plan may be published.');
         }
+        $updated = QuizStudyPlan::query()
+            ->where('quiz_attempt_id', $plan->quiz_attempt_id)
+            ->where('status', 'published')
+            ->whereKeyNot($plan->getKey())
+            ->exists();
 
         DB::transaction(function () use ($plan, $teacher): void {
             QuizStudyPlan::query()->where('quiz_attempt_id', $plan->quiz_attempt_id)->where('status', 'published')->update(['status' => 'superseded']);
             $plan->update(['status' => 'published', 'approved_by' => $teacher->getKey(), 'approved_at' => now(), 'published_by' => $teacher->getKey(), 'published_at' => now()]);
         });
         $this->audit->record('study_plans.published', $plan, after: ['organization_id' => $plan->organization_id, 'version' => $plan->version]);
-        $this->notifyPublished($plan, $plan->attempt, true);
+        $this->notifyPublished($plan, $plan->attempt, $updated);
 
         return $plan->refresh();
     }
 
     public function recordProgress(QuizStudyPlan $plan, LearnerProfile $learner, array $activityIds, int $minutes): QuizStudyPlan
     {
-        $this->learnerCanUse($plan, $learner);
-        $validIds = collect($plan->content['daily_schedule'])->pluck('activity_id')
-            ->merge(collect($plan->content['revision_exercises'])->pluck('activity_id'))->unique()->values();
-        $completed = collect($plan->completed_activities ?? [])->merge($activityIds)->unique()->filter(fn ($id) => $validIds->contains($id))->values();
-        $percentage = $validIds->isEmpty() ? 100 : (int) round($completed->count() / $validIds->count() * 100);
-        $wasComplete = $plan->completion_percentage === 100;
-        $plan->update([
-            'completed_activities' => $completed->all(),
-            'completion_percentage' => $percentage,
-            'time_spent_minutes' => $plan->time_spent_minutes + $minutes,
-            'last_activity_at' => now(),
-            'completed_at' => $percentage === 100 ? ($plan->completed_at ?? now()) : null,
-        ]);
-        $this->analytics->record(AnalyticsMetric::AdaptiveLearning, $plan, value: $percentage, metadata: ['event' => 'progress_updated', 'time_spent_minutes' => $minutes]);
+        [$lockedPlan, $wasComplete, $percentage] = DB::transaction(function () use ($plan, $learner, $activityIds, $minutes): array {
+            /** @var QuizStudyPlan $lockedPlan */
+            $lockedPlan = QuizStudyPlan::query()->whereKey($plan->getKey())->lockForUpdate()->firstOrFail();
+            $this->learnerCanUse($lockedPlan, $learner);
+            $validIds = collect($lockedPlan->content['daily_schedule'])->pluck('activity_id')
+                ->merge(collect($lockedPlan->content['revision_exercises'])->pluck('activity_id'))->unique()->values();
+            $completed = collect($lockedPlan->completed_activities ?? [])->merge($activityIds)->unique()->filter(fn ($id) => $validIds->contains($id))->values();
+            $percentage = $validIds->isEmpty() ? 100 : (int) round($completed->count() / $validIds->count() * 100);
+            $wasComplete = $lockedPlan->completion_percentage === 100;
+            $lockedPlan->update([
+                'completed_activities' => $completed->all(),
+                'completion_percentage' => $percentage,
+                'time_spent_minutes' => $lockedPlan->time_spent_minutes + $minutes,
+                'last_activity_at' => now(),
+                'completed_at' => $percentage === 100 ? ($lockedPlan->completed_at ?? now()) : $lockedPlan->completed_at,
+            ]);
+
+            return [$lockedPlan, $wasComplete, $percentage];
+        }, 3);
+        $this->analytics->record(AnalyticsMetric::AdaptiveLearning, $lockedPlan, value: $percentage, metadata: ['event' => 'progress_updated', 'time_spent_minutes' => $minutes]);
         if (! $wasComplete && $percentage === 100 && $learner->user) {
-            $this->notifications->send($learner->user, 'assessments.revision_completed', ['message' => 'Your revision activities are complete.', 'assessment' => $plan->attempt->assessment->title]);
+            $this->notifications->send($learner->user, 'assessments.revision_completed', ['message' => 'Your revision activities are complete.', 'assessment' => $lockedPlan->attempt->assessment->title]);
         }
 
-        return $plan->refresh();
+        return $lockedPlan->refresh();
     }
 
     public function retest(QuizStudyPlan $plan, LearnerProfile $learner, array $responses): QuizRevisionAttempt
     {
-        $this->learnerCanUse($plan, $learner);
+        $revision = DB::transaction(function () use ($plan, $learner, $responses): QuizRevisionAttempt {
+            /** @var QuizStudyPlan $lockedPlan */
+            $lockedPlan = QuizStudyPlan::query()->whereKey($plan->getKey())->lockForUpdate()->firstOrFail();
+            $this->learnerCanUse($lockedPlan, $learner);
+            $attemptNumber = ((int) $lockedPlan->revisionAttempts()->max('attempt_number')) + 1;
+
+            return QuizRevisionAttempt::query()->create(['organization_id' => $lockedPlan->organization_id, 'quiz_study_plan_id' => $lockedPlan->getKey(), 'learner_profile_id' => $learner->getKey(), 'attempt_number' => $attemptNumber, 'responses' => $responses, 'status' => 'submitted', 'submitted_at' => now()]);
+        }, 3);
+        $plan->refresh();
         $questions = collect($plan->content['revision_exercises'])->map(fn ($exercise) => ['activity_id' => $exercise['activity_id'], 'concept' => $exercise['concept'], 'difficulty' => $exercise['difficulty'], 'question' => $exercise['question'], 'success_criteria' => $exercise['success_criteria']])->values()->all();
-        $attemptNumber = $plan->revisionAttempts()->count() + 1;
-        $revision = QuizRevisionAttempt::query()->create(['organization_id' => $plan->organization_id, 'quiz_study_plan_id' => $plan->getKey(), 'learner_profile_id' => $learner->getKey(), 'attempt_number' => $attemptNumber, 'responses' => $responses, 'status' => 'submitted', 'submitted_at' => now()]);
         $request = AiGradingRequest::query()->firstOrCreate(
             ['idempotency_key' => hash('sha256', 'revision:'.$revision->getKey())],
             ['organization_id' => $plan->organization_id, 'quiz_attempt_id' => $plan->quiz_attempt_id, 'request_type' => 'adaptive_retest', 'status' => 'pending'],
@@ -191,10 +209,10 @@ final class StudyPlanService
                 $plan->update(['mastered_concepts' => $mastered->all(), 'remaining_concepts' => $remaining->all(), 'last_activity_at' => now()]);
                 $request->update(['provider' => $response->provider, 'model' => $response->model, 'status' => 'completed', 'input_tokens' => $input, 'output_tokens' => $output, 'estimated_cost' => $cost, 'completed_at' => now()]);
             });
-        } catch (\Throwable $exception) {
+        } catch (AIGatewayException|\JsonException|DomainException $exception) {
             $request->update(['status' => 'failed', 'failure_message' => 'Adaptive retest evaluation failed.']);
             report($exception);
-            throw new DomainException('The revision retest could not be evaluated. Your responses remain saved.');
+            throw new DomainException('The revision retest could not be evaluated. Your responses remain saved.', previous: $exception);
         }
 
         $this->analytics->record(AnalyticsMetric::AdaptiveLearning, $plan, value: (float) $evaluation['score_percentage'], metadata: ['event' => 'retest_evaluated', 'mastered_concepts' => $evaluation['mastered_concepts'], 'remaining_concepts' => $plan->refresh()->remaining_concepts, 'time_to_mastery_minutes' => $plan->time_spent_minutes]);
