@@ -37,7 +37,7 @@ jobs:
         run: docker compose exec -T app ./vendor/bin/pint --test
 
       - name: Run PHPStan
-        run: ANALYSE_ALL=1 make analyse
+        run: make analyse
 
       - name: Show service logs on failure
         if: failure()
