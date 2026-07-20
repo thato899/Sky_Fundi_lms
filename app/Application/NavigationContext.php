@@ -59,10 +59,7 @@ final class NavigationContext
         }
 
         if ($this->learnerFor($user, $organizationId) !== null) {
-            return ['persona' => 'Learner', 'links' => [
-                $this->link('My quizzes', route('quizzes.assigned')),
-                $this->link('My report cards', route('reports.my')),
-            ]];
+            return ['persona' => 'Learner', 'links' => [$this->link('My quizzes', route('quizzes.assigned'))]];
         }
 
         $guardian = $this->guardianFor($user, $organizationId);
