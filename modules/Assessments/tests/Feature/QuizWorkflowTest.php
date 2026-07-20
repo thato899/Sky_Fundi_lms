@@ -220,11 +220,16 @@ final class QuizWorkflowTest extends TestCase
         $this->assertSame('released', $approved->refresh()->status);
         $this->assertNotNull($approved->released_at);
         $this->assertSame($context['teacher']->id, $approved->released_by);
-        $this->assertDatabaseCount('quiz_study_plans', 0);
+        $this->assertDatabaseCount('quiz_study_plans', 1);
+        $fallback = QuizStudyPlan::query()->firstOrFail();
+        $this->assertSame('deterministic_fallback', $fallback->provider);
+        $this->assertSame('published', $fallback->status);
         Notification::assertSentTo($learnerUser, CoreNotification::class);
 
-        $plan = app(StudyPlanService::class)->generate($approved->refresh()->load('assessment'), $context['teacher'], publish: true);
+        $plan = app(StudyPlanService::class)->generate($approved->refresh()->load('assessment'), $context['teacher'], regenerate: true, publish: true);
         $this->assertSame('published', $plan->status);
+        $this->assertSame(2, $plan->version);
+        $this->assertSame('superseded', $fallback->refresh()->status);
 
         $this->expectException(DomainException::class);
         app(QuizService::class)->release($approved->refresh()->load('assessment'), $context['teacher']);

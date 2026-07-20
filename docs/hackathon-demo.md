@@ -37,7 +37,7 @@ The app is at `http://localhost:8000`; Mailpit is at `http://localhost:8025`. Se
 docker compose exec -T app php artisan db:seed --class="Database\\Seeders\\HackathonDemoSeeder"
 ```
 
-Configure OpenAI per [AI marking](ai-marking.md). If unavailable, objective marks remain, written answers await manual marking, and the seeded representative result can keep the demo reliable.
+Configure OpenAI per [AI marking](ai-marking.md). If unavailable, objective marks remain, written answers await manual marking, and the seeded representative result can keep the demo reliable. Study plans always generate: when no AI provider is reachable, a deterministic performance-based fallback plan is built from the marked weak concepts (provider `deterministic_fallback`) so a released result never lacks a plan. Teachers can additionally write an editable report to the parent on any draft or published plan; it appears with the released result for the learner and in the guardian portal.
 
 ## Five-to-seven-minute script
 

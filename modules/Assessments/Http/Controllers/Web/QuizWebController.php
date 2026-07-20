@@ -212,6 +212,23 @@ final class QuizWebController
         return back()->with('status', 'Study plan published to the learner and guardian.');
     }
 
+    public function comment(Request $request, string $attempt, string $plan): RedirectResponse
+    {
+        [$organization, $membership] = $this->context($request);
+        abort_unless($this->permissions->allows($membership, 'quiz_submissions.mark'), 403);
+        $quizAttempt = QuizAttempt::query()->where('organization_id', $organization->getKey())->where('uuid', $attempt)->with('assessment')->firstOrFail();
+        $this->authorizeAssignment($membership, $quizAttempt);
+        $studyPlan = QuizStudyPlan::query()->where('quiz_attempt_id', $quizAttempt->getKey())->where('uuid', $plan)->firstOrFail();
+        $data = $request->validate(['teacher_comment' => ['required', 'string', 'max:2000']]);
+        try {
+            $this->studyPlans->updateTeacherComment($studyPlan, $this->actor($request), $data['teacher_comment']);
+        } catch (DomainException $exception) {
+            return back()->withInput()->withErrors(['teacher_comment' => $exception->getMessage()]);
+        }
+
+        return back()->with('status', 'Report to parent saved.');
+    }
+
     public function progress(Request $request, string $attempt, string $plan): RedirectResponse
     {
         [$organization, $membership] = $this->context($request);
