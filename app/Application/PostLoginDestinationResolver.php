@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 
 final class PostLoginDestinationResolver
 {
+    public function __construct(private readonly NavigationContext $navigation) {}
+
     public function redirect(User $user, Request $request): RedirectResponse
     {
         if ($user->can('core.roles.manage')) {
@@ -24,9 +26,10 @@ final class PostLoginDestinationResolver
         $memberships = $this->activeMemberships($user);
 
         if ($memberships->count() === 1) {
-            $request->session()->put('organization_id', $memberships->first()->getAttribute('organization_id'));
+            $organizationId = (string) $memberships->first()->getAttribute('organization_id');
+            $request->session()->put('organization_id', $organizationId);
 
-            return redirect()->route('dashboard');
+            return $this->destination($user, $organizationId);
         }
 
         $request->session()->forget('organization_id');
@@ -42,7 +45,20 @@ final class PostLoginDestinationResolver
         abort_unless($membership instanceof Membership, 404);
         $request->session()->put('organization_id', $membership->getAttribute('organization_id'));
 
-        return redirect()->route('dashboard');
+        return $this->destination($user, (string) $membership->getAttribute('organization_id'));
+    }
+
+    /**
+     * Learners land on their quiz list, guardians on their portal page, and
+     * staff on the first surface their permissions allow (teachers without
+     * the dashboard permission land on Assessments instead of a 403).
+     */
+    private function destination(User $user, string $organizationId): RedirectResponse
+    {
+        $navigation = $this->navigation->for($user, $organizationId);
+        $first = $navigation['links'][0]['href'] ?? null;
+
+        return $first !== null ? redirect()->to($first) : redirect()->route('dashboard');
     }
 
     /** @return Collection<int, Membership> */
