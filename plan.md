@@ -24,8 +24,8 @@ _Updated: 2026-07-20 evening. **Active priority: hackathon demo, deadline midnig
 
 ## Post-hackathon roadmap (unchanged priorities, resume after tonight)
 
-1. **Teacher/class/subject assignments** + assignment-aware authorization in Assessments, Attendance, Scheduling. **Design proposed in ADR-009 (PR #39)** — review/accept the ADR, then implement: schema + `TeachingAssignmentService` + seeded demo assignments, then per-module authorization layering behind the org opt-in setting.
-2. **Learner portal onboarding + results notifications** (reuse guardian invitation pattern; notifications on report publication).
+1. ~~**Teacher/class/subject assignments**~~ **Done — implemented in PR #41** (ADR-009 accepted): schema, `TeachingAssignmentService`, opt-in enforcement across Assessments/Attendance/Scheduling, actor-level teacher gating with admin bypass, seeded demo assignment. Merge order: #40 → #39 → #41. Follow-up (roadmap): assignment web/API administration and bulk tooling.
+2. **Learner portal onboarding + results notifications** — the next task (reuse guardian invitation pattern; notifications on report publication). Suggested slices: (a) learner invitation/onboarding service + acceptance flow mirroring `GuardianInvitationService`, (b) learner-facing portal surfaces beyond quizzes (published report cards, attendance summary, timetable), (c) results notifications on report-card publication via Core Notifications with opt-out.
 3. **Operational trust:** tested backup restore in CI, deployment automation, enforced 2FA.
 4. **Hardening:** test depth for Attendance/Reports/Scheduling/Staff; live Claude/Gemini AI adapters; module-registry enable/disable semantics; delete-or-justify stub cores (Billing/Events/FileManagement).
 5. **Real billing** behind `core/Billing` (needs a gateway/pricing decision).
