@@ -22,10 +22,11 @@ use Modules\Assessments\Infrastructure\Models\QuizStudyPlan;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Organizations\Application\OrganizationService;
 use Modules\Organizations\Infrastructure\Models\Organization;
+use Modules\Staff\Application\TeachingAssignmentService;
 
 final class QuizWebController
 {
-    public function __construct(private readonly QuizService $quizzes, private readonly StudyPlanService $studyPlans, private readonly InterventionDashboardService $interventions, private readonly PermissionResolver $permissions, private readonly OrganizationService $organizations) {}
+    public function __construct(private readonly QuizService $quizzes, private readonly StudyPlanService $studyPlans, private readonly InterventionDashboardService $interventions, private readonly PermissionResolver $permissions, private readonly OrganizationService $organizations, private readonly TeachingAssignmentService $assignments) {}
 
     public function show(Request $request, Assessment $assessment): View
     {
@@ -138,6 +139,7 @@ final class QuizWebController
         [$organization, $membership] = $this->context($request);
         abort_unless($this->permissions->allows($membership, 'quiz_submissions.mark'), 403);
         $quizAttempt = QuizAttempt::query()->where('organization_id', $organization->getKey())->where('uuid', $attempt)->with(['assessment.subject', 'learner.currentGrade', 'answers.question.options', 'studyPlan.revisionAttempts', 'publishedStudyPlan'])->firstOrFail();
+        $this->authorizeAssignment($membership, $quizAttempt);
 
         return view('quizzes.review', $this->shared($organization, $membership) + compact('quizAttempt'));
     }
@@ -147,6 +149,7 @@ final class QuizWebController
         [$organization, $membership] = $this->context($request);
         abort_unless($this->permissions->allows($membership, 'quiz_submissions.mark'), 403);
         $quizAttempt = QuizAttempt::query()->where('organization_id', $organization->getKey())->where('uuid', $attempt)->firstOrFail();
+        $this->authorizeAssignment($membership, $quizAttempt);
         $quizAnswer = QuizAnswer::query()->where('quiz_attempt_id', $quizAttempt->getKey())->where('uuid', $answer)->firstOrFail();
         try {
             $this->quizzes->suggestWrittenMark(
@@ -167,6 +170,7 @@ final class QuizWebController
         [$organization, $membership] = $this->context($request);
         abort_unless($this->permissions->allows($membership, 'quiz_submissions.mark'), 403);
         $quizAttempt = QuizAttempt::query()->where('organization_id', $organization->getKey())->where('uuid', $attempt)->with('assessment')->firstOrFail();
+        $this->authorizeAssignment($membership, $quizAttempt);
         $data = $request->validate(['answers' => ['required', 'array'], 'answers.*.marks_awarded' => ['nullable', 'numeric', 'min:0'], 'answers.*.teacher_feedback' => ['nullable', 'string', 'max:5000'], 'action' => ['required', 'in:draft,approve']]);
         try {
             $overrideReleased = $this->permissions->allows($membership, 'quiz_submissions.override_released');
@@ -269,6 +273,7 @@ final class QuizWebController
         [$organization, $membership] = $this->context($request);
         abort_unless($this->permissions->allows($membership, 'quiz_submissions.release'), 403);
         $quizAttempt = QuizAttempt::query()->where('organization_id', $organization->getKey())->where('uuid', $attempt)->with('assessment')->firstOrFail();
+        $this->authorizeAssignment($membership, $quizAttempt);
         try {
             $this->quizzes->release(
                 $quizAttempt,
@@ -294,6 +299,16 @@ final class QuizWebController
         abort_unless($organization instanceof Organization && $membership instanceof Membership, 403);
 
         return [$organization, $membership];
+    }
+
+    private function authorizeAssignment(Membership $membership, QuizAttempt $quizAttempt): void
+    {
+        $assessment = $quizAttempt->getRelationValue('assessment');
+        abort_unless($this->assignments->actorMayActOn(
+            $membership,
+            (string) $assessment->getAttribute('class_id'),
+            $assessment->getAttribute('subject_id'),
+        ), 403);
     }
 
     private function shared(Organization $organization, Membership $membership): array
