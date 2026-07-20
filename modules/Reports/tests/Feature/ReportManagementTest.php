@@ -22,6 +22,7 @@ use Modules\Assessments\Database\Seeders\AssessmentsPermissionSeeder;
 use Modules\Assessments\Infrastructure\Models\Assessment;
 use Modules\Attendance\Infrastructure\Models\AttendanceEntry;
 use Modules\Attendance\Infrastructure\Models\AttendanceSession;
+use Modules\Learners\Application\LearnerService;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Organizations\Infrastructure\Models\Organization;
 use Modules\Organizations\Infrastructure\Models\OrganizationModule;
@@ -95,6 +96,24 @@ final class ReportManagementTest extends TestCase
         $this->assertSame(1, $result['attendance']['attendance_session_count']);
         $this->assertSame(1, $result['attendance']['present_count']);
         $this->assertSame(0, $result['attendance']['absent_count']);
+    }
+
+    public function test_calculation_includes_results_from_prior_class_after_mid_period_move(): void
+    {
+        $c = $this->context('move');
+        $scale = $this->scale($c);
+        $period = $this->period($c, true);
+        $this->assessment($c, null, 80, '2026-02-01');
+        $c['learner']->update(['admission_date' => '2026-01-10']);
+        $newClass = ClassGroup::query()->create(['organization_id' => $c['organization']->id, 'academic_year_id' => $c['year']->id, 'grade_id' => $c['grade']->id, 'name' => 'Moved '.$c['organization']->code]);
+        app(LearnerService::class)->updateAcademicPlacement($c['learner'], $c['user'], ['current_academic_year_id' => $c['year']->id, 'current_grade_id' => $c['grade']->id, 'current_class_id' => $newClass->id]);
+        $this->assertDatabaseCount('learner_enrolments', 2);
+
+        $result = app(ReportCardCalculationService::class)->calculate($c['learner']->refresh(), $period, $scale);
+
+        $this->assertSame(80.0, $result['subjects'][0]['calculated_percentage']);
+        $this->assertSame(SubjectResultStatus::Calculated, $result['subjects'][0]['subject_result_status']);
+        $this->assertSame(80.0, $result['overall_average']);
     }
 
     public function test_incomplete_weighting_is_insufficient_and_non_marked_is_never_zero(): void
