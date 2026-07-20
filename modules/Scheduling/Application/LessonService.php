@@ -24,13 +24,14 @@ use Modules\Scheduling\Domain\Enums\LessonStatus;
 use Modules\Scheduling\Infrastructure\Models\Room;
 use Modules\Scheduling\Infrastructure\Models\ScheduleChangeLog;
 use Modules\Scheduling\Infrastructure\Models\ScheduledLesson;
+use Modules\Staff\Application\TeachingAssignmentService;
 use Modules\Staff\Infrastructure\Models\StaffProfile;
 
 final class LessonService
 {
     private const FIELDS = ['academic_year_id', 'academic_term_id', 'timetable_template_entry_id', 'grade_id', 'class_id', 'subject_id', 'room_id', 'lesson_date', 'starts_at', 'ends_at', 'delivery_mode', 'title', 'lesson_objective', 'lesson_notes', 'rescheduled_from_lesson_id'];
 
-    public function __construct(private readonly ScheduleConflictService $conflicts, private readonly AttendanceSessionService $attendance, private readonly AuditLogService $audit) {}
+    public function __construct(private readonly ScheduleConflictService $conflicts, private readonly AttendanceSessionService $attendance, private readonly AuditLogService $audit, private readonly TeachingAssignmentService $assignments) {}
 
     public function create(Organization $organization, User $actor, array $data, bool $override = false): ScheduledLesson
     {
@@ -71,6 +72,7 @@ final class LessonService
         if ($this->conflicts->lesson((string) $lesson->organization_id, $proposal, (string) $lesson->getKey())) {
             throw new DomainException('The staff member has a scheduling conflict.');
         }
+        $this->assignments->assertStaffAssignment((string) $lesson->organization_id, (string) $staff->getKey(), (string) $lesson->getAttribute('class_id'), $lesson->getAttribute('subject_id'));
         $lesson->staff()->attach($staff->getKey(), ['id' => (string) str()->uuid(), 'organization_id' => $lesson->organization_id, 'assignment_type' => $assignment['assignment_type'] ?? 'teacher', 'is_primary' => (bool) ($assignment['is_primary'] ?? false)]);
         $this->change($lesson, $actor, 'staff_assigned', null, ['staff_profile_id' => $staff->getKey()]);
 

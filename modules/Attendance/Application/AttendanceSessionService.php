@@ -22,13 +22,14 @@ use Modules\Attendance\Infrastructure\Models\AttendanceSession;
 use Modules\Learners\Domain\Enums\LearnerStatus;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Organizations\Infrastructure\Models\Organization;
+use Modules\Staff\Application\TeachingAssignmentService;
 use Modules\Staff\Infrastructure\Models\StaffProfile;
 
 final class AttendanceSessionService
 {
     private const FIELDS = ['academic_year_id', 'academic_term_id', 'class_id', 'subject_id', 'timetable_period_id', 'staff_profile_id', 'session_date', 'start_time', 'end_time', 'session_type', 'title', 'notes'];
 
-    public function __construct(private readonly AuditLogService $audit) {}
+    public function __construct(private readonly AuditLogService $audit, private readonly TeachingAssignmentService $assignments) {}
 
     public function create(Organization $organization, User $actor, array $data): AttendanceSession
     {
@@ -128,10 +129,14 @@ final class AttendanceSessionService
                 throw new DomainException('The term must belong to the selected academic year.');
             }
         }
-        foreach ([[Subject::class, 'subject_id', 'subject'], [TimetablePeriod::class, 'timetable_period_id', 'timetable period'], [StaffProfile::class, 'staff_profile_id', 'staff member']] as [$model, $key, $label]) {
+        foreach ([[Subject::class, 'subject_id', 'subject'], [TimetablePeriod::class, 'timetable_period_id', 'timetable period']] as [$model, $key, $label]) {
             if ($data[$key] ?? null) {
                 $this->owned($model, $data[$key], $organizationId, $label);
             }
+        }
+        if ($data['staff_profile_id'] ?? null) {
+            $this->owned(StaffProfile::class, $data['staff_profile_id'], $organizationId, 'staff member');
+            $this->assignments->assertStaffAssignment($organizationId, $data['staff_profile_id'], $data['class_id'] ?? null, $data['subject_id'] ?? null);
         }
     }
 

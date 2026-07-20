@@ -25,13 +25,14 @@ use Modules\Assessments\Infrastructure\Models\AssessmentResult;
 use Modules\Learners\Domain\Enums\LearnerStatus;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Organizations\Infrastructure\Models\Organization;
+use Modules\Staff\Application\TeachingAssignmentService;
 use Modules\Staff\Infrastructure\Models\StaffProfile;
 
 final class AssessmentService
 {
     private const FIELDS = ['academic_year_id', 'academic_term_id', 'grade_id', 'class_id', 'subject_id', 'assessment_category_id', 'staff_profile_id', 'title', 'description', 'assessment_date', 'due_date', 'maximum_mark', 'weighting', 'instructions', 'opens_at', 'closes_at', 'time_limit_minutes', 'attempt_limit'];
 
-    public function __construct(private readonly AuditLogService $audit) {}
+    public function __construct(private readonly AuditLogService $audit, private readonly TeachingAssignmentService $assignments) {}
 
     public function create(Organization $organization, User $actor, array $data): Assessment
     {
@@ -147,6 +148,7 @@ final class AssessmentService
         }
         if ($data['staff_profile_id'] ?? null) {
             $this->owned(StaffProfile::class, $data['staff_profile_id'], $organizationId, 'staff member');
+            $this->assignments->assertStaffAssignment($organizationId, $data['staff_profile_id'], $data['class_id'] ?? null, $data['subject_id'] ?? null);
         }
         if ($term->getAttribute('academic_year_id') !== $year->getKey() || $grade->getAttribute('academic_year_id') !== $year->getKey() || $class->getAttribute('academic_year_id') !== $year->getKey() || $class->getAttribute('grade_id') !== $grade->getKey()) {
             throw new DomainException('The term, grade, and class must match the selected academic year and grade.');

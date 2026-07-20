@@ -12,6 +12,7 @@ This is an implementation-status document, not a promise of dates. Executable co
 - Guardian invitation and portal onboarding, including hashed expiring tokens, queued email, new/existing-account acceptance, membership activation, and restricted linked-learner access.
 - Learner Attendance, Assessments/mark sheets/gradebooks, Reports/report-card snapshots/PDF/CSV, and Scheduling/rooms/templates/lessons/conflict handling.
 - Historical learner enrolment: date-ranged placement history maintained on every placement write, backfilled from current placement, with enrolment-aware report-card calculation.
+- Teaching assignments: date-ranged teacher-to-class/subject assignments with opt-in per-organization enforcement across Assessments, Attendance, and Scheduling, plus assignment-aware teacher marking/release gating.
 - Docker development stack with app, MySQL, Mailpit, queue worker, scheduler, init job, and optional Redis profile.
 - PHPUnit unit/feature/security/regression suites plus migration, Pint, PHPStan, health, and aggregate verification scripts.
 
@@ -27,7 +28,7 @@ This is an implementation-status document, not a promise of dates. Executable co
 - Homework and learning-content workflows.
 - Production deployment automation and a tested restore workflow for backups.
 - Stronger authentication features such as enforced two-factor authentication.
-- Assignment-aware teacher authorization once teacher/class/subject assignments exist.
+- Teaching-assignment administration surfaces (web/API) and bulk assignment tooling.
 
 ## Future ideas
 
