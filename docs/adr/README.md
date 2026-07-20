@@ -10,3 +10,4 @@ Accepted decisions describe the implementation as of 2026-07-16. Supersede an AD
 - [ADR-006 Scheduling Design](006-scheduling-design.md)
 - [ADR-007 Reports Design](007-reports-design.md)
 - [ADR-008 Historical Enrolment](008-historical-enrolment.md)
+- [ADR-009 Teaching Assignments](009-teaching-assignments.md) (proposed)
