@@ -20,6 +20,7 @@ _Updated: 2026-07-20 evening. **Active priority: hackathon demo, deadline midnig
 
 - **Phase 0** — status/plan docs + CI-claim correction: PR #36 (draft).
 - **Phase 1 — historical enrolment**: `learner_enrolments` history table, backfill, transactional timeline maintenance in `LearnerService`, self-healing for pre-tracking learners, enrolment-aware report-card calculation, ADR-008: PR #37 (draft). Full suite 267 tests / 1488 assertions green; Pint and PHPStan clean on changed paths; MySQL forward migration verified in the dev stack.
+- **Hackathon sprint items 1–6 — done**: PR #38 (stacked on #37). LMS running and seeded on :8001; persona-aware routing + navigation (learner/teacher/guardian/admin all land correctly, verified live); UI overhaul of layout, quiz attempt/result, teacher review, guardian portal; subscription page reframed as profitability (validated bar palette). Remaining before the demo: merge PRs #37 → #38 (human or explicit authorization), rehearse the 5–7 minute script in `docs/hackathon-demo.md`, and optionally set an OpenAI key for live AI marking (falls back to seeded results without it).
 
 ## Post-hackathon roadmap (unchanged priorities, resume after tonight)
 
