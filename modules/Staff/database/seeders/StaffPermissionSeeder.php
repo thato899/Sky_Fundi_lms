@@ -14,6 +14,7 @@ final class StaffPermissionSeeder extends Seeder
     private const PERMISSIONS = [
         'staff.view', 'staff.create', 'staff.update', 'staff.invite', 'staff.activate', 'staff.suspend',
         'staff.archive', 'staff.restore', 'staff.manage_roles', 'staff.manage_employment', 'staff.view_audit', 'staff.manage_documents',
+        'teaching_assignments.view', 'teaching_assignments.manage', 'teaching_assignments.bypass',
     ];
 
     public function run(RoleService $roles): void

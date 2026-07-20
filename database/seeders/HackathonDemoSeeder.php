@@ -29,7 +29,9 @@ use Modules\Learners\Infrastructure\Models\GuardianProfile;
 use Modules\Learners\Infrastructure\Models\LearnerGuardianRelationship;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Organizations\Infrastructure\Models\Organization;
+use Modules\Organizations\Infrastructure\Models\OrganizationSetting;
 use Modules\Staff\Infrastructure\Models\StaffProfile;
+use Modules\Staff\Infrastructure\Models\TeachingAssignment;
 
 final class HackathonDemoSeeder extends Seeder
 {
@@ -68,6 +70,8 @@ final class HackathonDemoSeeder extends Seeder
 
             $staff = StaffProfile::query()->updateOrCreate(['organization_id' => $organization->getKey(), 'employee_number' => 'UFA-T-001'], ['organization_membership_id' => $teacherMembership->getKey(), 'user_id' => $teacher->getKey(), 'first_name' => 'Naledi', 'last_name' => 'Dlamini', 'staff_type' => 'teacher', 'job_title' => 'Mathematics Teacher', 'employment_status' => 'active', 'onboarding_status' => 'complete', 'portal_access_enabled' => true, 'work_email' => $teacher->email]);
             StaffProfile::query()->updateOrCreate(['organization_id' => $organization->getKey(), 'employee_number' => 'UFA-TU-001'], ['organization_membership_id' => $tutorMembership->getKey(), 'user_id' => $tutor->getKey(), 'first_name' => 'Kabelo', 'last_name' => 'Tutor', 'staff_type' => 'tutor', 'job_title' => 'Mathematics Tutor', 'employment_status' => 'active', 'onboarding_status' => 'complete', 'portal_access_enabled' => true, 'work_email' => $tutor->email]);
+            TeachingAssignment::query()->updateOrCreate(['organization_id' => $organization->getKey(), 'staff_profile_id' => $staff->getKey(), 'class_id' => $class->getKey(), 'subject_id' => $maths->getKey(), 'ended_on' => null], ['academic_year_id' => $year->getKey(), 'started_on' => '2026-01-14', 'actor_id' => $admin->getKey()]);
+            OrganizationSetting::query()->updateOrCreate(['organization_id' => $organization->getKey(), 'group' => 'staff', 'key' => 'enforce_teaching_assignments'], ['value' => true]);
             $learner = LearnerProfile::query()->updateOrCreate(['organization_id' => $organization->getKey(), 'learner_number' => 'UFA-2026-001'], ['user_id' => $learnerUser->getKey(), 'organization_membership_id' => $learnerMembership->getKey(), 'first_name' => 'Lerato', 'last_name' => 'Molefe', 'current_academic_year_id' => $year->getKey(), 'current_grade_id' => $grade->getKey(), 'current_class_id' => $class->getKey(), 'learner_status' => 'active', 'onboarding_status' => 'complete', 'portal_access_enabled' => true, 'metadata' => ['demo_data' => true], 'created_by' => $admin->getKey(), 'updated_by' => $admin->getKey()]);
             LearnerProfile::query()->updateOrCreate(['organization_id' => $organization->getKey(), 'learner_number' => 'UFA-2026-099'], ['first_name' => 'Amo', 'last_name' => 'Khumalo', 'current_academic_year_id' => $year->getKey(), 'current_grade_id' => $grade->getKey(), 'current_class_id' => $class->getKey(), 'learner_status' => 'active', 'portal_access_enabled' => false, 'metadata' => ['demo_data' => true], 'created_by' => $admin->getKey()]);
             $guardian = GuardianProfile::query()->updateOrCreate(['organization_id' => $organization->getKey(), 'email' => $guardianUser->email], ['user_id' => $guardianUser->getKey(), 'organization_membership_id' => $guardianMembership->getKey(), 'first_name' => 'Thandi', 'last_name' => 'Molefe', 'status' => 'active', 'preferred_communication_channel' => 'email', 'created_by' => $admin->getKey()]);
