@@ -21,5 +21,9 @@ The audit inspected the repository file inventory; registered providers; Compose
 
 - Endpoint request schemas remain executable in Form Request/controller code; maintaining a second field-by-field OpenAPI description would drift without generation/contract tests. Module API guides cover the public operational contracts and the API index points every surface to its authoritative source.
 - No screenshots were present in the audited documentation, so no outdated image assets required removal.
-- There is no hosted CI workflow, production infrastructure-as-code, automated restore, or formal security-disclosure contact to document as implemented.
+- There is no production infrastructure-as-code, automated restore, or formal security-disclosure contact to document as implemented.
 - Some older Core READMEs describe foundations and placeholders in more detail; their explicit limitations remain relevant, but future behavior should continue to be verified against code.
+
+## Post-audit update — 2026-07-20
+
+Hosted GitHub Actions workflows now exist: `.github/workflows/ci.yml` (composer validation, migration check, tests, Pint, PHPStan on every push and pull request) and `.github/workflows/deployment-validation.yml` (deployment-artifact validation). They were added after this audit's date, so the original recording of their absence was accurate at audit time and is superseded here rather than rewritten.
