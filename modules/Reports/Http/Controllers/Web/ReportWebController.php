@@ -20,6 +20,7 @@ use Modules\Academics\Infrastructure\Models\Grade;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Organizations\Application\OrganizationService;
 use Modules\Organizations\Infrastructure\Models\Organization;
+use Modules\Organizations\Infrastructure\Models\OrganizationModule;
 use Modules\Reports\Application\ReportCardService;
 use Modules\Reports\Application\ReportConfigurationService;
 use Modules\Reports\Domain\Enums\ReportCardStatus;
@@ -240,6 +241,32 @@ final class ReportWebController
         abort_unless($learner instanceof LearnerProfile && $learner->getAttribute('organization_id') === $o->getKey(), 404);
 
         return view('reports.history', $this->shared($r) + ['learner' => $learner, 'cards' => ReportCard::query()->where('organization_id', $o->getKey())->where('learner_profile_id', $learner->getKey())->with('period')->latest('generated_at')->paginate(20)]);
+    }
+
+    /**
+     * Learner-facing portal history: only the signed-in user's own linked,
+     * portal-enabled learner profile, and only published snapshots. No
+     * reports.* permission is required because the scope is self-data.
+     */
+    public function myReportCards(Request $r): View
+    {
+        $organization = $r->attributes->get('organization');
+        abort_unless($organization instanceof Organization, 403);
+        abort_unless(OrganizationModule::query()->where('organization_id', $organization->getKey())->where('module_name', 'reports')->where('enabled', true)->exists(), 403);
+        $learner = LearnerProfile::query()
+            ->where('organization_id', $organization->getKey())
+            ->where('user_id', $r->user()?->getAuthIdentifier())
+            ->where('portal_access_enabled', true)
+            ->firstOrFail();
+        $cards = ReportCard::query()
+            ->where('organization_id', $organization->getKey())
+            ->where('learner_profile_id', $learner->getKey())
+            ->where('status', ReportCardStatus::Published)
+            ->with(['period', 'academicYear', 'academicTerm', 'subjects', 'grade', 'classGroup'])
+            ->orderByDesc('published_at')
+            ->get();
+
+        return view('reports.my-report-cards', ['organization' => $organization, 'branding' => $this->organizations->branding($organization), 'learner' => $learner, 'cards' => $cards]);
     }
 
     private function options(Organization $o): array

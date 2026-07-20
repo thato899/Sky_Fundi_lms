@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Modules\Reports\Application;
 
 use Core\AuditLogs\Application\AuditLogService;
+use Core\Notifications\Application\NotificationService;
 use Core\Support\Exceptions\DomainException;
 use Core\Users\Infrastructure\Models\User;
 use Illuminate\Support\Facades\DB;
 use Modules\Learners\Domain\Enums\LearnerStatus;
+use Modules\Learners\Infrastructure\Models\GuardianProfile;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Reports\Domain\Enums\ReportCardStatus;
 use Modules\Reports\Domain\Enums\ReportingPeriodStatus;
@@ -19,7 +21,7 @@ use Modules\Reports\Infrastructure\Models\ReportingPeriod;
 
 final class ReportCardService
 {
-    public function __construct(private readonly ReportCardCalculationService $calculator, private readonly AuditLogService $audit) {}
+    public function __construct(private readonly ReportCardCalculationService $calculator, private readonly AuditLogService $audit, private readonly NotificationService $notifications) {}
 
     public function generate(LearnerProfile $learner, ReportingPeriod $period, GradingScale $scale, ReportCardTemplate $template, User $actor, ?ReportCard $regenerate = null): ReportCard
     {
@@ -58,7 +60,7 @@ final class ReportCardService
 
     public function transition(ReportCard $card, User $actor, ReportCardStatus $to, ?string $reason = null): ReportCard
     {
-        return DB::transaction(function () use ($card, $actor, $to, $reason): ReportCard {
+        $result = DB::transaction(function () use ($card, $actor, $to, $reason): ReportCard {
             /** @var ReportCard $locked */
             $locked = ReportCard::query()->whereKey($card->id)->lockForUpdate()->firstOrFail();
             $allowed = match ($locked->status) {
@@ -79,6 +81,38 @@ final class ReportCardService
 
             return $locked->refresh()->load($this->relations());
         }, 3);
+
+        if ($to === ReportCardStatus::Published) {
+            $this->notifyPublished($result);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Results notification on publication: the linked learner account and
+     * every active, academically-subscribed linked guardian account receive
+     * a safe payload (no marks) through Core Notifications.
+     */
+    private function notifyPublished(ReportCard $card): void
+    {
+        $card->loadMissing('learner.user', 'learner.guardianRelationships.guardian.user', 'period');
+        $data = ['message' => 'A new report card has been published.', 'period' => (string) $card->getRelationValue('period')?->getAttribute('name')];
+        $learner = $card->getRelationValue('learner');
+        if ($learner === null) {
+            return;
+        }
+        if ($learner->getRelationValue('user') !== null) {
+            $this->notifications->send($learner->getRelationValue('user'), 'reports.report_card_published', $data);
+        }
+        $guardians = $learner->guardianRelationships
+            ->filter(fn ($relationship) => $relationship->status === 'active' && $relationship->deleted_at === null && $relationship->receives_academic_communication)
+            ->map(fn ($relationship) => $relationship->guardian)
+            ->filter(fn (GuardianProfile $guardian) => $guardian->user !== null && $guardian->status->value === 'active' && $guardian->archived_at === null && $guardian->deleted_at === null)
+            ->unique('user_id');
+        foreach ($guardians as $guardian) {
+            $this->notifications->send($guardian->user, 'reports.report_card_published', $data);
+        }
     }
 
     public function updateComments(ReportCard $card, User $actor, array $data): ReportCard

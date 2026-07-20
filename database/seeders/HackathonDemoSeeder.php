@@ -57,7 +57,7 @@ final class HackathonDemoSeeder extends Seeder
             $guardianMembership = $this->membership($organization, $guardianUser, 'Guardian');
             $organization->administrators()->syncWithoutDetaching([$admin->getKey() => ['assigned_by' => $admin->getKey(), 'assigned_at' => now()]]);
 
-            foreach (['academics', 'learners', 'staff', 'assessments', 'reports'] as $module) {
+            foreach (['academics', 'learners', 'staff', 'attendance', 'assessments', 'reports', 'scheduling'] as $module) {
                 $organization->modules()->updateOrCreate(['module_name' => $module], ['enabled' => true, 'enabled_by' => $admin->getKey()]);
             }
 

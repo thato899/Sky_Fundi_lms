@@ -36,6 +36,7 @@
 @if($plan)
 <section class="panel plan"><div class="eyebrow">Adaptive revision · version {{ $plan->version }}</div><h2>Your personalized study plan</h2>
 <p>{{ $plan->content['summary'] }}</p>
+@if(!empty($plan->content['teacher_comment']))<div style="border:1px solid var(--line);border-left:4px solid var(--secondary);border-radius:.7rem;background:color-mix(in srgb,var(--secondary) 5%,#fff);padding:1rem 1.1rem;margin:.8rem 0"><strong>Message from your teacher</strong><p style="margin:.3rem 0 0">{{ $plan->content['teacher_comment'] }}</p></div>@endif
 <div class="metric-grid"><div class="metric"><span>Current mastery</span><strong class="metric-num">{{ count($plan->mastered_concepts ?? []) }}/{{ count($plan->content['weak_concepts']) }}</strong></div><div class="metric"><span>Progress</span><strong class="metric-num">{{ $plan->completion_percentage }}%</strong></div><div class="metric"><span>Study time</span><strong class="metric-num">{{ $plan->time_spent_minutes }} min</strong></div><div class="metric"><span>Next quiz readiness</span><strong>{{ empty($plan->remaining_concepts) ? 'Ready' : 'Building' }}</strong></div></div>
 <progress max="100" value="{{ $plan->completion_percentage }}">{{ $plan->completion_percentage }}%</progress>
 <div class="two-lists"><div><h3>Weak concepts</h3><ul>@foreach($plan->content['weak_concepts'] as $concept)<li>{{ $concept }}</li>@endforeach</ul></div><div><h3>Learning goals</h3><ul>@foreach($plan->content['learning_goals'] as $goal)<li>{{ $goal }}</li>@endforeach</ul></div></div>

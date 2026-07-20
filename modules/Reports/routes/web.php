@@ -18,6 +18,7 @@ Route::middleware(['auth', 'account.not-locked', 'organization.context'])->group
     Route::post('/reports/reporting-periods', [ReportWebController::class, 'savePeriod'])->name('reports.periods.store');
     Route::get('/reports/templates', [ReportWebController::class, 'templates'])->name('reports.templates');
     Route::post('/reports/templates', [ReportWebController::class, 'saveTemplate'])->name('reports.templates.store');
+    Route::get('/my/report-cards', [ReportWebController::class, 'myReportCards'])->name('reports.my');
     Route::get('/learners/{learner}/report-cards', [ReportWebController::class, 'learnerHistory'])->middleware('learner.context')->name('learners.report-cards');
     Route::middleware('report-resource.context')->group(function (): void {
         Route::patch('/reports/grading-scales/{scale}', [ReportWebController::class, 'saveScale'])->name('reports.scales.update');
