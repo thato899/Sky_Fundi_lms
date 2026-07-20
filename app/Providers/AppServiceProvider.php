@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Application\NavigationContext;
 use Core\Logging\Application\PlatformLogger;
+use Core\Users\Infrastructure\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -24,6 +27,14 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        View::composer('layouts.web', function ($view): void {
+            $user = auth()->guard()->user();
+            $view->with('navigation', app(NavigationContext::class)->for(
+                $user instanceof User ? $user : null,
+                session('organization_id'),
+            ));
+        });
+
         $thresholdMs = (int) config('observability.slow_query_ms', 500);
 
         if ($thresholdMs <= 0) {
