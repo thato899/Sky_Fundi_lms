@@ -1,6 +1,13 @@
 # Project Status — Sky Fundi Platform
 
-_Last updated: 2026-07-20 (as of commit `c9c6a78` on `main`)_
+_Last updated: 2026-07-20 evening (baseline analysis as of commit `c9c6a78` on `main`)_
+
+## Today's progress (2026-07-20)
+
+- **Phase 0 shipped** — this status/plan pair plus the stale-CI-claim doc fix: draft PR #36.
+- **Phase 1 shipped — historical enrolment**: date-ranged `learner_enrolments` history maintained transactionally on every placement write, backfilled from current placement, self-healing for learners created before tracking, and enrolment-aware report-card calculation (mid-period class moves no longer hide results). ADR-008. Draft PR #37. Verified: full suite **267 tests / 1488 assertions OK**, Pint and PHPStan clean on changed paths, MySQL forward migration ran in the dev stack.
+- **Dev environment on Windows fixed and running**: CRLF shell scripts broke the container entrypoint (fixed via `core.autocrlf input` + LF normalization); Composer bind-mount timeout fixed with a raised timeout; full stack (app, MySQL, Mailpit, queue, scheduler) initialized, migrated, and seeded.
+- **Priority pivot**: hackathon demo due midnight — learner and teacher workflows first, then guardians; LMS must run; UI/UX and a finances/profitability view are key. See [plan.md](plan.md).
 
 ## What this project is
 
