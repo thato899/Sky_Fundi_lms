@@ -20,7 +20,16 @@ The app runs at `http://localhost:8000` (Mailpit at `:8025`). To load the guided
 docker compose exec -T app php artisan db:seed --class="Database\\Seeders\\HackathonDemoSeeder"
 ```
 
-Demo logins (all share the password you set): `admin@ubuntu-future.demo`, `math.teacher@ubuntu-future.demo`, `lerato@ubuntu-future.demo` (learner), `thandi@ubuntu-future.demo` (guardian). Full runbook: [docs/development/LOCAL_RUNBOOK.md](docs/development/LOCAL_RUNBOOK.md) · demo script: [docs/hackathon-demo.md](docs/hackathon-demo.md) · video kit: [docs/demo-video-script.md](docs/demo-video-script.md).
+Demo logins (all share the password you set): `admin@ubuntu-future.demo`, `math.teacher@ubuntu-future.demo`, `lerato@ubuntu-future.demo` (learner), `thandi@ubuntu-future.demo` (guardian) — **the full test-account matrix with what each can do is in [user_profiles.md](user_profiles.md)**. Full runbook: [docs/development/LOCAL_RUNBOOK.md](docs/development/LOCAL_RUNBOOK.md) · demo script: [docs/hackathon-demo.md](docs/hackathon-demo.md) · video kit: [docs/demo-video-script.md](docs/demo-video-script.md).
+
+### If something doesn't run
+
+- **Port 8000 already in use** — create a git-ignored `compose.override.yaml` mapping another port (`services: app: ports: !override ["8001:8000"]`) and `docker compose up -d app`.
+- **Containers exit with `exec entrypoint: no such file or directory` (Windows)** — CRLF line endings broke the shell scripts: `git config core.autocrlf input`, re-normalize (`sed -i 's/\r$//' docker/*.sh scripts/*.sh`), then `docker compose up -d --build --force-recreate`.
+- **Composer times out during init (Windows bind mounts)** — retry with `docker compose run --rm -e COMPOSER_PROCESS_TIMEOUT=9000 init`.
+- **Demo seeder refuses to run** — set `HACKATHON_DEMO_PASSWORD` (12+ chars) in `.env`, then `docker compose exec -T app php artisan config:clear` and reseed.
+- **AI marking shows an error** — expected without a provider: set `AI_OPENAI_ENABLED=true` + `AI_OPENAI_API_KEY` (or run Ollama) for live AI; every flow degrades gracefully without one, and study plans always generate via the deterministic fallback.
+- **Changed `.env` but nothing happened** — `docker compose exec -T app php artisan config:clear`.
 
 ---
 
@@ -79,6 +88,8 @@ Each module is clean-architecture layered (Domain / Application / Http / Infrast
 | Local development & testing | [docs/development/](docs/development/README.md) |
 | Deployment (Docker, cPanel) | [docs/deployment/](docs/deployment/README.md), [docs/cpanel-deployment.md](docs/cpanel-deployment.md) |
 | Demo walkthrough & video kit | [docs/hackathon-demo.md](docs/hackathon-demo.md), [docs/demo-video-script.md](docs/demo-video-script.md) |
+| Test logins | [user_profiles.md](user_profiles.md) |
+| How Codex (AI) built this | [docs/codex-usage.md](docs/codex-usage.md) · [PDF](docs/codex-usage.pdf) |
 | Status & plan | [status.md](status.md), [plan.md](plan.md) |
 | Roadmap | [docs/roadmap.md](docs/roadmap.md) |
 
