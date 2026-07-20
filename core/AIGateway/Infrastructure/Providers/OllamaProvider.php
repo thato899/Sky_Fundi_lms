@@ -10,6 +10,7 @@ use Core\AIGateway\Contracts\AIProviderInterface;
 use Core\AIGateway\Exceptions\AIGatewayException;
 use Core\AIGateway\Exceptions\ProviderNotAvailableException;
 use Generator;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Psr\Http\Message\StreamInterface;
 
@@ -27,17 +28,21 @@ final class OllamaProvider implements AIProviderInterface
     {
         $this->assertAvailable();
 
-        $response = Http::baseUrl($this->config['base_url'])
-            ->timeout((int) $this->config['timeout'])
-            ->post('/api/generate', [
-                'model' => $this->config['model'],
-                'prompt' => $request->prompt,
-                'stream' => false,
-                'options' => [
-                    'temperature' => $request->temperature,
-                    'num_predict' => $request->maxTokens,
-                ],
-            ]);
+        try {
+            $response = Http::baseUrl($this->config['base_url'])
+                ->timeout((int) $this->config['timeout'])
+                ->post('/api/generate', [
+                    'model' => $this->config['model'],
+                    'prompt' => $request->prompt,
+                    'stream' => false,
+                    'options' => [
+                        'temperature' => $request->temperature,
+                        'num_predict' => $request->maxTokens,
+                    ],
+                ]);
+        } catch (ConnectionException $exception) {
+            throw new AIGatewayException('Ollama is unreachable at the configured base URL.', previous: $exception);
+        }
 
         if ($response->failed()) {
             throw new AIGatewayException("Ollama request failed with status {$response->status()}: {$response->body()}");
@@ -61,15 +66,19 @@ final class OllamaProvider implements AIProviderInterface
     {
         $this->assertAvailable();
 
-        $response = Http::baseUrl($this->config['base_url'])
-            ->timeout((int) $this->config['timeout'])
-            ->withOptions(['stream' => true])
-            ->post('/api/generate', [
-                'model' => $this->config['model'],
-                'prompt' => $request->prompt,
-                'stream' => true,
-                'options' => ['temperature' => $request->temperature, 'num_predict' => $request->maxTokens],
-            ]);
+        try {
+            $response = Http::baseUrl($this->config['base_url'])
+                ->timeout((int) $this->config['timeout'])
+                ->withOptions(['stream' => true])
+                ->post('/api/generate', [
+                    'model' => $this->config['model'],
+                    'prompt' => $request->prompt,
+                    'stream' => true,
+                    'options' => ['temperature' => $request->temperature, 'num_predict' => $request->maxTokens],
+                ]);
+        } catch (ConnectionException $exception) {
+            throw new AIGatewayException('Ollama is unreachable at the configured base URL.', previous: $exception);
+        }
 
         $body = $response->toPsrResponse()->getBody();
 

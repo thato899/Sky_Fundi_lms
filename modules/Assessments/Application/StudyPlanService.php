@@ -80,37 +80,45 @@ final class StudyPlanService
             $content = json_decode($response->content, true, flags: JSON_THROW_ON_ERROR);
             $this->validatePlan($content, $this->weakConcepts($weaknesses));
             [$input, $output, $cost] = $this->usage($response->usage);
-
-            $plan = DB::transaction(function () use ($attempt, $teacher, $publish, $version, $content, $response, $request, $input, $output, $cost): QuizStudyPlan {
-                if ($publish) {
-                    QuizStudyPlan::query()->where('quiz_attempt_id', $attempt->getKey())->where('status', 'published')->update(['status' => 'superseded']);
-                }
-                $plan = QuizStudyPlan::query()->create([
-                    'organization_id' => $attempt->organization_id,
-                    'quiz_attempt_id' => $attempt->getKey(),
-                    'learner_profile_id' => $attempt->learner_profile_id,
-                    'version' => $version,
-                    'content' => $content,
-                    'provider' => $response->provider,
-                    'model' => $response->model,
-                    'status' => $publish ? 'published' : 'draft',
-                    'approved_by' => $publish ? $teacher->getKey() : null,
-                    'approved_at' => $publish ? now() : null,
-                    'published_by' => $publish ? $teacher->getKey() : null,
-                    'published_at' => $publish ? now() : null,
-                    'remaining_concepts' => $content['weak_concepts'],
-                ]);
-                $request->update(['provider' => $response->provider, 'model' => $response->model, 'status' => 'completed', 'input_tokens' => $input, 'output_tokens' => $output, 'estimated_cost' => $cost, 'completed_at' => now()]);
-
-                return $plan;
-            });
+            $provider = $response->provider;
+            $model = $response->model;
         } catch (AIGatewayException|\JsonException|DomainException $exception) {
-            $request->update(['status' => 'failed', 'failure_message' => 'Adaptive study plan generation failed.']);
+            // No provider reachable or unusable output: fall back to the
+            // bounded performance-based generator so a released result always
+            // ships with a study plan; AI enriches when configured.
             report($exception);
-            throw new DomainException('The adaptive study plan could not be generated. The released result remains available.', previous: $exception);
+            $content = $this->fallbackPlan($attempt, $weaknesses);
+            $this->validatePlan($content, $this->weakConcepts($weaknesses));
+            [$input, $output, $cost] = [0, 0, 0.0];
+            $provider = 'deterministic_fallback';
+            $model = 'performance-rules-v1';
         }
 
-        $this->audit->record('study_plans.generated', $plan, after: ['organization_id' => $plan->organization_id, 'version' => $plan->version, 'published' => $publish, 'provider' => $response->provider]);
+        $plan = DB::transaction(function () use ($attempt, $teacher, $publish, $version, $content, $provider, $model, $request, $input, $output, $cost): QuizStudyPlan {
+            if ($publish) {
+                QuizStudyPlan::query()->where('quiz_attempt_id', $attempt->getKey())->where('status', 'published')->update(['status' => 'superseded']);
+            }
+            $plan = QuizStudyPlan::query()->create([
+                'organization_id' => $attempt->organization_id,
+                'quiz_attempt_id' => $attempt->getKey(),
+                'learner_profile_id' => $attempt->learner_profile_id,
+                'version' => $version,
+                'content' => $content,
+                'provider' => $provider,
+                'model' => $model,
+                'status' => $publish ? 'published' : 'draft',
+                'approved_by' => $publish ? $teacher->getKey() : null,
+                'approved_at' => $publish ? now() : null,
+                'published_by' => $publish ? $teacher->getKey() : null,
+                'published_at' => $publish ? now() : null,
+                'remaining_concepts' => $content['weak_concepts'],
+            ]);
+            $request->update(['provider' => $provider, 'model' => $model, 'status' => 'completed', 'input_tokens' => $input, 'output_tokens' => $output, 'estimated_cost' => $cost, 'completed_at' => now()]);
+
+            return $plan;
+        });
+
+        $this->audit->record('study_plans.generated', $plan, after: ['organization_id' => $plan->organization_id, 'version' => $plan->version, 'published' => $publish, 'provider' => $provider]);
         $this->analytics->record(AnalyticsMetric::AdaptiveLearning, $plan, metadata: ['event' => 'plan_generated', 'concepts' => $content['weak_concepts'], 'estimated_duration_minutes' => $content['estimated_duration_minutes']]);
         if ($publish) {
             $this->notifyPublished($plan, $attempt, $version > 1);
@@ -138,6 +146,34 @@ final class StudyPlanService
         });
         $this->audit->record('study_plans.published', $plan, after: ['organization_id' => $plan->organization_id, 'version' => $plan->version]);
         $this->notifyPublished($plan, $plan->attempt, $updated);
+
+        return $plan->refresh();
+    }
+
+    /**
+     * The teacher-authored report to the parent: a motivational note on the
+     * learner's performance shown with the released result in the learner
+     * view and the guardian portal. Editable on draft and published plans by
+     * the owning teacher; every change is audited.
+     */
+    public function updateTeacherComment(QuizStudyPlan $plan, User $teacher, string $comment): QuizStudyPlan
+    {
+        $plan->loadMissing('attempt.assessment.staffProfile');
+        $this->ownedBy($plan->attempt, $teacher);
+        if (! mb_check_encoding($comment, 'UTF-8')) {
+            $comment = (string) mb_convert_encoding($comment, 'UTF-8', 'UTF-8');
+        }
+        $comment = trim($comment);
+        if ($comment === '' || mb_strlen($comment) > 2000) {
+            throw new DomainException('The report to the parent must be between 1 and 2000 characters.');
+        }
+        if (! in_array($plan->status, ['draft', 'published'], true)) {
+            throw new DomainException('Only a draft or published study plan may carry a parent report.');
+        }
+        $content = $plan->content;
+        $content['teacher_comment'] = $comment;
+        $plan->update(['content' => $content]);
+        $this->audit->record('study_plans.teacher_comment_updated', $plan, after: ['organization_id' => $plan->organization_id, 'version' => $plan->version]);
 
         return $plan->refresh();
     }
@@ -248,6 +284,48 @@ final class StudyPlanService
     private function weakConcepts(array $weaknesses): array
     {
         return collect($weaknesses)->flatMap(fn ($weakness) => $weakness['concepts'])->map(fn ($concept) => trim((string) $concept))->filter()->unique()->values()->all();
+    }
+
+    /**
+     * Bounded performance-based plan used when no AI provider is reachable:
+     * built strictly from the marked answers' weak concepts with no
+     * fabricated resources, so a released result always ships with a plan.
+     */
+    private function fallbackPlan(QuizAttempt $attempt, array $weaknesses): array
+    {
+        $concepts = $this->weakConcepts($weaknesses);
+        $subject = (string) ($attempt->assessment->subject?->name ?? 'this subject');
+        $schedule = [];
+        for ($day = 1; $day <= 7; $day++) {
+            $concept = $concepts[($day - 1) % count($concepts)];
+            $schedule[] = [
+                'day' => $day,
+                'duration_minutes' => 30,
+                'topic' => $concept,
+                'activity' => "Review your marked answer on {$concept}, redo it without notes, then write a two-sentence summary of the method.",
+                'activity_id' => 'fallback-day-'.$day,
+            ];
+        }
+        $exercises = [];
+        foreach ([['easy', 'Define %s in your own words and give one worked example.'], ['medium', 'Solve a new practice problem that uses %s and explain every step.'], ['challenge', 'Create and fully solve your own exam-level question involving %s.']] as $index => [$difficulty, $template]) {
+            $concept = $concepts[$index % count($concepts)];
+            $exercises[] = ['difficulty' => $difficulty, 'activity_id' => 'fallback-exercise-'.($index + 1), 'concept' => $concept, 'question' => sprintf($template, $concept)];
+        }
+
+        return [
+            'summary' => "A focused seven-day revision plan for {$subject} built from the marked quiz: it targets ".implode(', ', $concepts).' with daily practice, three graded exercises, and a readiness check.',
+            'weak_concepts' => $concepts,
+            'learning_goals' => array_map(fn (string $concept): string => "Explain and apply {$concept} without support.", $concepts),
+            'daily_schedule' => $schedule,
+            'revision_exercises' => $exercises,
+            'reflection_questions' => ['Which step of the marked question cost you marks, and why?', 'What would you do differently if you saw a similar question tomorrow?'],
+            'recommended_videos' => array_map(fn (string $concept): array => ['title' => ucfirst($concept).' explained step by step', 'search_topic' => $subject.' '.$concept], $concepts),
+            'recommended_reading' => array_map(fn (string $concept): array => ['title' => 'Textbook section on '.$concept, 'description' => 'Re-read the worked examples on '.$concept.' and attempt the exercises alongside them.'], $concepts),
+            'estimated_duration_minutes' => 210,
+            'success_criteria' => array_map(fn (string $concept): string => "Score full marks on a fresh question about {$concept}.", $concepts),
+            'next_assessment_recommendation' => 'Take a short retest on '.implode(', ', $concepts).' after completing the seven-day plan.',
+            'teacher_comment' => 'This plan was generated from the marked results. Daily, focused practice on the listed concepts will lift the next score — your encouragement at home makes the biggest difference.',
+        ];
     }
 
     private function validatePlan(array $content, array $weakConcepts): void
