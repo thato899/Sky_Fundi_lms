@@ -117,6 +117,11 @@ final class LearnerProfile extends Model
         return $this->hasMany(LearnerStatusHistory::class);
     }
 
+    public function enrolments(): HasMany
+    {
+        return $this->hasMany(LearnerEnrolment::class);
+    }
+
     public function guardianRelationships(): HasMany
     {
         return $this->hasMany(LearnerGuardianRelationship::class);

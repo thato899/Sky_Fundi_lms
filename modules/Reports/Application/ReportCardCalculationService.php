@@ -8,6 +8,7 @@ use Core\Support\Exceptions\DomainException;
 use Modules\Assessments\Domain\Enums\AssessmentResultStatus;
 use Modules\Assessments\Infrastructure\Models\AssessmentResult;
 use Modules\Attendance\Infrastructure\Models\AttendanceEntry;
+use Modules\Learners\Application\LearnerEnrolmentService;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Reports\Domain\Enums\SubjectResultStatus;
 use Modules\Reports\Infrastructure\Models\GradingScale;
@@ -15,14 +16,24 @@ use Modules\Reports\Infrastructure\Models\ReportingPeriod;
 
 final class ReportCardCalculationService
 {
+    public function __construct(private readonly LearnerEnrolmentService $enrolments) {}
+
     public function calculate(LearnerProfile $learner, ReportingPeriod $period, GradingScale $scale): array
     {
         $organizationId = (string) $learner->getAttribute('organization_id');
         if ($period->organization_id !== $organizationId || $scale->organization_id !== $organizationId) {
             throw new DomainException('Report calculation context must share the active organization.');
         }
+        // Enrolment history yields every class occupied inside the window; the
+        // current class is unioned in so the change is strictly additive over
+        // the previous current-placement-only behaviour.
+        $classIds = $this->enrolments->classIdsDuring($learner, $period->start_date, $period->result_cutoff_date ?? $period->end_date);
+        $currentClassId = $learner->getAttribute('current_class_id');
+        if ($currentClassId !== null && ! in_array($currentClassId, $classIds, true)) {
+            $classIds[] = $currentClassId;
+        }
         $results = AssessmentResult::query()->where('assessment_results.organization_id', $organizationId)->where('learner_profile_id', $learner->getKey())
-            ->whereHas('assessment', fn ($q) => $q->where('organization_id', $organizationId)->where('status', 'finalized')->where('academic_year_id', $period->academic_year_id)->when($period->academic_term_id, fn ($x, $term) => $x->where('academic_term_id', $term))->where('class_id', $learner->getAttribute('current_class_id'))->where('grade_id', $learner->getAttribute('current_grade_id'))->whereDate('assessment_date', '>=', $period->start_date)->whereDate('assessment_date', '<=', $period->result_cutoff_date ?? $period->end_date))
+            ->whereHas('assessment', fn ($q) => $q->where('organization_id', $organizationId)->where('status', 'finalized')->where('academic_year_id', $period->academic_year_id)->when($period->academic_term_id, fn ($x, $term) => $x->where('academic_term_id', $term))->whereIn('class_id', $classIds)->whereDate('assessment_date', '>=', $period->start_date)->whereDate('assessment_date', '<=', $period->result_cutoff_date ?? $period->end_date))
             ->with('assessment.subject')->get()->groupBy('assessment.subject_id');
         $subjects = [];
         $calculated = [];

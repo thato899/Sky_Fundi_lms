@@ -38,6 +38,7 @@ final class LearnerService
         private readonly LearnerStatusService $statuses,
         private readonly AuditLogService $audit,
         private readonly LearnerCapacityService $capacity,
+        private readonly LearnerEnrolmentService $enrolments,
     ) {}
 
     public function create(Organization $organization, User $actor, array $data, bool $allowManualNumber): LearnerProfile
@@ -73,6 +74,7 @@ final class LearnerService
             if ($manualNumber !== null) {
                 $this->audit->record('learners.manual_number_used', $learner, after: ['learner_number' => $learnerNumber]);
             }
+            $this->enrolments->syncFromPlacement($learner, $actor);
 
             return $learner->load(['currentAcademicYear', 'currentGrade', 'currentClass', 'curriculum']);
         }, 3);
@@ -102,6 +104,7 @@ final class LearnerService
             $learner->fill(Arr::only($data, self::PLACEMENT_FIELDS));
             $learner->setAttribute('updated_by', $actor->getKey())->save();
             $learner = $learner->refresh();
+            $this->enrolments->syncFromPlacement($learner, $actor, $before);
             $this->audit->record('learners.academic_placement_updated', $learner, $before, Arr::only($learner->getAttributes(), self::PLACEMENT_FIELDS));
 
             return $learner->load(['currentAcademicYear', 'currentGrade', 'currentClass', 'curriculum']);

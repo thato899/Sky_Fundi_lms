@@ -27,7 +27,7 @@ All endpoints require Sanctum authentication, an active organization membership 
 
 Creation always uses the trusted organization context, produces a profile-only learner with portal access disabled, and generates the learner number through `LearnerNumberService`. Supplying `learner_number` additionally requires `learners.override_number`.
 
-Academic placement references must belong to the learner organization. The year must not be archived; curriculum, grade, and class must be active; and class-to-grade, class-to-year, grade-to-year, and grade-to-curriculum compatibility is enforced.
+Academic placement references must belong to the learner organization. The year must not be archived; curriculum, grade, and class must be active; and class-to-grade, class-to-year, grade-to-year, and grade-to-curriculum compatibility is enforced. Placement writes also record date-ranged enrolment history used by Reports; enrolment history has no API endpoints yet.
 
 ## Directory query
 

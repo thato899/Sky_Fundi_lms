@@ -6,6 +6,8 @@ Each profile belongs to an organization. A learner may exist as a profile only; 
 
 Placement validation resolves all four academic references inside the learner's organization, rejects inactive or archived records, and preserves curriculum/grade/class/year compatibility. Academic records from another organization cannot be assigned even when their UUIDs are known.
 
+Every placement write also maintains date-ranged enrolment history in `learner_enrolments`. Inside the same transaction, `LearnerEnrolmentService` closes the open enrolment row when the placement tuple changes and opens a new row snapshotting the year, grade, class, and curriculum; a generated-column unique constraint enforces at most one open row per learner. Learners placed before enrolment tracking were backfilled by migration, and a placement change that finds no open row records the superseded placement as a closed row so the timeline stays complete. Reports resolves the classes a learner occupied during a reporting window through this history. Enrolment rows are not yet exposed through the API or web interface.
+
 `LearnerNumberService` allocates numbers from a row-locked sequence owned by each organization and optional academic year. Prefix and padding are configurable at generation time: the default is `LRN-000001`, while a prefix of `STU`, academic year `2026/27`, and padding of four produces `STU-2026/27-0001`. It never derives identifiers from learner counts or randomness. Existing generated numbers are skipped, and the database continues to enforce organization-scoped learner-number uniqueness.
 
 Manual numbers must pass through `LearnerNumberService::validateManual()` before profile creation. Validation trims the value, enforces its storage length, and rejects a number already used by the organization; the database unique constraint remains the final concurrency safeguard.
@@ -52,15 +54,15 @@ Guardian onboarding reuses the intended guardian profile’s Identity membership
 
 An organization license may set `max_learners`. `LearnerCapacityService` locks the active entitlement and counts non-archived learner profiles before creation or restoration. Missing licenses and null limits preserve the existing unlimited behavior.
 
-Administrative report-card history is provided by Reports. Bulk imports, documents, historical enrolments, broad compliance automation, homework, RAG/AI, and mobile remain explicit non-goals. Invitations are administrator-initiated; automatic invitations triggered by profile creation remain excluded. Attendance and Assessments continue to read trusted current placement.
+Administrative report-card history is provided by Reports. Bulk imports, documents, broad compliance automation, homework, RAG/AI, and mobile remain explicit non-goals. Invitations are administrator-initiated; automatic invitations triggered by profile creation remain excluded. Attendance and Assessments continue to read trusted current placement for roster materialization; Reports reads enrolment history for period placement.
 
 ## Implementation inventory
 
-- **Responsibilities/tables/models:** learner and guardian administration, relationships, consent, numbering, placement and lifecycle/history across six owned tables.
-- **Services:** learner directory/number/status/capacity services plus transactional `GuardianService`.
+- **Responsibilities/tables/models:** learner and guardian administration, relationships, consent, numbering, placement, enrolment history, and lifecycle/history across seven owned tables.
+- **Services:** learner directory/number/status/capacity/enrolment services plus transactional `GuardianService`.
 - **Policies:** `LearnerPolicy`, `GuardianPolicy`, and organization-scoped learner/guardian resolution middleware.
 - **Controllers/routes:** versioned learner/guardian APIs and Blade management at `/learners` and `/guardians`.
 - **Permissions/events:** nine permissions and `LearnerStatusChanged`, `LearnerArchived`, and `LearnerRestored`.
 - **Dependencies:** Organizations, Identity, Users/RBAC/Audit, and Academics; Attendance, Assessments, and Reports consume learner data.
-- **Testing:** nine Unit/Feature files cover schema, service behavior, numbering, status, directory/API/web management, isolation, and regressions.
-- **Known limitations/future roadmap:** profiles remain identity-optional until an invitation is accepted; invitations are email-only and administrator-initiated; imports, documents, historical enrolment, AI, and mobile remain future work.
+- **Testing:** ten Unit/Feature files cover schema, service behavior, numbering, status, enrolment history, directory/API/web management, isolation, and regressions.
+- **Known limitations/future roadmap:** profiles remain identity-optional until an invitation is accepted; invitations are email-only and administrator-initiated; imports, documents, enrolment history surfaces, AI, and mobile remain future work.
