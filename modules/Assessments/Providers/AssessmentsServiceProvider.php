@@ -19,7 +19,11 @@ final class AssessmentsServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        $migrationsPath = __DIR__.'/../'.(is_dir(__DIR__.'/../Database') ? 'Database' : 'database').'/migrations';
+        // Case-sensitive checkouts track migrations under database/ and factories
+        // under Database/; Windows-built images collapse both into Database/.
+        $migrationsPath = is_dir(__DIR__.'/../database/migrations')
+            ? __DIR__.'/../database/migrations'
+            : __DIR__.'/../Database/migrations';
         $this->loadMigrationsFrom($migrationsPath);
         $router = $this->app->make(Router::class);
         $router->aliasMiddleware('assessment.context', ResolveOrganizationAssessment::class);

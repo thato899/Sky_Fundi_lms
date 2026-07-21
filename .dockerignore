@@ -18,6 +18,7 @@ storage/framework/*
 storage/logs/*
 !storage/logs/.gitignore
 bootstrap/cache/*.php
+public/storage
 tests
 **/tests
 docs
