@@ -36,7 +36,7 @@ tests/      Automated test suites
 
 ## Documentation
 
-Start with [the architecture overview](docs/architecture/overview.md), then see [Organizations](docs/modules/organizations.md), [identity and membership](core/Identity/README.md), and [the local runbook](docs/development/LOCAL_RUNBOOK.md).
+Start with [DOCUMENTATION.md](DOCUMENTATION.md) — the guided tour of the platform, its four personas, and the full documentation index. For depth, see [the architecture overview](docs/architecture/overview.md), [Organizations](docs/modules/organizations.md), [identity and membership](core/Identity/README.md), and [the local runbook](docs/development/LOCAL_RUNBOOK.md). Recording a walkthrough? Use the [demo video kit](docs/demo-video-script.md).
 
 ## Contributing
 
