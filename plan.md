@@ -1,6 +1,6 @@
 # Plan — Sky Fundi Platform
 
-_Updated: 2026-07-20 evening. **Active priority: hackathon demo, deadline midnight tonight.** The long-term phased roadmap is preserved below the sprint plan._
+_Updated: 2026-07-21 evening. **The hackathon sprint shipped and everything through PR #45 is merged to `main`.** Active priority: roadmap item 2 slice (a) — learner invitations/onboarding — plus a small infra-fix PR (see below). The sprint plan is preserved for history._
 
 ## Tonight's hackathon sprint (in priority order, per product direction)
 
@@ -22,11 +22,15 @@ _Updated: 2026-07-20 evening. **Active priority: hackathon demo, deadline midnig
 - **Phase 1 — historical enrolment**: `learner_enrolments` history table, backfill, transactional timeline maintenance in `LearnerService`, self-healing for pre-tracking learners, enrolment-aware report-card calculation, ADR-008: PR #37 (draft). Full suite 267 tests / 1488 assertions green; Pint and PHPStan clean on changed paths; MySQL forward migration verified in the dev stack.
 - **Hackathon sprint items 1–6 — done**: PR #38 (stacked on #37). LMS running and seeded on :8001; persona-aware routing + navigation (learner/teacher/guardian/admin all land correctly, verified live); UI overhaul of layout, quiz attempt/result, teacher review, guardian portal; subscription page reframed as profitability (validated bar palette). Remaining before the demo: merge PRs #37 → #38 (human or explicit authorization), rehearse the 5–7 minute script in `docs/hackathon-demo.md`, and optionally set an OpenAI key for live AI marking (falls back to seeded results without it).
 
-## Post-hackathon roadmap (unchanged priorities, resume after tonight)
+## Immediate housekeeping (2026-07-21)
+
+- **Infra-fix PR (small, ready to commit):** `.dockerignore` now excludes the dangling `public/storage` symlink (Docker builds were failing with `invalid file request public/storage` on Windows hosts), and `docker/init.sh`'s APP_KEY guard is corrected from BRE `.+` (literal `+`) to `..*` — the old guard regenerated APP_KEY on every init rerun, logging out all sessions and orphaning encrypted values. Both verified against a full stack rebuild (init clean, all containers healthy, suite 275/1538 green).
+
+## Post-hackathon roadmap (now the active track)
 
 1. ~~**Teacher/class/subject assignments**~~ **Done — implemented in PR #41** (ADR-009 accepted): schema, `TeachingAssignmentService`, opt-in enforcement across Assessments/Attendance/Scheduling, actor-level teacher gating with admin bypass, seeded demo assignment. Merge order: #40 → #39 → #41. Follow-up (roadmap): assignment web/API administration and bulk tooling.
-2. **Learner portal onboarding + results notifications** — slices (b) and (c) **done** on `feature/reports/learner-portal-notifications`: report-card publication notifications to learner + guardians, and the learner's `My report cards` portal page with nav link. **Remaining: slice (a)** — learner invitation/onboarding service + acceptance flow mirroring `GuardianInvitationService` (token table, queued mail, acceptance controller/views, permissions, tests) — the next task. Optional later portal surfaces: attendance summary and timetable pages.
-   **Also shipped en route** (merged via #43): teacher parent reports on study plans, Ollama transport-error wrapping, and the deterministic study-plan fallback. **Remaining merges:** PR #44 (learner portal + notifications), then the consolidated docs PR (this branch).
+2. **Learner portal onboarding + results notifications** — slices (b) and (c) **done and merged (PR #44)**: report-card publication notifications to learner + guardians, and the learner's `My report cards` portal page with nav link. **Remaining: slice (a)** — learner invitation/onboarding service + acceptance flow mirroring `GuardianInvitationService` (token table, queued mail, acceptance controller/views, permissions, tests) — the next task. Optional later portal surfaces: attendance summary and timetable pages.
+   **Also shipped en route** (merged via #43): teacher parent reports on study plans, Ollama transport-error wrapping, and the deterministic study-plan fallback. The consolidated docs PR is also merged (#45). **All planned merges are complete.**
 3. **Operational trust:** tested backup restore in CI, deployment automation, enforced 2FA.
 4. **Hardening:** test depth for Attendance/Reports/Scheduling/Staff; live Claude/Gemini AI adapters; module-registry enable/disable semantics; delete-or-justify stub cores (Billing/Events/FileManagement).
 5. **Real billing** behind `core/Billing` (needs a gateway/pricing decision).

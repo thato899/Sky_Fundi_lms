@@ -1,8 +1,8 @@
 # Project Status — Sky Fundi Platform
 
-_Last updated: 2026-07-21 (baseline analysis as of commit `c9c6a78`; progress log below)_
+_Last updated: 2026-07-21 evening (baseline analysis as of commit `c9c6a78`; progress log below)_
 
-## Today's progress (2026-07-20)
+## Progress log (2026-07-20 → 2026-07-21)
 
 - **Phase 0 shipped** — this status/plan pair plus the stale-CI-claim doc fix: draft PR #36.
 - **Phase 1 shipped — historical enrolment**: date-ranged `learner_enrolments` history maintained transactionally on every placement write, backfilled from current placement, self-healing for learners created before tracking, and enrolment-aware report-card calculation (mid-period class moves no longer hide results). ADR-008. Draft PR #37. Verified: full suite **267 tests / 1488 assertions OK**, Pint and PHPStan clean on changed paths, MySQL forward migration ran in the dev stack.
@@ -17,6 +17,7 @@ _Last updated: 2026-07-21 (baseline analysis as of commit `c9c6a78`; progress lo
 - **Learner portal + results notifications (branch `feature/reports/learner-portal-notifications`, stacked on the parent-report branch)**: publishing a report card notifies the linked learner and active academically-subscribed guardians (marks-free payload); learners get `GET /my/report-cards` (published snapshots only, self-data, no reports.* permission) plus a "My report cards" nav link. Suite **274/1537 OK**, live-verified. Remaining slice of roadmap item 2: learner invitations/onboarding mirroring the guardian invitation service.
 - **Close-out (2026-07-21)**: everything through **#43 is merged to `main`** — historical enrolment, persona navigation + demo experience, teaching assignments (ADR-009 Accepted), parent reports, Ollama transport fix, and the deterministic study-plan fallback. **PR #44** (report-card publication notifications + learner `My report cards` portal) is open and mergeable with a clean 6-file diff. Project documentation (`DOCUMENTATION.md`) and the demo video kit (`docs/demo-video-script.md`) are added in this consolidated docs PR. Superseded working branches are pruned. **Next engineering task:** learner invitations/onboarding mirroring `GuardianInvitationService`.
 - **ADR-009 implemented — teaching assignments (PR #41)**: `staff_teaching_assignments` table + transactional `TeachingAssignmentService` (ownership/cohesion/employment validation, one open row per staff/class/subject under lock, audit records, subject-less rows cover the whole class); opt-in enforcement per organization (Organizations settings `staff.enforce_teaching_assignments`); service-boundary gating in Assessments/Attendance/Scheduling; actor-level gating of teacher marking/AI-suggestion/release with `teaching_assignments.bypass` for administrators; demo seeds Naledi's Grade 10 Mathematics assignment with enforcement on. Verified: **272 tests / 1511 assertions OK**, Pint + PHPStan clean, MySQL migration ran in the dev stack, and live checks show the assigned teacher's marking page at 200 while the unassigned tutor gets 403.
+- **Post-merge sync + dev-stack repair (2026-07-21 evening)**: **PR #44 (learner portal notifications) and #45 (consolidated docs) are merged** — `main` now carries the whole roadmap slice through documentation. Pulled follow-up commit `8ef5ac2` ("copilot push"): idempotent `learner_enrolments` migration (safe rerun + backfill dedupe, with a regression test), case-tolerant module migration loading (`Database/` vs `database/` on Windows checkouts), entrypoint baked into the Docker image, cache fallback `redis`→`array`. Found and fixed two infra bugs that were breaking the local stack: (1) `docker compose build` died with `invalid file request public/storage` — the dangling `storage:link` symlink is now excluded via `.dockerignore`; (2) `docker/init.sh`'s APP_KEY guard used `grep '^APP_KEY=.+'` where BRE treats `+` as a literal, so **every init rerun silently regenerated APP_KEY** (invalidating all sessions and encrypted values) — guard corrected to `..*`. Stack rebuilt on the new image: init completed cleanly, all containers healthy, app serving on :8001. Verified: full suite **275 tests / 1538 assertions OK** (sf_test rig), Pint clean, PHPStan clean on all changed files. The two infra fixes are local working-tree changes pending a branch/PR per AGENTS.md.
 
 ## What this project is
 
@@ -24,7 +25,7 @@ Sky Fundi is a modular, multi-tenant education platform (LMS) for tutors, school
 
 ## Repository health
 
-- Worktree: clean; branch `main`; no unmerged remote branches (`feature/domains-co-za-deployment` is fully merged).
+- Worktree: branch `main`, up to date with origin; two uncommitted infra fixes (`.dockerignore`, `docker/init.sh` — see 2026-07-21 evening entry) awaiting a branch/PR. No unmerged remote branches.
 - CI: GitHub Actions run on every push/PR (`ci.yml`: composer validate, migrate-check, tests, Pint, PHPStan) plus `deployment-validation.yml` for deployment artifacts.
 - No TODO/FIXME/HACK markers in PHP code — deferred work is tracked in READMEs and `docs/roadmap.md` instead.
 - Governance: `AGENTS.md` is the operating manual for all AI-assisted changes (branch-per-task, never implement on `main`, `make verify` before handoff).
