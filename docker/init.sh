@@ -27,7 +27,7 @@ until php artisan db:show --no-interaction >/dev/null 2>&1; do
     sleep 2
 done
 
-if ! grep -q '^APP_KEY=.+' .env; then
+if ! grep -q '^APP_KEY=..*' .env; then
     php artisan key:generate --force --no-interaction
 fi
 
