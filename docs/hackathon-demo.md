@@ -8,7 +8,7 @@ The Laravel platform uses organization ownership as its tenant boundary. Quiz ca
 
 Question totals recalculate the assessment maximum. Current-class result rows are assignments. Attempts are idempotent and submitted transactionally; submitted answers cannot change. Objective answers are server-marked. Written answers retain separate AI suggestions and teacher-approved marks. Only released attempts and approved plans appear to learners or guardians.
 
-Teacher assignment and historical enrolment records do not yet exist, so the MVP enforces creator ownership plus permissions and current class placement.
+Authoritative teaching assignments (ADR-009, opt-in per organization) and historical enrolment (ADR-008) are implemented; the demo organization ships with enforcement on, so marking and release require a covering assignment alongside creator ownership and permissions.
 
 ## AI, oversight, study plan and privacy
 
@@ -53,7 +53,7 @@ Configure OpenAI per [AI marking](ai-marking.md). If unavailable, objective mark
 ## Known limitations and roadmap
 
 - Demo billing only; no gateway, invoices or audited reporting.
-- No authoritative teacher-class/subject assignment or historical enrolment.
+- Teaching-assignment administration has no web/API surface yet (assignments come from services and seeders).
 - Learner accounts must already link to learner profiles.
 - Study plans use a reliable bounded performance-based generator.
 - No question bank, autosave, file responses, proctoring, bulk assignment, moderation or mobile/offline client.

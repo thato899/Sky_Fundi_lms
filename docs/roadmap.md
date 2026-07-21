@@ -13,6 +13,7 @@ This is an implementation-status document, not a promise of dates. Executable co
 - Learner Attendance, Assessments/mark sheets/gradebooks, Reports/report-card snapshots/PDF/CSV, and Scheduling/rooms/templates/lessons/conflict handling.
 - Historical learner enrolment: date-ranged placement history maintained on every placement write, backfilled from current placement, with enrolment-aware report-card calculation.
 - Teaching assignments: date-ranged teacher-to-class/subject assignments with opt-in per-organization enforcement across Assessments, Attendance, and Scheduling, plus assignment-aware teacher marking/release gating.
+- Family visibility: report-card publication notifications to learners and guardians, the learner's published report-card portal page, teacher-authored parent reports on study plans, and a deterministic study-plan fallback so releases always ship a plan.
 - Docker development stack with app, MySQL, Mailpit, queue worker, scheduler, init job, and optional Redis profile.
 - PHPUnit unit/feature/security/regression suites plus migration, Pint, PHPStan, health, and aggregate verification scripts.
 
@@ -24,7 +25,7 @@ This is an implementation-status document, not a promise of dates. Executable co
 ## Planned
 
 - Enrolment history API/web surfaces and historical placement corrections.
-- Learner portal onboarding and results notifications.
+- Learner invitations/onboarding mirroring the guardian invitation flow (portal pages and results notifications shipped).
 - Homework and learning-content workflows.
 - Production deployment automation and a tested restore workflow for backups.
 - Stronger authentication features such as enforced two-factor authentication.
