@@ -24,7 +24,7 @@ _Updated: 2026-07-21 evening. **The hackathon sprint shipped and everything thro
 
 ## Immediate housekeeping (2026-07-21)
 
-- **Infra-fix PR (small, ready to commit):** `.dockerignore` now excludes the dangling `public/storage` symlink (Docker builds were failing with `invalid file request public/storage` on Windows hosts), and `docker/init.sh`'s APP_KEY guard is corrected from BRE `.+` (literal `+`) to `..*` — the old guard regenerated APP_KEY on every init rerun, logging out all sessions and orphaning encrypted values. Both verified against a full stack rebuild (init clean, all containers healthy, suite 275/1538 green).
+- **Infra-fix PR #47 (open):** three fixes. (1) `.dockerignore` now excludes the dangling `public/storage` symlink (Docker builds were failing with `invalid file request public/storage` on Windows hosts). (2) `docker/init.sh`'s APP_KEY guard is corrected from BRE `.+` (literal `+`) to `..*` — the old guard regenerated APP_KEY on every init rerun, logging out all sessions and orphaning encrypted values. (3) The Learners/Assessments provider migration-path logic from `8ef5ac2` is corrected — it preferred `Database/` whenever present, which on case-sensitive checkouts (CI) loaded no migrations and turned `main`'s CI red; the fix tests for the migrations directory itself. Verified against a full stack rebuild and a case-sensitive layout in the sf_test rig.
 
 ## Post-hackathon roadmap (now the active track)
 
