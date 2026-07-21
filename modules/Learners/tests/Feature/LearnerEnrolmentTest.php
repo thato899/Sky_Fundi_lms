@@ -39,6 +39,15 @@ final class LearnerEnrolmentTest extends TestCase
         LearnerEnrolment::query()->create(['organization_id' => $organization->id, 'learner_profile_id' => $learner->id, 'started_on' => '2026-02-01']);
     }
 
+    public function test_migration_can_rerun_when_table_exists(): void
+    {
+        $migration = require dirname(__DIR__, 2).'/database/migrations/2026_07_20_000001_create_learner_enrolments_table.php';
+        $migration->up();
+        $migration->up();
+
+        $this->assertTrue(Schema::hasTable('learner_enrolments'));
+    }
+
     public function test_create_with_placement_opens_enrolment_and_placement_change_closes_and_reopens(): void
     {
         [$organization, $actor] = $this->context('lifecycle');

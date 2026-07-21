@@ -19,7 +19,8 @@ final class LearnersServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $migrationsPath = __DIR__.'/../'.(is_dir(__DIR__.'/../Database') ? 'Database' : 'database').'/migrations';
+        $this->loadMigrationsFrom($migrationsPath);
         $this->app->make(Router::class)->aliasMiddleware('learner.context', ResolveOrganizationLearner::class);
         $this->app->make(Router::class)->aliasMiddleware('guardian.context', ResolveOrganizationGuardian::class);
         Gate::policy(LearnerProfile::class, LearnerPolicy::class);

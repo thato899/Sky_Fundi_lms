@@ -9,6 +9,8 @@ fi
 mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
 chmod -R ug+rw storage bootstrap/cache
 
+git config --global --add safe.directory /var/www/html || true
+
 if [ ! -f vendor/autoload.php ]; then
     composer install --no-interaction --prefer-dist --no-progress
 fi

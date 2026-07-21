@@ -19,7 +19,8 @@ final class AssessmentsServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $migrationsPath = __DIR__.'/../'.(is_dir(__DIR__.'/../Database') ? 'Database' : 'database').'/migrations';
+        $this->loadMigrationsFrom($migrationsPath);
         $router = $this->app->make(Router::class);
         $router->aliasMiddleware('assessment.context', ResolveOrganizationAssessment::class);
         $router->aliasMiddleware('assessment-category.context', ResolveOrganizationAssessmentCategory::class);

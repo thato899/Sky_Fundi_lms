@@ -6,7 +6,7 @@ services:
       SKIP_STARTUP_VALIDATION: "true"
     working_dir: /var/www/html
     volumes: [".:/var/www/html", "storage:/var/www/html/storage"]
-    command: ["/bin/sh", "docker/init.sh"]
+    command: ["/bin/sh", "/var/www/html/docker/init.sh"]
     depends_on:
       mysql:
         condition: service_healthy

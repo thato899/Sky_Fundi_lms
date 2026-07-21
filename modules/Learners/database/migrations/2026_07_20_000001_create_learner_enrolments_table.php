@@ -12,23 +12,25 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('learner_enrolments', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
-            $table->foreignUuid('learner_profile_id')->constrained('learner_profiles')->cascadeOnDelete();
-            $table->foreignUuid('academic_year_id')->nullable()->constrained('academics_academic_years')->nullOnDelete();
-            $table->foreignUuid('grade_id')->nullable()->constrained('academics_grades')->nullOnDelete();
-            $table->foreignUuid('class_id')->nullable()->constrained('academics_classes')->nullOnDelete();
-            $table->foreignUuid('curriculum_id')->nullable()->constrained('academics_curricula')->nullOnDelete();
-            $table->date('started_on');
-            $table->date('ended_on')->nullable();
-            $table->foreignUuid('actor_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamps();
-            $table->unsignedTinyInteger('is_open')->nullable()->storedAs('case when `ended_on` is null then 1 else null end');
-            $table->unique(['learner_profile_id', 'is_open'], 'learner_one_open_enrolment_unique');
-            $table->index(['organization_id', 'learner_profile_id', 'started_on'], 'learner_enrolment_lookup');
-            $table->index(['organization_id', 'class_id'], 'learner_enrolment_class_lookup');
-        });
+        if (! Schema::hasTable('learner_enrolments')) {
+            Schema::create('learner_enrolments', function (Blueprint $table): void {
+                $table->uuid('id')->primary();
+                $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
+                $table->foreignUuid('learner_profile_id')->constrained('learner_profiles')->cascadeOnDelete();
+                $table->foreignUuid('academic_year_id')->nullable()->constrained('academics_academic_years')->nullOnDelete();
+                $table->foreignUuid('grade_id')->nullable()->constrained('academics_grades')->nullOnDelete();
+                $table->foreignUuid('class_id')->nullable()->constrained('academics_classes')->nullOnDelete();
+                $table->foreignUuid('curriculum_id')->nullable()->constrained('academics_curricula')->nullOnDelete();
+                $table->date('started_on');
+                $table->date('ended_on')->nullable();
+                $table->foreignUuid('actor_id')->nullable()->constrained('users')->nullOnDelete();
+                $table->timestamps();
+                $table->unsignedTinyInteger('is_open')->nullable()->storedAs('case when `ended_on` is null then 1 else null end');
+                $table->unique(['learner_profile_id', 'is_open'], 'learner_one_open_enrolment_unique');
+                $table->index(['organization_id', 'learner_profile_id', 'started_on'], 'learner_enrolment_lookup');
+                $table->index(['organization_id', 'class_id'], 'learner_enrolment_class_lookup');
+            });
+        }
 
         // Backfill: learners placed before enrolment tracking receive their
         // current placement as the initial open enrolment row.
@@ -41,6 +43,10 @@ return new class extends Migration
                     ->orWhereNotNull('current_grade_id')
                     ->orWhereNotNull('current_class_id')
                     ->orWhereNotNull('curriculum_id');
+            })
+            ->whereNotExists(function ($query): void {
+                $query->from('learner_enrolments')
+                    ->whereColumn('learner_enrolments.learner_profile_id', 'learner_profiles.id');
             })
             ->orderBy('id')
             ->chunkById(500, function ($learners) use ($now): void {
@@ -62,7 +68,10 @@ return new class extends Migration
                         'updated_at' => $now,
                     ];
                 }
-                DB::table('learner_enrolments')->insert($rows);
+
+                if ($rows !== []) {
+                    DB::table('learner_enrolments')->insertOrIgnore($rows);
+                }
             });
     }
 
