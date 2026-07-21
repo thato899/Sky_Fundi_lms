@@ -12,7 +12,7 @@ Reports move `generated → under_review → approved → published → withdraw
 
 Templates accept only whitelisted booleans, plain footer text, and `A4`/`LETTER`; arbitrary HTML, CSS, JavaScript, and file paths are not accepted. Comments are plain text and escaped. Administrative/principal comment types require approval permission. Teacher assignment data does not exist, so assignment enforcement is not claimed.
 
-This module does not implement promotion, progression, ranking, AI comments/decisions, portals, notifications, transcripts, certificates, electronic signatures, payment gating, or mobile workflows. Subject results resolve the learner's classes during the period from Learners enrolment history, so mid-period class moves no longer hide finalized results recorded in a previous class.
+Publication is now learner- and guardian-visible: transitioning a report card to published sends a marks-free Core notification to the linked learner account and every active, academically-subscribed linked guardian, and the signed-in learner can read their own published snapshots (subjects, bands, attendance counts, and the overall comment) at `GET /my/report-cards` — self-data only, portal-enabled linked profiles only, no `reports.*` permission involved. This module does not implement promotion, progression, ranking, AI comments/decisions, transcripts, certificates, electronic signatures, payment gating, or mobile workflows. Subject results resolve the learner's classes during the period from Learners enrolment history, so mid-period class moves no longer hide finalized results recorded in a previous class.
 
 ## Implementation inventory
 
@@ -24,4 +24,4 @@ This module does not implement promotion, progression, ranking, AI comments/deci
 - **Permissions/events:** thirteen seeded permissions; no module event classes.
 - **Dependencies:** Academics, Learners, Attendance, Assessments, Staff, Organizations/Identity/RBAC, PDF library, and current organization branding.
 - **Testing:** `ReportManagementTest` covers configuration, calculation edge cases, snapshots, lifecycles, permissions/isolation, PDF/CSV safety, and regressions.
-- **Known limitations/future roadmap:** promotion/ranking, portals/notifications, transcripts/certificates, signatures, payments, AI, and mobile are absent.
+- **Known limitations/future roadmap:** promotion/ranking, guardian report-card portal pages, transcripts/certificates, signatures, payments, AI, and mobile are absent; learner invitations/onboarding remain owned by Learners.

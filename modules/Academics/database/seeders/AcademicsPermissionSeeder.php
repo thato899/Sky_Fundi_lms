@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Modules\Academics\Database\Seeders;
 
 use Core\RBAC\Application\RoleService;
+use Core\RBAC\Infrastructure\Models\Permission;
+use Core\RBAC\Infrastructure\Models\Role;
 use Illuminate\Database\Seeder;
 
 /**
  * Registers this module's permissions (see module.json's
- * "provides.permissions") through Core\RBAC — the pattern documented
- * in docs/modules/module-development-guide.md#7-permissions. Not
- * called automatically by Core\Database\Seeders\DatabaseSeeder (that
- * seeder is deliberately Core-only, per its own docblock); run this
- * explicitly after installing the module:
+ * "provides.permissions") through Core\RBAC and grants them to the
+ * administrative roles, mirroring the other module permission seeders.
+ * Called by Database\Seeders\DatabaseSeeder; also runnable standalone:
  *
  *   php artisan db:seed --class="Modules\Academics\Database\Seeders\AcademicsPermissionSeeder"
  *
@@ -46,6 +46,10 @@ final class AcademicsPermissionSeeder extends Seeder
     {
         foreach (self::PERMISSIONS as $name => $description) {
             $roles->registerPermission($name, module: 'academics', description: $description);
+        }
+        foreach (['Super Admin', 'Organization Administrator', 'Academic Administrator'] as $name) {
+            $role = Role::query()->firstOrCreate(['name' => $name], ['is_system' => $name === 'Super Admin']);
+            $role->permissions()->syncWithoutDetaching(Permission::query()->whereIn('name', array_keys(self::PERMISSIONS))->pluck('id'));
         }
     }
 }
