@@ -33,7 +33,7 @@ final class EnterpriseOperationService
 
     public function recordExecution(EnterpriseOperationRun $run, array $result): EnterpriseOperationRun
     {
-        if (!in_array($run->getAttribute('status'), ['approved', 'executing'], true)) {
+        if (!\in_array($run->getAttribute('status'), ['approved', 'executing'], true)) {
             throw new DomainException('An operation must be approved before execution.');
         }
 
