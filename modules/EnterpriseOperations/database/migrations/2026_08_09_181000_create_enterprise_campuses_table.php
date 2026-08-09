@@ -25,5 +25,8 @@ return new class extends Migration
         });
     }
 
-    public function down(): void { Schema::dropIfExists('enterprise_campuses'); }
+    public function down(): void
+    {
+        Schema::dropIfExists('enterprise_campuses');
+    }
 };

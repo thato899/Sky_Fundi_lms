@@ -28,5 +28,8 @@ return new class extends Migration
         });
     }
 
-    public function down(): void { Schema::dropIfExists('enterprise_operation_runs'); }
+    public function down(): void
+    {
+        Schema::dropIfExists('enterprise_operation_runs');
+    }
 };
