@@ -26,15 +26,17 @@ final class EnterpriseOperationService
         if ($run->getAttribute('status') !== 'pending_approval') {
             throw new DomainException('Only a preview awaiting approval can be approved.');
         }
+
         $run->update(['status' => 'approved', 'approved_by' => $actor->getKey(), 'approved_at' => now()]);
         return $run->refresh();
     }
 
     public function recordExecution(EnterpriseOperationRun $run, array $result): EnterpriseOperationRun
     {
-        if ($run->getAttribute('status') !== 'approved') {
+        if (!in_array($run->getAttribute('status'), ['approved', 'executing'], true)) {
             throw new DomainException('An operation must be approved before execution.');
         }
+
         $run->update(['status' => 'executed', 'result' => $result, 'executed_at' => now()]);
         return $run->refresh();
     }
