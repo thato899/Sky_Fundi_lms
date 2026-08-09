@@ -16,9 +16,14 @@ use Modules\Academics\Infrastructure\Models\Curriculum;
 use Modules\Academics\Infrastructure\Models\Department;
 use Modules\Academics\Infrastructure\Models\Grade;
 use Modules\Academics\Infrastructure\Models\Subject;
+use Modules\Assessments\Infrastructure\Models\Assessment;
+use Modules\Attendance\Infrastructure\Models\AttendanceSession;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Organizations\Application\OrganizationService;
 use Modules\Organizations\Infrastructure\Models\Organization;
+use Modules\Reports\Infrastructure\Models\ReportCard;
+use Modules\Reports\Infrastructure\Models\ReportingPeriod;
+use Modules\Scheduling\Infrastructure\Models\ScheduledLesson;
 use Modules\Staff\Infrastructure\Models\StaffProfile;
 
 final class OrganizationDashboardService
@@ -41,7 +46,7 @@ final class OrganizationDashboardService
             'departments' => Department::query()->where('organization_id', $organizationId)->count(),
             'curricula' => Curriculum::query()->where('organization_id', $organizationId)->count(),
         ];
-        $currentYear = AcademicYear::query()->where('organization_id', $organizationId)->where('is_current', true)->value('name');
+        $currentYear = AcademicYear::query()->where('organization_id', $organizationId)->where('is_current', true)->first(['id', 'name']);
         $activeMemberships = Membership::query()->where('organization_id', $organizationId)->where('status', MembershipStatus::Active->value)->count();
         $pendingMemberships = Membership::query()->where('organization_id', $organizationId)->where('status', MembershipStatus::Invited->value)->count();
         $license = License::query()->where('licensee_type', Organization::class)->where('licensee_id', $organizationId)->latest()->first();
@@ -64,7 +69,7 @@ final class OrganizationDashboardService
             'organization' => ['name' => $organization->name, 'status' => $organization->status->value],
             'membership' => $membership,
             'people' => $people,
-            'academics' => [...$academic, 'current_year' => $currentYear],
+            'academics' => [...$academic, 'current_year' => $currentYear?->getAttribute('name')],
             'access' => [
                 'active_memberships' => $activeMemberships,
                 'pending_memberships' => $pendingMemberships,
@@ -75,12 +80,13 @@ final class OrganizationDashboardService
                 'grace_period_ends_at' => $subscription?->getAttribute('grace_period_ends_at')?->toDateString(),
             ],
             'setupGaps' => $this->setupGaps($organization, $people, $academic, $currentYear, $license, $subscription),
+            'cycleReadiness' => $this->cycleReadiness($organizationId, $currentYear?->getKey()),
             'activity' => $this->activity($organizationId),
         ];
     }
 
     /** @return list<string> */
-    private function setupGaps(Organization $organization, array $people, array $academic, ?string $currentYear, ?License $license, ?Subscription $subscription): array
+    private function setupGaps(Organization $organization, array $people, array $academic, ?AcademicYear $currentYear, ?License $license, ?Subscription $subscription): array
     {
         $branding = $organization->settings()->where('group', 'branding')->exists();
         $checks = [
@@ -98,6 +104,23 @@ final class OrganizationDashboardService
         ];
 
         return array_keys(array_filter($checks));
+    }
+
+    /** @return array{has_current_year: bool, open_attendance: int, unreleased_assessments: int, open_reporting_periods: int, unpublished_report_cards: int, upcoming_lessons: int} */
+    private function cycleReadiness(string $organizationId, ?string $currentYearId): array
+    {
+        if ($currentYearId === null) {
+            return ['has_current_year' => false, 'open_attendance' => 0, 'unreleased_assessments' => 0, 'open_reporting_periods' => 0, 'unpublished_report_cards' => 0, 'upcoming_lessons' => 0];
+        }
+
+        return [
+            'has_current_year' => true,
+            'open_attendance' => AttendanceSession::query()->where('organization_id', $organizationId)->where('academic_year_id', $currentYearId)->where('status', 'open')->count(),
+            'unreleased_assessments' => Assessment::query()->where('organization_id', $organizationId)->where('academic_year_id', $currentYearId)->where('status', 'finalized')->where('result_release_status', 'withheld')->count(),
+            'open_reporting_periods' => ReportingPeriod::query()->where('organization_id', $organizationId)->where('academic_year_id', $currentYearId)->where('status', 'open')->count(),
+            'unpublished_report_cards' => ReportCard::query()->where('organization_id', $organizationId)->where('academic_year_id', $currentYearId)->whereIn('status', ['generated', 'under_review', 'approved'])->count(),
+            'upcoming_lessons' => ScheduledLesson::query()->where('organization_id', $organizationId)->where('academic_year_id', $currentYearId)->where('status', 'scheduled')->whereBetween('lesson_date', [today()->toDateString(), today()->addDays(7)->toDateString()])->count(),
+        ];
     }
 
     /** @return Collection<int, array{label: string, actor: string, occurred_at: string}> */
