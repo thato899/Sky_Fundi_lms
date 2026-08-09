@@ -2,6 +2,8 @@
 
 This is the canonical concise record of what is deployed, what is next, and the evidence behind each stage. It is maintained under the rules in [CODEX.md](../../CODEX.md).
 
+The ordered path from this baseline to a production-ready release is in [the build roadmap](BUILD_ROADMAP.md).
+
 ## Release principles
 
 - A stage is a deployable vertical slice, not a collection of unrelated changes.
