@@ -25,10 +25,10 @@ final class CampusService
 
     public function create(Organization $organization, array $data): Campus
     {
-        if (! $this->enabled($organization)) {
+        if ($this->enabled($organization) === false) {
             throw new DomainException('Multi-campus operations are not enabled for this organization.');
         }
 
-        return Campus::query()->create(['organization_id' => $organization->getKey(), ...$data]);
+        return Campus::query()->create(array_merge(['organization_id' => $organization->getKey()], $data));
     }
 }
