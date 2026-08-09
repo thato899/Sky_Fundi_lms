@@ -28,6 +28,17 @@
         @endforeach
     </div></section>
 
+    <section class="section" aria-labelledby="cycle-heading"><h2 id="cycle-heading">Academic cycle readiness</h2>
+        @if(! $cycleReadiness['has_current_year'])<div class="empty">Set a current academic year before attendance, assessment, reporting, and timetable work can be meaningfully tracked.</div>
+        @else<div class="metric-grid">
+            <div class="metric"><span>Open attendance sessions</span><strong>{{ $cycleReadiness['open_attendance'] }}</strong>@if(in_array('attendance.view', $permissions, true))<a href="{{ route('attendance.index') }}">Review registers</a>@endif</div>
+            <div class="metric"><span>Finalized results withheld</span><strong>{{ $cycleReadiness['unreleased_assessments'] }}</strong>@if(in_array('assessments.view', $permissions, true))<a href="{{ route('assessments.index') }}">Review assessments</a>@endif</div>
+            <div class="metric"><span>Open reporting periods</span><strong>{{ $cycleReadiness['open_reporting_periods'] }}</strong>@if(in_array('reports.view', $permissions, true))<a href="{{ route('reports.periods') }}">Review periods</a>@endif</div>
+            <div class="metric"><span>Report cards awaiting publish</span><strong>{{ $cycleReadiness['unpublished_report_cards'] }}</strong>@if(in_array('reports.view', $permissions, true))<a href="{{ route('reports.index') }}">Review report cards</a>@endif</div>
+            <div class="metric"><span>Lessons in next 7 days</span><strong>{{ $cycleReadiness['upcoming_lessons'] }}</strong>@if(in_array('scheduling.view', $permissions, true))<a href="{{ route('scheduling.lessons') }}">Review lessons</a>@endif</div>
+        </div><p class="meta">Counts are limited to the current academic year and show the operational work that may need attention; they do not change records.</p>@endif
+    </section>
+
     <div class="dashboard-grid">
         <section class="panel" aria-labelledby="access-heading"><h2 id="access-heading">Access and licensing</h2>
             <p class="capacity"><strong>{{ $access['active_memberships'] }}</strong> active users · <strong>{{ $access['pending_memberships'] }}</strong> pending invitations</p>

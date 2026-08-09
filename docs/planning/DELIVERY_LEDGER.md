@@ -60,13 +60,25 @@ The ordered path from this baseline to a production-ready release is in [the bui
 
 ## Phase 2 — teaching assignment administration
 
-**Status:** in progress.
+**Status:** shipped on `main` through PR #51 (`8352f47`, 2026-08-09). GitHub Actions completed the full test suite and Pint checks successfully.
 
 **Outcome:** authorized organization administrators can see, add, and end a staff member's class/subject coverage through a clear web journey or tenant-safe API. This exposes the already-integrated enforcement layer used by attendance, assessment, and scheduling work.
 
 **Scope:** teaching-assignment web management surface, scoped API endpoints/resource, explicit permission gates, helpful assignment states, and organization-safe record resolution. No migration is required because the `staff_teaching_assignments` schema and service shipped in the baseline.
 
 **Deployment gate:** full test suite and Pint in GitHub Actions; verify API and web route registration, tenant boundaries, and unchanged existing enforcement tests. Rollback is application-only: remove the routes/controllers/views without touching assignment data.
+
+**Verification evidence:** GitHub Actions runs `31321727035` (tests) and `31321738077` (Pint) completed successfully before merge. No migration was introduced.
+
+## Phase 3 — academic-cycle readiness
+
+**Status:** in progress.
+
+**Outcome:** the organization dashboard turns existing attendance, assessment, reporting, and scheduling records into a concise current-year operational view, so administrators can identify unfinished cycle work without mutating any academic data.
+
+**Scope:** current-year read-only counts for open attendance, finalized-but-withheld assessments, open reporting periods, unpublished report cards, and the next seven days of scheduled lessons; direct links to the responsible workflow; a clear empty state when no current academic year exists.
+
+**Deployment gate:** full test suite and Pint in GitHub Actions. This is an application-only, read-only change with no migration; rollback is removal of the dashboard aggregation and view section.
 
 ## Updating this ledger
 
