@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Learners\Http\Controllers\Web\GuardianInvitationController;
 use Modules\Learners\Http\Controllers\Web\GuardianWebController;
 use Modules\Learners\Http\Controllers\Web\LearnerInvitationController;
+use Modules\Learners\Http\Controllers\Web\LearnerPortalController;
 use Modules\Learners\Http\Controllers\Web\LearnerWebController;
 
 Route::middleware(['auth', 'account.not-locked', 'organization.context'])->prefix('learners')->name('learners.')->group(function (): void {
@@ -25,6 +26,11 @@ Route::middleware(['auth', 'account.not-locked', 'organization.context'])->prefi
         Route::post('/{learner}/invitations/{invitation}/resend', [LearnerInvitationController::class, 'resend'])->middleware('throttle:3,1')->name('invitations.resend');
         Route::post('/{learner}/invitations/{invitation}/revoke', [LearnerInvitationController::class, 'revoke'])->name('invitations.revoke');
     });
+});
+
+Route::middleware(['auth', 'account.not-locked', 'organization.context'])->group(function (): void {
+    Route::get('/my/attendance', [LearnerPortalController::class, 'attendance'])->name('learner-portal.attendance');
+    Route::get('/my/timetable', [LearnerPortalController::class, 'timetable'])->name('learner-portal.timetable');
 });
 
 Route::middleware(['auth', 'account.not-locked', 'organization.context'])->prefix('guardians')->name('guardians.')->group(function (): void {

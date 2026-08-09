@@ -62,6 +62,8 @@ final class NavigationContext
             return ['persona' => 'Learner', 'links' => [
                 $this->link('My quizzes', route('quizzes.assigned')),
                 $this->link('My report cards', route('reports.my')),
+                $this->link('My attendance', route('learner-portal.attendance')),
+                $this->link('My timetable', route('learner-portal.timetable')),
             ]];
         }
 
