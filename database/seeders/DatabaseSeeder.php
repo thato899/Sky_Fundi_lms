@@ -8,6 +8,7 @@ use Illuminate\Database\Seeder;
 use Modules\Academics\Database\Seeders\AcademicsPermissionSeeder;
 use Modules\Assessments\Database\Seeders\AssessmentsPermissionSeeder;
 use Modules\Attendance\Database\Seeders\AttendancePermissionSeeder;
+use Modules\EnterpriseOperations\Database\Seeders\EnterpriseOperationsPermissionSeeder;
 use Modules\Learners\Database\Seeders\LearnersPermissionSeeder;
 use Modules\Reports\Database\Seeders\ReportsPermissionSeeder;
 use Modules\Scheduling\Database\Seeders\SchedulingPermissionSeeder;
@@ -30,6 +31,7 @@ final class DatabaseSeeder extends Seeder
             StaffPermissionSeeder::class,
             LearnersPermissionSeeder::class,
             AttendancePermissionSeeder::class,
+            EnterpriseOperationsPermissionSeeder::class,
             AssessmentsPermissionSeeder::class,
             ReportsPermissionSeeder::class,
             SchedulingPermissionSeeder::class,
