@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Modules\Assessments\Infrastructure\Models\QuizAttempt;
+use Modules\Attendance\Infrastructure\Models\AttendanceEntry;
 use Modules\Learners\Application\GuardianPortalAccessService;
 use Modules\Learners\Application\GuardianService;
 use Modules\Learners\Http\Requests\StoreGuardianRelationshipRequest;
@@ -25,6 +26,7 @@ use Modules\Learners\Infrastructure\Models\LearnerGuardianRelationship;
 use Modules\Learners\Infrastructure\Models\LearnerProfile;
 use Modules\Organizations\Application\OrganizationService;
 use Modules\Organizations\Infrastructure\Models\Organization;
+use Modules\Scheduling\Infrastructure\Models\ScheduledLesson;
 
 final class GuardianWebController
 {
@@ -88,6 +90,7 @@ final class GuardianWebController
                 ->whereIn('learner_status', ['admitted', 'active', 'temporarily_inactive', 'suspended']))]);
 
         $academicSummaries = [];
+        $familySummaries = [];
         foreach ($guardian->relationships as $relationship) {
             if (! $relationship->getAttribute('receives_academic_communication') || ! $this->portalAccess->allows($this->actor($request), $relationship->learner)) {
                 continue;
@@ -99,9 +102,13 @@ final class GuardianWebController
                 ->with(['assessment.subject', 'result', 'answers.question', 'publishedStudyPlan'])
                 ->latest('released_at')
                 ->first();
+            $familySummaries[$relationship->learner->getKey()] = [
+                'attendance' => AttendanceEntry::query()->where('organization_id', $organization->getKey())->where('learner_profile_id', $relationship->learner->getKey())->whereHas('session', fn ($query) => $query->where('status', 'finalized'))->selectRaw('status, count(*) aggregate')->groupBy('status')->pluck('aggregate', 'status'),
+                'upcoming' => $relationship->learner->getAttribute('current_class_id') === null ? collect() : ScheduledLesson::query()->where('organization_id', $organization->getKey())->where('class_id', $relationship->learner->getAttribute('current_class_id'))->where('status', 'scheduled')->whereBetween('lesson_date', [today()->toDateString(), today()->addDays(7)->toDateString()])->with('subject')->orderBy('lesson_date')->limit(3)->get(),
+            ];
         }
 
-        return view('guardians.portal-show', $this->shared($organization, $membership) + compact('guardian', 'academicSummaries'));
+        return view('guardians.portal-show', $this->shared($organization, $membership) + compact('guardian', 'academicSummaries', 'familySummaries'));
     }
 
     public function edit(Request $request, mixed $guardian): View
