@@ -34,7 +34,10 @@ jobs:
         run: docker compose exec -T app php artisan test
 
       - name: Run Pint
-        run: docker compose exec -T app ./vendor/bin/pint --test --format=json
+        run: |
+          docker compose exec -T app ./vendor/bin/pint
+          git diff -- modules/EnterpriseOperations/Application/EnterpriseOperationService.php
+          git diff --exit-code
 
       - name: Run PHPStan
         run: make analyse
