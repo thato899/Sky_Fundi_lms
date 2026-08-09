@@ -72,13 +72,15 @@ The ordered path from this baseline to a production-ready release is in [the bui
 
 ## Phase 3 — academic-cycle readiness
 
-**Status:** in progress.
+**Status:** verification complete; ready to integrate through PR #52 (2026-08-09).
 
 **Outcome:** the organization dashboard turns existing attendance, assessment, reporting, and scheduling records into a concise current-year operational view, so administrators can identify unfinished cycle work without mutating any academic data.
 
 **Scope:** current-year read-only counts for open attendance, finalized-but-withheld assessments, open reporting periods, unpublished report cards, and the next seven days of scheduled lessons; direct links to the responsible workflow; a clear empty state when no current academic year exists.
 
 **Deployment gate:** full test suite and Pint in GitHub Actions. This is an application-only, read-only change with no migration; rollback is removal of the dashboard aggregation and view section.
+
+**Verification evidence:** GitHub Actions runs `31322982190` and `31322992205` completed successfully. No migration was introduced; the dashboard only aggregates current-year records.
 
 ## Updating this ledger
 
