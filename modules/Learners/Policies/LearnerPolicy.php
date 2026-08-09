@@ -39,6 +39,16 @@ final class LearnerPolicy
         return $this->allows($user, 'learners.update', $learner) && $this->status($learner) !== LearnerStatus::Archived;
     }
 
+    public function invite(User $user, LearnerProfile $learner): bool
+    {
+        return $this->allows($user, 'learners.invite', $learner) && $this->status($learner) === LearnerStatus::Active;
+    }
+
+    public function revokeInvitation(User $user, LearnerProfile $learner): bool
+    {
+        return $this->allows($user, 'learners.invite', $learner);
+    }
+
     public function manageAcademicProfile(User $user, LearnerProfile $learner): bool
     {
         return $this->allows($user, 'learners.manage_academic_profile', $learner) && $this->status($learner) !== LearnerStatus::Archived;

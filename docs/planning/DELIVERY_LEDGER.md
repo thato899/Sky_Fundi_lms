@@ -29,7 +29,7 @@ The ordered path from this baseline to a production-ready release is in [the bui
 
 ## Phase 1 — learner invitation and onboarding
 
-**Status:** planned; design gate open. No product code has been added by this ledger initialization.
+**Status:** in progress. The first vertical slice adds the learner invitation service, admin send action, public acceptance routes/views, API controls, and learner-specific invitation permission. Verification evidence will be recorded only after the branch checks complete.
 
 **Outcome:** an authorized organization administrator can invite a learner to activate their own portal account through a secure, understandable, accessible onboarding journey.
 
