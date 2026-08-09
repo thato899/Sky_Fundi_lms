@@ -78,4 +78,5 @@ return [
     AssessmentsServiceProvider::class,
     ReportsServiceProvider::class,
     SchedulingServiceProvider::class,
+    \Modules\EnterpriseOperations\Providers\EnterpriseOperationsServiceProvider::class,
 ];
