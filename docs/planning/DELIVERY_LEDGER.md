@@ -72,7 +72,7 @@ The ordered path from this baseline to a production-ready release is in [the bui
 
 ## Phase 3 — academic-cycle readiness
 
-**Status:** verification complete; ready to integrate through PR #52 (2026-08-09).
+**Status:** shipped on `main` through PR #52 (`6799b95`, 2026-08-09).
 
 **Outcome:** the organization dashboard turns existing attendance, assessment, reporting, and scheduling records into a concise current-year operational view, so administrators can identify unfinished cycle work without mutating any academic data.
 
