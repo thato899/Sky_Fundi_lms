@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 use App\Providers\AppServiceProvider;
 use Core\AIGateway\Providers\AIGatewayServiceProvider;
 use Core\Analytics\Providers\AnalyticsServiceProvider;
@@ -29,6 +30,7 @@ use Core\Users\Providers\UsersServiceProvider;
 use Modules\Academics\Providers\AcademicsServiceProvider;
 use Modules\Assessments\Providers\AssessmentsServiceProvider;
 use Modules\Attendance\Providers\AttendanceServiceProvider;
+use Modules\EnterpriseOperations\Providers\EnterpriseOperationsServiceProvider;
 use Modules\Learners\Providers\LearnersServiceProvider;
 use Modules\Organizations\Providers\OrganizationsServiceProvider;
 use Modules\Reports\Providers\ReportsServiceProvider;
@@ -78,5 +80,5 @@ return [
     AssessmentsServiceProvider::class,
     ReportsServiceProvider::class,
     SchedulingServiceProvider::class,
-    \Modules\EnterpriseOperations\Providers\EnterpriseOperationsServiceProvider::class,
+    EnterpriseOperationsServiceProvider::class,
 ];

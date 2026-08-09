@@ -14,7 +14,9 @@ final class CampusService
 {
     public const FLAG = 'enterprise.multi_campus';
 
-    public function __construct(private readonly FeatureFlagService $flags) {}
+    public function __construct(private readonly FeatureFlagService $flags)
+    {
+    }
 
     public function enabled(Organization $organization): bool
     {
@@ -23,7 +25,9 @@ final class CampusService
 
     public function create(Organization $organization, array $data): Campus
     {
-        if (! $this->enabled($organization)) { throw new DomainException('Multi-campus operations are not enabled for this organization.'); }
+        if (! $this->enabled($organization)) {
+            throw new DomainException('Multi-campus operations are not enabled for this organization.');
+        }
 
         return Campus::query()->create(['organization_id' => $organization->getKey(), ...$data]);
     }

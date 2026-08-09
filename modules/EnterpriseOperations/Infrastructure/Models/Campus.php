@@ -14,7 +14,16 @@ final class Campus extends Model
     use HasUuidPrimaryKey;
 
     protected $table = 'enterprise_campuses';
+
     protected $fillable = ['organization_id', 'code', 'name', 'timezone', 'address', 'settings', 'is_active'];
-    protected function casts(): array { return ['address' => 'array', 'settings' => 'array', 'is_active' => 'boolean']; }
-    public function organization(): BelongsTo { return $this->belongsTo(Organization::class); }
+
+    protected function casts(): array
+    {
+        return ['address' => 'array', 'settings' => 'array', 'is_active' => 'boolean'];
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
 }
