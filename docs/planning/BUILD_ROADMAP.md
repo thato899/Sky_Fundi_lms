@@ -92,6 +92,32 @@ Success is measured across five dimensions:
 
 **Exit evidence:** pilot onboarding completed, restore/incident process exercised, billing decisions documented, privacy/security review completed, production monitoring established, and pilot acceptance criteria met.
 
+## Enterprise roadmap — surpassing assessment-first platforms
+
+Sky Fundi will be the operating and learning-intelligence system for school groups: a trusted learner record from admission through intervention, family communication, compliance, and executive decision-making.
+
+| Horizon | Product promise | Build priorities |
+| --- | --- | --- |
+| Trusted school core | Accurate, permissioned, auditable records at scale. | Finish Phase 4; bulk import/export with previews; academic-year rollover; historical corrections; approval workflows; multi-campus-ready model. |
+| Learning intelligence | Explainable early-warning and intervention support. | Curriculum/standards map; mastery; cohort risk signals; intervention plans; moderated assessment; auditable AI copilot. |
+| Connected family experience | Relevant, privacy-safe information on a phone. | Guardian summaries; notification preferences; WhatsApp/email/SMS adapters; emergency messaging; appointments; multilingual portal. |
+| Enterprise operations | Group-wide control without losing campus autonomy. | Campus hierarchy; group dashboards; admissions; documents; HR/payroll integrations; APIs/webhooks; later finance/transport/library modules. |
+| Operational trust | Deploy, recover, secure, and support with confidence. | Staging/production automation; restore drills; observability; SSO/2FA; POPIA retention/export/deletion controls; incident runbooks. |
+
+### Differentiators to protect
+
+1. One organization-scoped learner record across attendance, timetable, assessment, reporting, interventions, and family communication.
+2. Explainable AI: source data, limitations, human approval, and audit history for every recommendation.
+3. Group → campus → grade → class visibility, delegated administration, bulk operations, and audit exports.
+4. Guardian privacy enforced through relationship, effective dates, communication preference, and publication state—not merely a login.
+5. South African readiness: POPIA controls, CAPS-first curriculum packs, multilingual communication, and SA-SAMS/LURITS integration discovery.
+
+### Next three deployable slices
+
+1. Complete guardian summaries and privacy-matrix automation.
+2. Academic rollover and bulk learner/staff import with dry-run, approval, errors, and rollback.
+3. Phase 5 staging, backup/restore evidence, observability, and SSO/2FA design.
+
 ## Environment promotion model
 
 | Environment | Purpose | Promotion gate |

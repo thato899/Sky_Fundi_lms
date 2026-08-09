@@ -22,7 +22,9 @@
 @if($guardian->relationships->isEmpty())<section class="panel" style="margin-top:1rem"><p class="empty">No current learner relationship is available. Your school links learners to your profile.</p></section>
 @else @foreach($guardian->relationships as $relationship)
 @php($summary=$academicSummaries[$relationship->learner->getKey()] ?? null)
+@php($family=$familySummaries[$relationship->learner->getKey()] ?? null)
 <section class="panel learner-card"><div class="head"><h3>{{ $relationship->learner->first_name }} {{ $relationship->learner->last_name }}</h3><span class="chip neutral">{{ ucfirst(str_replace('_',' ',$relationship->relationship_type)) }}</span></div>
+@if($family)<div class="score-line"><span class="meta">Finalized attendance</span><span class="chip neutral">{{ $family['attendance']['present'] ?? 0 }} present</span><span class="chip neutral">{{ $family['attendance']['absent'] ?? 0 }} absent</span></div><div class="score-line"><span class="meta">Coming up</span>@forelse($family['upcoming'] as $lesson)<span class="chip neutral">{{ $lesson->lesson_date->format('D') }} · {{ $lesson->subject?->name }}</span>@empty<span class="meta">No lessons in the next 7 days.</span>@endforelse</div>@endif
 @if(!$summary)<p class="empty">No released quiz summary yet — you will see results here the moment a teacher releases them.</p>
 @else
 <div class="score-line"><span class="chip">{{ $summary->assessment->subject?->name }}</span><strong>{{ $summary->assessment->title }}</strong></div>
