@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Learners\Http\Controllers\Api\V1\GuardianController;
 use Modules\Learners\Http\Controllers\Api\V1\GuardianInvitationController;
 use Modules\Learners\Http\Controllers\Api\V1\LearnerController;
+use Modules\Learners\Http\Controllers\Api\V1\LearnerInvitationController;
 
 Route::middleware(['auth:sanctum', 'account.not-locked', 'organization.context'])
     ->prefix('learners')
@@ -22,6 +23,9 @@ Route::middleware(['auth:sanctum', 'account.not-locked', 'organization.context']
             Route::post('/{learner}/archive', [LearnerController::class, 'archive'])->name('archive');
             Route::post('/{learner}/restore', [LearnerController::class, 'restore'])->name('restore');
             Route::get('/{learner}/status-history', [LearnerController::class, 'statusHistory'])->name('status-history');
+            Route::post('/{learner}/invitations', [LearnerInvitationController::class, 'store'])->middleware('throttle:6,1')->name('invitations.store');
+            Route::post('/{learner}/invitations/{invitation}/resend', [LearnerInvitationController::class, 'resend'])->middleware('throttle:3,1')->name('invitations.resend');
+            Route::post('/{learner}/invitations/{invitation}/revoke', [LearnerInvitationController::class, 'revoke'])->name('invitations.revoke');
         });
     });
 
