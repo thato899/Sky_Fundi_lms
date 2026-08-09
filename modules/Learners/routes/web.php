@@ -5,8 +5,8 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Modules\Learners\Http\Controllers\Web\GuardianInvitationController;
 use Modules\Learners\Http\Controllers\Web\GuardianWebController;
-use Modules\Learners\Http\Controllers\Web\LearnerWebController;
 use Modules\Learners\Http\Controllers\Web\LearnerInvitationController;
+use Modules\Learners\Http\Controllers\Web\LearnerWebController;
 
 Route::middleware(['auth', 'account.not-locked', 'organization.context'])->prefix('learners')->name('learners.')->group(function (): void {
     Route::get('/', [LearnerWebController::class, 'index'])->name('index');
