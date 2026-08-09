@@ -28,6 +28,7 @@ final class EnterpriseOperationService
         }
 
         $run->update(['status' => 'approved', 'approved_by' => $actor->getKey(), 'approved_at' => now()]);
+
         return $run->refresh();
     }
 
@@ -43,6 +44,7 @@ final class EnterpriseOperationService
         }
 
         $run->update(['status' => 'executed', 'result' => $result, 'executed_at' => now()]);
+
         return $run->refresh();
     }
 }
