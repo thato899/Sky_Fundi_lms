@@ -20,8 +20,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('learner_enrolments', function (Blueprint $table): void {
+            $table->dropForeign(['enterprise_operation_run_id']);
             $table->dropIndex('enrolment_operation_learner_idx');
-            $table->dropConstrainedForeignId('enterprise_operation_run_id');
+            $table->dropColumn('enterprise_operation_run_id');
         });
     }
 };
