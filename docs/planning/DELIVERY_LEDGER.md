@@ -29,7 +29,7 @@ The ordered path from this baseline to a production-ready release is in [the bui
 
 ## Phase 1 — learner invitation and onboarding
 
-**Status:** in progress. The first vertical slice adds the learner invitation service, admin send action, public acceptance routes/views, API controls, and learner-specific invitation permission. Verification evidence will be recorded only after the branch checks complete.
+**Status:** shipped on `main` through PR #50 (`9100dcf`, 2026-08-09). GitHub Actions completed the full test suite and Pint checks successfully.
 
 **Outcome:** an authorized organization administrator can invite a learner to activate their own portal account through a secure, understandable, accessible onboarding journey.
 
@@ -54,9 +54,19 @@ The ordered path from this baseline to a production-ready release is in [the bui
 
 **Deployment gate:** a migration-forward/rollback check, locked dependency installation, targeted invitation tests, full test suite, Pint, PHPStan for changed production code, health check, and a documented feature-flag/rollout decision if backward compatibility requires one.
 
-**Verification evidence:** not yet executed for this phase.
+**Verification evidence:** GitHub Actions runs `31321345100` (tests) and `31321347581` (Pint) completed successfully before merge. The stage has no database migration; it reuses the existing organization-scoped membership invitation storage and rollback posture.
 
 **Follow-ups after completion:** invitation administration bulk tooling only if evidence supports it; learner portal attendance/timetable slices; deployment automation and restore validation remain separate stages.
+
+## Phase 2 — teaching assignment administration
+
+**Status:** in progress.
+
+**Outcome:** authorized organization administrators can see, add, and end a staff member's class/subject coverage through a clear web journey or tenant-safe API. This exposes the already-integrated enforcement layer used by attendance, assessment, and scheduling work.
+
+**Scope:** teaching-assignment web management surface, scoped API endpoints/resource, explicit permission gates, helpful assignment states, and organization-safe record resolution. No migration is required because the `staff_teaching_assignments` schema and service shipped in the baseline.
+
+**Deployment gate:** full test suite and Pint in GitHub Actions; verify API and web route registration, tenant boundaries, and unchanged existing enforcement tests. Rollback is application-only: remove the routes/controllers/views without touching assignment data.
 
 ## Updating this ledger
 
