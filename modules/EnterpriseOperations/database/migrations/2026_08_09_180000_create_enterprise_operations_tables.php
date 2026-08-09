@@ -24,7 +24,7 @@ return new class extends Migration
             $table->timestamp('executed_at')->nullable();
             $table->timestamp('rolled_back_at')->nullable();
             $table->timestamps();
-            $table->index(['organization_id', 'operation_type', 'status']);
+            $table->index(['organization_id', 'operation_type', 'status'], 'ent_ops_org_type_status_idx');
         });
     }
 
