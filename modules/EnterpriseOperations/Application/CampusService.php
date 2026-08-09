@@ -14,9 +14,7 @@ final class CampusService
 {
     public const FLAG = 'enterprise.multi_campus';
 
-    public function __construct(private readonly FeatureFlagService $flags)
-    {
-    }
+    public function __construct(private readonly FeatureFlagService $flags) {}
 
     public function enabled(Organization $organization): bool
     {

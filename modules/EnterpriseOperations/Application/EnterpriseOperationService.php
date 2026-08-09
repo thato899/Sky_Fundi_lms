@@ -34,10 +34,12 @@ final class EnterpriseOperationService
     public function recordExecution(EnterpriseOperationRun $run, array $result): EnterpriseOperationRun
     {
         $status = $run->getAttribute('status');
-        if ($status !== 'approved') {
-            if ($status !== 'executing') {
+        switch ($status) {
+            case 'approved':
+            case 'executing':
+                break;
+            default:
                 throw new DomainException('An operation must be approved before execution.');
-            }
         }
 
         $run->update(['status' => 'executed', 'result' => $result, 'executed_at' => now()]);
