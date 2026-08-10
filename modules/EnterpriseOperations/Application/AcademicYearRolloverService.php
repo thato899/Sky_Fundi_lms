@@ -182,7 +182,7 @@ final class AcademicYearRolloverService
             throw new DomainException('Select two different academic years belonging to this organization.');
         }
 
-return [$source, $destination];
+        return [$source, $destination];
     }
 
     /** @return array<string, mixed> */
@@ -204,7 +204,7 @@ return [$source, $destination];
             $class = null;
         }
 
-return ['learner_id' => $learner->getKey(), 'learner_name' => trim($learner->getAttribute('first_name').' '.$learner->getAttribute('last_name')), 'current' => ['year_id' => $source->getKey(), 'grade_id' => $current?->getKey(), 'class_id' => $learner->getAttribute('current_class_id')], 'proposed' => ['grade_id' => $grade?->getKey(), 'class_id' => $class?->getKey(), 'curriculum_id' => $grade?->getAttribute('curriculum_id')], 'status' => $status, 'reason' => $status === 'blocked' ? 'A valid destination grade is required.' : ($status === 'warning' ? 'Destination class has not been assigned.' : null), 'retained' => $retained];
+        return ['learner_id' => $learner->getKey(), 'learner_name' => trim($learner->getAttribute('first_name').' '.$learner->getAttribute('last_name')), 'current' => ['year_id' => $source->getKey(), 'grade_id' => $current?->getKey(), 'class_id' => $learner->getAttribute('current_class_id')], 'proposed' => ['grade_id' => $grade?->getKey(), 'class_id' => $class?->getKey(), 'curriculum_id' => $grade?->getAttribute('curriculum_id')], 'status' => $status, 'reason' => $status === 'blocked' ? 'A valid destination grade is required.' : ($status === 'warning' ? 'Destination class has not been assigned.' : null), 'retained' => $retained];
     }
 
     private function grade(string $organizationId, ?string $id): ?Grade
@@ -237,7 +237,7 @@ return ['learner_id' => $learner->getKey(), 'learner_name' => trim($learner->get
             }
         }
 
-return $counts;
+        return $counts;
     }
 
     /** @param list<string> $allowed */
