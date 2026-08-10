@@ -16,14 +16,13 @@ final class AcademicYearRolloverController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(private readonly AcademicYearRolloverService $rollovers)
-    {
-    }
+    public function __construct(private readonly AcademicYearRolloverService $rollovers) {}
 
     public function dryRun(Request $request): JsonResponse
     {
         $organization = $this->organization($request);
         $data = $request->validate(['source_year_id' => ['required', 'uuid'], 'destination_year_id' => ['required', 'uuid'], 'rules' => ['required', 'array'], 'activate_destination' => ['boolean']]);
+
         return $this->created($this->rollovers->dryRun($organization, $request->user(), $data));
     }
 
@@ -66,6 +65,7 @@ final class AcademicYearRolloverController extends Controller
     {
         $this->guard($request, $run);
         $data = $request->validate(['grade_id' => ['required', 'uuid'], 'class_id' => ['nullable', 'uuid'], 'reason' => ['nullable', 'string', 'max:1000']]);
+
         return $this->ok($this->rollovers->override($run, $request->user(), $learnerId, $data));
     }
 
