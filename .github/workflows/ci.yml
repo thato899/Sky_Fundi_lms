@@ -5,7 +5,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -17,8 +17,6 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref || github.ref }}
 
       - name: Prepare environment
         run: cp .env.example .env
@@ -36,19 +34,7 @@ jobs:
         run: docker compose exec -T app php artisan test
 
       - name: Run Pint
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            docker compose exec -T app ./vendor/bin/pint
-            if ! git diff --quiet; then
-              git config user.name "github-actions[bot]"
-              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-              git add -A
-              git commit -m "Apply Pint formatting"
-              git push origin HEAD:${{ github.head_ref }}
-            fi
-          else
-            docker compose exec -T app ./vendor/bin/pint --test
-          fi
+        run: docker compose exec -T app ./vendor/bin/pint --test
 
       - name: Run PHPStan
         run: make analyse
