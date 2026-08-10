@@ -15,7 +15,13 @@ final class EnterpriseOperationsPermissionSeeder extends Seeder
 
     public function run(RoleService $roles): void
     {
-        foreach (self::PERMISSIONS as $permission) { $roles->registerPermission($permission, 'enterprise-operations', str_replace(['enterprise_operations.', '_'], ['', ' '], ucfirst($permission))); }
-        foreach (['Super Admin', 'Organization Administrator'] as $name) { $role = Role::query()->firstOrCreate(['name' => $name], ['is_system' => $name === 'Super Admin']); $role->permissions()->syncWithoutDetaching(Permission::query()->whereIn('name', self::PERMISSIONS)->pluck('id')); }
+        foreach (self::PERMISSIONS as $permission) {
+            $roles->registerPermission($permission, 'enterprise-operations', str_replace(['enterprise_operations.', '_'], ['', ' '], ucfirst($permission)));
+        }
+
+        foreach (['Super Admin', 'Organization Administrator'] as $name) {
+            $role = Role::query()->firstOrCreate(['name' => $name], ['is_system' => $name === 'Super Admin']);
+            $role->permissions()->syncWithoutDetaching(Permission::query()->whereIn('name', self::PERMISSIONS)->pluck('id'));
+        }
     }
 }
