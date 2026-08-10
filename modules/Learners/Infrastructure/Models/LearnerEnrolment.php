@@ -22,7 +22,7 @@ final class LearnerEnrolment extends Model
 
     protected $fillable = [
         'organization_id', 'learner_profile_id', 'academic_year_id', 'grade_id',
-        'class_id', 'curriculum_id', 'started_on', 'ended_on', 'actor_id',
+        'class_id', 'curriculum_id', 'started_on', 'ended_on', 'actor_id', 'enterprise_operation_run_id',
     ];
 
     protected function casts(): array
