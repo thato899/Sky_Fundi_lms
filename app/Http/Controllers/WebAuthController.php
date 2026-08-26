@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 
 use App\Application\PostLoginDestinationResolver;
 use Core\Auth\Application\AuthService;
+use Core\Auth\Application\TwoFactorLoginService;
+use Core\Auth\Domain\Enums\TwoFactorStatus;
 use Core\Auth\Exceptions\AccountNotActiveException;
 use Core\Branding\Application\BrandingService;
 use Illuminate\Contracts\View\View;
@@ -20,6 +22,7 @@ final class WebAuthController
         private readonly AuthService $auth,
         private readonly BrandingService $branding,
         private readonly PostLoginDestinationResolver $destinations,
+        private readonly TwoFactorLoginService $twoFactorLogin,
     ) {}
 
     public function create(): View
@@ -45,6 +48,21 @@ final class WebAuthController
             throw ValidationException::withMessages([
                 'email' => ['These credentials could not be accepted.'],
             ]);
+        }
+
+        $status = $this->twoFactorLogin->status($user);
+        if ($status !== TwoFactorStatus::NotRequired) {
+            // Not Auth::login() yet — the session only remembers which
+            // user passed the password check, gated behind the 'guest'
+            // middleware exactly like the login form itself, until the
+            // second factor is verified (or, for SetupRequired, enrolled)
+            // by TwoFactorChallengeController / TwoFactorSetupController.
+            $request->session()->put('two_factor.pending_user_id', $user->getKey());
+            $request->session()->put('two_factor.remember', (bool) ($credentials['remember'] ?? false));
+
+            return redirect()->route($status === TwoFactorStatus::ChallengeRequired
+                ? 'two-factor.challenge.create'
+                : 'two-factor.setup.create');
         }
 
         Auth::login($user, (bool) ($credentials['remember'] ?? false));

@@ -74,6 +74,8 @@ final class User extends Model implements AuthenticatableContract, AuthorizableC
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     protected function casts(): array
@@ -86,7 +88,18 @@ final class User extends Model implements AuthenticatableContract, AuthorizableC
             'password_changed_at' => 'datetime',
             'locked_at' => 'datetime',
             'failed_login_attempts' => 'integer',
+            // Encrypted at rest with APP_KEY — see
+            // Core\Auth\Application\TwoFactorAuthenticationService, the
+            // only place these columns are read or written.
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    public function hasTwoFactorEnabled(): bool
+    {
+        return $this->getAttribute('two_factor_confirmed_at') !== null;
     }
 
     protected static function newFactory(): UserFactory
