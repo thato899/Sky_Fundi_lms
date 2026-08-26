@@ -17,7 +17,9 @@
 .detail-list-inline div dd{margin:0;font-weight:600}
 </style>
 <div class="portal-wrap">
-<div class="learner-heading"><div><div class="eyebrow">Guardian portal</div><h1>Welcome, {{ $guardian->first_name }} {{ $guardian->last_name }}</h1><p>Released results and approved study plans for your linked learners appear here as soon as teachers share them.</p></div></div>
+<div class="learner-heading"><div><div class="eyebrow">Guardian portal</div><h1>Welcome, {{ $guardian->first_name }} {{ $guardian->last_name }}</h1><p>Released results and approved study plans for your linked learners appear here as soon as teachers share them.</p>
+@if($guardian->relationships->contains(fn($relationship) => $relationship->receives_financial_communication))<p><a href="{{ route('guardians.invoices.index', $guardian->uuid) }}">View billing and invoices →</a></p>@endif
+</div></div>
 <section class="panel"><h2>Contact preferences</h2><dl class="detail-list-inline">@foreach([['Email',$guardian->email],['Phone',$guardian->phone],['Preferred channel',ucfirst($guardian->preferred_communication_channel)]] as [$label,$value])<div><dt>{{ $label }}</dt><dd>{{ $value ?: 'Not provided' }}</dd></div>@endforeach</dl></section>
 @if($guardian->relationships->isEmpty())<section class="panel" style="margin-top:1rem"><p class="empty">No current learner relationship is available. Your school links learners to your profile.</p></section>
 @else @foreach($guardian->relationships as $relationship)
