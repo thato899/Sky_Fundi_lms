@@ -23,6 +23,8 @@ Route::middleware(['auth:sanctum', 'account.not-locked', 'organization.context']
             Route::post('/{learner}/archive', [LearnerController::class, 'archive'])->name('archive');
             Route::post('/{learner}/restore', [LearnerController::class, 'restore'])->name('restore');
             Route::get('/{learner}/status-history', [LearnerController::class, 'statusHistory'])->name('status-history');
+            Route::get('/{learner}/enrolment-history', [LearnerController::class, 'enrolmentHistory'])->name('enrolment-history');
+            Route::patch('/{learner}/enrolment-history/{enrolment}', [LearnerController::class, 'correctEnrolment'])->name('enrolment-history.update');
             Route::post('/{learner}/invitations', [LearnerInvitationController::class, 'store'])->middleware('throttle:6,1')->name('invitations.store');
             Route::post('/{learner}/invitations/{invitation}/resend', [LearnerInvitationController::class, 'resend'])->middleware('throttle:3,1')->name('invitations.resend');
             Route::post('/{learner}/invitations/{invitation}/revoke', [LearnerInvitationController::class, 'revoke'])->name('invitations.revoke');

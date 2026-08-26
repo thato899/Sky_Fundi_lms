@@ -1,7 +1,7 @@
 @extends('staff.layout')
 @section('title', 'Staff management')
 @section('staff-content')
-<h1>Staff management</h1><p>Search and manage staff in the active organization.</p>
+<h1>Staff management</h1><p>Search and manage staff in the active organization.@if(in_array('teaching_assignments.view',$permissions,true)) <a href="{{ route('teaching-assignments.index') }}">View all teaching assignments →</a>@endif</p>
 <form method="GET" action="{{ route('staff.index') }}" class="filters">
     <input name="search" value="{{ request('search') }}" placeholder="Search staff" aria-label="Search staff">
     <select name="department_id" aria-label="Department"><option value="">All departments</option>@foreach($departments as $department)<option value="{{ $department->id }}" @selected(request('department_id') === $department->id)>{{ $department->name }}</option>@endforeach</select>

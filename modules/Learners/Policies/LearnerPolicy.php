@@ -79,6 +79,16 @@ final class LearnerPolicy
         return $this->allows($user, 'learners.view_status_history', $learner);
     }
 
+    public function viewEnrolmentHistory(User $user, LearnerProfile $learner): bool
+    {
+        return $this->allows($user, 'learners.view_enrolment_history', $learner);
+    }
+
+    public function correctEnrolment(User $user, LearnerProfile $learner): bool
+    {
+        return $this->allows($user, 'learners.correct_enrolment', $learner);
+    }
+
     public function overrideNumber(User $user): bool
     {
         return $this->allows($user, 'learners.override_number');

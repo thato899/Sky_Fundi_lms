@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Learners\Application;
 
+use Core\AuditLogs\Application\AuditLogService;
+use Core\Support\Exceptions\DomainException;
 use Core\Users\Infrastructure\Models\User;
 use DateTimeInterface;
 use Modules\Learners\Infrastructure\Models\LearnerEnrolment;
@@ -17,6 +19,8 @@ final class LearnerEnrolmentService
         'current_class_id' => 'class_id',
         'curriculum_id' => 'curriculum_id',
     ];
+
+    public function __construct(private readonly AuditLogService $audit) {}
 
     /**
      * Reconcile the enrolment timeline with the learner's saved placement.
@@ -90,6 +94,61 @@ final class LearnerEnrolmentService
             ->unique()
             ->values()
             ->all();
+    }
+
+    /**
+     * Correct a historical enrolment record — for fixing data-entry errors
+     * in the timeline, not for routine placement changes (those flow
+     * through syncFromPlacement). Rejects a corrected range that would
+     * overlap another enrolment row for the same learner and audits the
+     * before/after state.
+     *
+     * @param  array<string, string|null>  $data  any of academic_year_id, grade_id, class_id, curriculum_id, started_on, ended_on
+     */
+    public function correct(LearnerEnrolment $enrolment, User $actor, array $data): LearnerEnrolment
+    {
+        $before = $enrolment->only(['academic_year_id', 'grade_id', 'class_id', 'curriculum_id', 'started_on', 'ended_on']);
+
+        $startedOn = array_key_exists('started_on', $data) && $data['started_on'] !== null
+            ? $data['started_on']
+            : $enrolment->getAttribute('started_on')?->toDateString();
+        $endedOn = array_key_exists('ended_on', $data) ? $data['ended_on'] : $enrolment->getAttribute('ended_on')?->toDateString();
+
+        if ($startedOn === null) {
+            throw new DomainException('A start date is required.');
+        }
+        if ($endedOn !== null && $endedOn < $startedOn) {
+            throw new DomainException('The end date cannot be before the start date.');
+        }
+
+        $overlaps = LearnerEnrolment::query()
+            ->where('learner_profile_id', $enrolment->getAttribute('learner_profile_id'))
+            ->where('id', '!=', $enrolment->getKey())
+            ->where(fn ($query) => $query->whereNull('ended_on')->orWhereDate('ended_on', '>=', $startedOn))
+            ->when($endedOn !== null, fn ($query) => $query->whereDate('started_on', '<=', $endedOn))
+            ->exists();
+        if ($overlaps) {
+            throw new DomainException('The corrected date range overlaps another enrolment record for this learner.');
+        }
+
+        foreach (['academic_year_id', 'grade_id', 'class_id', 'curriculum_id'] as $column) {
+            if (array_key_exists($column, $data)) {
+                $enrolment->setAttribute($column, $data[$column]);
+            }
+        }
+        $enrolment->setAttribute('started_on', $startedOn);
+        $enrolment->setAttribute('ended_on', $endedOn);
+        $enrolment->setAttribute('actor_id', $actor->getKey());
+        $enrolment->save();
+
+        $this->audit->record(
+            'learners.enrolment_corrected',
+            $enrolment,
+            before: $before,
+            after: $enrolment->refresh()->only(['academic_year_id', 'grade_id', 'class_id', 'curriculum_id', 'started_on', 'ended_on']),
+        );
+
+        return $enrolment;
     }
 
     /** @return array<string, string|null> */
