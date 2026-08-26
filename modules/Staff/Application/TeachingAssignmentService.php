@@ -95,6 +95,43 @@ final class TeachingAssignmentService
         }, 3);
     }
 
+    /**
+     * Best-effort bulk assignment for organization-wide admin tooling: each
+     * row is attempted independently through the same validation and
+     * duplicate/audit path as assign(), so one invalid row never blocks the
+     * rest of the batch.
+     *
+     * @param  list<array{staff_profile_id?: mixed, class_id?: mixed, subject_id?: mixed, academic_year_id?: mixed, started_on?: mixed}>  $rows
+     * @return array{created: list<TeachingAssignment>, failed: list<array{index: int, staff_profile_id: string|null, class_id: string|null, message: string}>}
+     */
+    public function assignMany(Organization $organization, array $rows, User $actor): array
+    {
+        $created = [];
+        $failed = [];
+        foreach ($rows as $index => $row) {
+            $staffId = $row['staff_profile_id'] ?? null;
+            try {
+                if (! is_string($staffId) || $staffId === '') {
+                    throw new DomainException('A staff member is required.');
+                }
+                $staff = StaffProfile::query()->where('organization_id', $organization->getKey())->find($staffId);
+                if (! $staff instanceof StaffProfile) {
+                    throw new DomainException('The staff member must belong to the active organization.');
+                }
+                $created[] = $this->assign($organization, $staff, $row, $actor);
+            } catch (DomainException $exception) {
+                $failed[] = [
+                    'index' => $index,
+                    'staff_profile_id' => is_string($staffId) ? $staffId : null,
+                    'class_id' => is_string($row['class_id'] ?? null) ? $row['class_id'] : null,
+                    'message' => $exception->getMessage(),
+                ];
+            }
+        }
+
+        return ['created' => $created, 'failed' => $failed];
+    }
+
     public function end(TeachingAssignment $assignment, User $actor): TeachingAssignment
     {
         if ($assignment->getAttribute('ended_on') !== null) {

@@ -4,7 +4,13 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Modules\Staff\Http\Controllers\Web\StaffController;
+use Modules\Staff\Http\Controllers\Web\TeachingAssignmentAdminController;
 use Modules\Staff\Http\Controllers\Web\TeachingAssignmentController;
+
+Route::middleware(['auth', 'account.not-locked', 'organization.context'])->prefix('teaching-assignments')->name('teaching-assignments.')->group(function (): void {
+    Route::get('/', [TeachingAssignmentAdminController::class, 'index'])->name('index');
+    Route::post('/bulk', [TeachingAssignmentAdminController::class, 'bulkStore'])->name('bulk');
+});
 
 Route::middleware(['auth', 'account.not-locked', 'organization.context'])->prefix('staff')->name('staff.')->group(function (): void {
     Route::get('/', [StaffController::class, 'index'])->name('index');
