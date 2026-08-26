@@ -6,6 +6,7 @@ namespace App\Application;
 
 use Core\Identity\Infrastructure\Models\Membership;
 use Core\Licensing\Infrastructure\Models\License;
+use Core\Subscriptions\Infrastructure\Models\Plan;
 use Core\Subscriptions\Infrastructure\Models\Subscription;
 use Modules\Assessments\Infrastructure\Models\AiGradingRequest;
 use Modules\Assessments\Infrastructure\Models\Assessment;
@@ -23,7 +24,9 @@ final class HackathonSubscriptionService
         $subscription = Subscription::query()->where('subscriber_type', Organization::class)->where('subscriber_id', $id)->latest()->first();
         $license = License::query()->where('licensee_type', Organization::class)->where('licensee_id', $id)->latest()->first();
         $planKey = strtolower((string) ($subscription?->getAttribute('plan') ?? 'growth'));
-        $plan = config("hackathon.plans.{$planKey}", config('hackathon.plans.growth'));
+        $plans = Plan::query()->where('is_active', true)->orderBy('price')->get()->mapWithKeys(fn (Plan $candidate) => [$candidate->key => $this->planArray($candidate)]);
+        $fallbackPlan = Plan::findByKey('growth');
+        $plan = $plans->get($planKey) ?? ($fallbackPlan !== null ? $this->planArray($fallbackPlan) : null) ?? ['name' => 'Growth', 'price' => 1499.00, 'learners' => 500, 'staff' => 25, 'ai_allowance' => 500];
         $ai = AiGradingRequest::query()->where('organization_id', $id)->where('status', 'completed')->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()]);
         $aiCost = (float) (clone $ai)->sum('estimated_cost');
         $revenue = (float) (($subscription?->getAttribute('metadata')['monthly_price'] ?? null) ?? $plan['price']);
@@ -34,7 +37,7 @@ final class HackathonSubscriptionService
             'subscription' => $subscription,
             'license' => $license,
             'plan' => $plan,
-            'plans' => config('hackathon.plans'),
+            'plans' => $plans->toArray(),
             'usage' => [
                 'learners' => LearnerProfile::query()->where('organization_id', $id)->whereNull('archived_at')->count(),
                 'staff' => StaffProfile::query()->where('organization_id', $id)->where('employment_status', 'active')->count(),
@@ -50,6 +53,20 @@ final class HackathonSubscriptionService
                 'submissions' => QuizAttempt::query()->where('organization_id', $id)->whereNotNull('submitted_at')->count(),
                 'study_plans' => QuizStudyPlan::query()->where('organization_id', $id)->count(),
             ],
+        ];
+    }
+
+    /**
+     * @return array{name: string, price: float, learners: ?int, staff: ?int, ai_allowance: ?int}
+     */
+    private function planArray(Plan $plan): array
+    {
+        return [
+            'name' => $plan->name,
+            'price' => (float) $plan->price,
+            'learners' => $plan->max_learners,
+            'staff' => $plan->max_staff,
+            'ai_allowance' => $plan->ai_allowance,
         ];
     }
 }

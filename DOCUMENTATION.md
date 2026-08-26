@@ -68,9 +68,9 @@ Onboarded through secure, expiring email invitations. The portal shows only thei
 ```
 app/        Thin web host: entry, auth, dashboards, persona navigation
 core/       Platform services: Auth, RBAC, Identity, AI Gateway, Notifications,
-            Settings, Audit Logs, Licensing, Subscriptions, Health, ...
+            Settings, Audit Logs, Licensing, Subscriptions, Billing, Health, ...
 modules/    Bounded contexts: Academics, Learners, Staff, Assessments,
-            Attendance, Reports, Scheduling, Organizations
+            Attendance, Reports, Scheduling, Organizations, Materials
 ```
 
 Each module is clean-architecture layered (Domain / Application / Http / Infrastructure), owns its migrations and tests, declares its dependencies and permissions in a manifest, and exposes a versioned `/api/v1` REST surface that the Blade UI consumes. Cross-cutting concerns (AI, notifications, settings, audit) are only reached through `core/` gateways. Start with the [architecture overview](docs/architecture/overview.md) and the [decision records](docs/adr/README.md).

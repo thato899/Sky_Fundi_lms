@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\BillingController;
 use App\Http\Controllers\HackathonSubscriptionController;
 use App\Http\Controllers\OrganizationDashboardController;
 use App\Http\Controllers\SuperAdminController;
@@ -37,6 +38,11 @@ Route::middleware(['auth', 'account.not-locked'])->group(function (): void {
     Route::get('/subscription', HackathonSubscriptionController::class)
         ->middleware('organization.context')
         ->name('subscription.dashboard');
+    Route::middleware('organization.context')->prefix('billing')->name('billing.')->group(function (): void {
+        Route::get('/', [BillingController::class, 'index'])->name('dashboard');
+        Route::post('/subscribe', [BillingController::class, 'subscribe'])->name('subscribe');
+        Route::post('/invoices/{invoice}/pay', [BillingController::class, 'payInvoice'])->name('invoices.pay');
+    });
 });
 
 Route::middleware(['auth', 'account.not-locked', 'permission:core.roles.manage'])->prefix('super-admin')->name('super-admin.')->group(function (): void {

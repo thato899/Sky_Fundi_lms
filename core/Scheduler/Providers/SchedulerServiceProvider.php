@@ -8,6 +8,7 @@ use Core\Scheduler\Console\CleanAiCacheCommand;
 use Core\Scheduler\Console\CleanQueueCommand;
 use Core\Scheduler\Console\CleanTemporaryFilesCommand;
 use Core\Scheduler\Console\RunHealthChecksCommand;
+use Core\Scheduler\Console\SweepOverdueInvoicesCommand;
 use Core\Scheduler\Console\ValidateLicensesCommand;
 use Core\Scheduler\Console\ValidateSubscriptionsCommand;
 use Illuminate\Console\Scheduling\Schedule;
@@ -33,6 +34,7 @@ final class SchedulerServiceProvider extends ServiceProvider
                 RunHealthChecksCommand::class,
                 ValidateLicensesCommand::class,
                 ValidateSubscriptionsCommand::class,
+                SweepOverdueInvoicesCommand::class,
             ]);
         }
 
@@ -42,6 +44,8 @@ final class SchedulerServiceProvider extends ServiceProvider
             $schedule->command('platform:health-check')->hourly()->withoutOverlapping();
             $schedule->command('platform:validate-licenses')->daily()->withoutOverlapping();
             $schedule->command('platform:validate-subscriptions')->daily()->withoutOverlapping();
+            $schedule->command('platform:generate-invoices')->monthlyOn(1, '02:00')->withoutOverlapping();
+            $schedule->command('platform:sweep-overdue-invoices')->daily()->withoutOverlapping();
             $schedule->command('platform:clean-temp')->daily()->withoutOverlapping();
             $schedule->command('platform:clean-queue')->weekly()->withoutOverlapping();
             $schedule->command('platform:clean-ai-cache')->daily()->withoutOverlapping();

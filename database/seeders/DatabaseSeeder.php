@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use Core\Billing\Database\Seeders\BillingPermissionSeeder;
+use Core\Subscriptions\Database\Seeders\PlansSeeder;
 use Illuminate\Database\Seeder;
 use Modules\Academics\Database\Seeders\AcademicsPermissionSeeder;
 use Modules\Assessments\Database\Seeders\AssessmentsPermissionSeeder;
 use Modules\Attendance\Database\Seeders\AttendancePermissionSeeder;
 use Modules\Learners\Database\Seeders\LearnersPermissionSeeder;
+use Modules\Materials\Database\Seeders\MaterialsPermissionSeeder;
 use Modules\Reports\Database\Seeders\ReportsPermissionSeeder;
 use Modules\Scheduling\Database\Seeders\SchedulingPermissionSeeder;
 use Modules\Staff\Database\Seeders\StaffPermissionSeeder;
@@ -26,15 +29,18 @@ final class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             RoleSeeder::class,
             OrganizationDashboardPermissionSeeder::class,
+            BillingPermissionSeeder::class,
             AcademicsPermissionSeeder::class,
             StaffPermissionSeeder::class,
             LearnersPermissionSeeder::class,
+            MaterialsPermissionSeeder::class,
             AttendancePermissionSeeder::class,
             AssessmentsPermissionSeeder::class,
             ReportsPermissionSeeder::class,
             SchedulingPermissionSeeder::class,
             SettingsSeeder::class,
             BrandingSeeder::class,
+            PlansSeeder::class,
             SuperAdminUserSeeder::class,
         ]);
     }

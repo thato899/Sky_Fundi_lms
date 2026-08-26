@@ -1,8 +1,18 @@
 @extends('learners.layout')
 @section('title','Learner profile')
 @section('learner-content')
-@if(in_array('learners.invite',$permissions,true) && $learner->learner_status->value==='active' && ! $learner->portal_access_enabled)
-<section class="panel" style="margin-bottom:1rem"><h2>Invite to learner portal</h2><p>Send a secure, one-time onboarding link. It expires after seven days.</p>@if($learner->learner_email)<form method="POST" action="{{ route('learners.invitations.store',$learner->uuid) }}" class="learner-form">@csrf<div class="wide"><label for="learner_invitation_email">Learner email</label><input id="learner_invitation_email" type="email" name="email" value="{{ $learner->learner_email }}" required autocomplete="email"></div><div><button type="submit">Send invitation</button></div></form>@else<p class="empty">Add a learner email address before sending an invitation.</p>@endif</section>
+@if(in_array('learners.invite',$permissions,true) && $learner->learner_status->value==='active')
+<section class="panel" style="margin-bottom:1rem"><h2>Learner portal invitation</h2>
+@php($invitation=$learner->organizationMembership)
+@if($learner->portal_access_enabled)
+<p class="empty">This learner already has active portal access.</p>
+@elseif($invitation && $invitation->status->value==='invited')
+<dl class="detail-list"><div><dt>Status</dt><dd>{{ ucfirst($invitation->status->value) }}</dd></div><div><dt>Sent</dt><dd>{{ $invitation->invitation_sent_at?->toDayDateTimeString() ?: 'Not sent' }}</dd></div><div><dt>Expires</dt><dd>{{ $invitation->invitation_expires_at?->toDayDateTimeString() ?: 'Not applicable' }}</dd></div></dl>
+<div class="actions-inline"><form method="POST" action="{{ route('learners.invitations.resend',[$learner->uuid,$invitation->id]) }}">@csrf<button type="submit">Resend invitation</button></form><form method="POST" action="{{ route('learners.invitations.revoke',[$learner->uuid,$invitation->id]) }}">@csrf<button type="submit" class="danger">Revoke invitation</button></form></div>
+@else
+<p>Send a secure, one-time onboarding link. It expires after seven days.</p>@if($learner->learner_email)<form method="POST" action="{{ route('learners.invitations.store',$learner->uuid) }}" class="learner-form">@csrf<div class="wide"><label for="learner_invitation_email">Learner email</label><input id="learner_invitation_email" type="email" name="email" value="{{ $learner->learner_email }}" required autocomplete="email"></div><div><button type="submit">Send invitation</button></div></form>@else<p class="empty">Add a learner email address before sending an invitation.</p>@endif
+@endif
+</section>
 @endif
 @if(in_array('reports.view', $permissions ?? [], true))<p><a href="{{ route('learners.report-cards', $learner->uuid) }}">View report-card history</a></p>@endif
 @if(in_array('scheduling.view', $permissions ?? [], true) && $learner->current_class_id)<p><a href="{{ route('scheduling.timetable',['class_id'=>$learner->current_class_id]) }}">View class timetable</a></p>@endif

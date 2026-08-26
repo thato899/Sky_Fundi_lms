@@ -11,3 +11,5 @@ Accepted decisions describe the implementation as of 2026-07-16. Supersede an AD
 - [ADR-007 Reports Design](007-reports-design.md)
 - [ADR-008 Historical Enrolment](008-historical-enrolment.md)
 - [ADR-009 Teaching Assignments](009-teaching-assignments.md)
+- [ADR-010 PayFast Payment Gateway](010-payfast-payment-gateway.md)
+- [ADR-011 Materials Module and Retrieval Design](011-materials-retrieval.md)

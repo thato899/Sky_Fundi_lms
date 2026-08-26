@@ -19,7 +19,8 @@ The Sky Fundi Platform Core — infrastructure and cross-cutting services every 
 
 ### Commercial
 - **Licensing** — enterprise license tiers, entitlements, and lifecycle (Trial → Starter → Professional → Enterprise → Government → Custom) ([Licensing/README.md](Licensing/README.md))
-- **Subscriptions** — billing cycles, grace periods, renewal/suspension/reactivation, usage tracking ([Subscriptions/README.md](Subscriptions/README.md))
+- **Subscriptions** — billing cycles, grace periods, renewal/suspension/reactivation, usage tracking, the plan catalog ([Subscriptions/README.md](Subscriptions/README.md))
+- **Billing** — the PayFast payment gateway integration, checkout, webhook-verified payments, and usage-linked invoicing ([Billing/README.md](Billing/README.md); see [ADR-010](../docs/adr/010-payfast-payment-gateway.md))
 
 ### Deployment & Operations
 - **Deployment** — deployment profile metadata (single server, dedicated server, cloud, Docker, future Kubernetes) — configuration storage only, no automation ([Deployment/README.md](Deployment/README.md))
@@ -51,4 +52,4 @@ The Sky Fundi Platform Core — infrastructure and cross-cutting services every 
 
 **Allowed dependencies**: none upward — Core never depends on a module. Core services depend only on each other where explicitly documented in each service's own README, and on the Domain/Application/Infrastructure layering described in [Clean Architecture](../docs/architecture/clean-architecture.md).
 
-**Status**: v1.0 Core (Auth, RBAC, Users, Identity, Settings, Branding, Notifications, AuditLogs, Storage, AIGateway, Modules, Api, Logging) plus the Enterprise Infrastructure Layer (Licensing, Subscriptions, Deployment, Mail, Health, FeatureFlags, Analytics, Security, Backup, Scheduler, Installer, Queue, Events, Support) are implemented. Educational features live in `modules/`; `FileManagement` remains unimplemented beyond the Storage abstraction.
+**Status**: v1.0 Core (Auth, RBAC, Users, Identity, Settings, Branding, Notifications, AuditLogs, Storage, AIGateway, Modules, Api, Logging) plus the Enterprise Infrastructure Layer (Licensing, Subscriptions, Billing, Deployment, Mail, Health, FeatureFlags, Analytics, Security, Backup, Scheduler, Installer, Queue, Events, Support) are implemented. Educational features live in `modules/`; `FileManagement` remains unimplemented beyond the Storage abstraction.

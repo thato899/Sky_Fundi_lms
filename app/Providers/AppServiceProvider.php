@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Application\NavigationContext;
+use App\Listeners\NotifyGuardiansOnInvoiceIssued;
+use Core\Billing\Events\InvoiceIssued;
 use Core\Logging\Application\PlatformLogger;
 use Core\Users\Infrastructure\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,6 +30,8 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Event::listen(InvoiceIssued::class, NotifyGuardiansOnInvoiceIssued::class);
+
         View::composer('layouts.web', function ($view): void {
             $user = auth()->guard()->user();
             $view->with('navigation', app(NavigationContext::class)->for(

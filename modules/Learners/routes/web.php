@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Modules\Learners\Http\Controllers\Web\GuardianBillingController;
 use Modules\Learners\Http\Controllers\Web\GuardianInvitationController;
 use Modules\Learners\Http\Controllers\Web\GuardianWebController;
 use Modules\Learners\Http\Controllers\Web\LearnerInvitationController;
@@ -45,6 +46,8 @@ Route::middleware(['auth', 'account.not-locked', 'organization.context'])->prefi
         Route::post('/{guardian}/invitations', [GuardianInvitationController::class, 'store'])->middleware('throttle:6,1')->name('invitations.store');
         Route::post('/{guardian}/invitations/{invitation}/resend', [GuardianInvitationController::class, 'resend'])->middleware('throttle:3,1')->name('invitations.resend');
         Route::post('/{guardian}/invitations/{invitation}/revoke', [GuardianInvitationController::class, 'revoke'])->name('invitations.revoke');
+        Route::get('/{guardian}/invoices', [GuardianBillingController::class, 'index'])->name('invoices.index');
+        Route::post('/{guardian}/invoices/{invoice}/pay', [GuardianBillingController::class, 'pay'])->name('invoices.pay');
     });
 });
 
