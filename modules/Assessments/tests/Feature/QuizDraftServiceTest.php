@@ -66,6 +66,71 @@ final class QuizDraftServiceTest extends TestCase
         $this->assertSame('draft', $quiz->status->value);
     }
 
+    public function test_draft_result_reports_the_source_excerpt_count_used_for_grounding(): void
+    {
+        Http::fake([
+            'https://api.gemini.test/models/text-embedding-test:embedContent' => Http::response(['embedding' => ['values' => [1.0, 0.0]]]),
+            'https://api.gemini.test/models/gemini-test:generateContent' => Http::response([
+                'candidates' => [['content' => ['parts' => [['text' => json_encode($this->draftResponse(), JSON_THROW_ON_ERROR)]]]]],
+            ]),
+        ]);
+        $context = $this->context('draft-excerpts');
+        $quiz = $this->quiz($context);
+        app(MaterialIngestionService::class)->ingest($context['organization'], $context['teacher'], [
+            'title' => 'Equality Notes',
+            'content' => str_repeat('Both sides of an equation must remain balanced. ', 6),
+            'subject_id' => $context['subject']->id,
+        ]);
+
+        $result = app(QuizDraftService::class)->generateDraft($quiz, $context['teacher'], 'Equality', 2);
+
+        $this->assertGreaterThan(0, $result['source_excerpt_count']);
+    }
+
+    public function test_difficulty_is_sent_to_the_provider_and_true_false_questions_are_accepted(): void
+    {
+        $trueFalseDraft = [
+            'questions' => [
+                ['type' => 'true_false', 'prompt' => 'Equality is preserved when the same operation is applied to both sides.', 'marks_available' => 1, 'options' => [['label' => 'True', 'is_correct' => true], ['label' => 'False', 'is_correct' => false]], 'model_answer' => '', 'marking_guidance' => '', 'key_concepts' => []],
+            ],
+        ];
+        Http::fake([
+            'https://api.gemini.test/models/text-embedding-test:embedContent' => Http::response(['embedding' => ['values' => [1.0, 0.0]]]),
+            'https://api.gemini.test/models/gemini-test:generateContent' => Http::response([
+                'candidates' => [['content' => ['parts' => [['text' => json_encode($trueFalseDraft, JSON_THROW_ON_ERROR)]]]]],
+            ]),
+        ]);
+        $context = $this->context('draft-difficulty');
+        $quiz = $this->quiz($context);
+        app(MaterialIngestionService::class)->ingest($context['organization'], $context['teacher'], [
+            'title' => 'Equality Notes',
+            'content' => str_repeat('Both sides of an equation must remain balanced. ', 6),
+            'subject_id' => $context['subject']->id,
+        ]);
+
+        $result = app(QuizDraftService::class)->generateDraft($quiz, $context['teacher'], 'Equality', 1, 'hard');
+
+        $this->assertSame(1, $result['questions_added']);
+        $quiz = $quiz->refresh()->load('questions.options');
+        $this->assertSame('true_false', $quiz->questions->first()->type->value);
+        Http::assertSent(function ($request) {
+            if (! str_contains($request->url(), 'generateContent')) {
+                return true; // not the completion call — ignore
+            }
+
+            return str_contains($request->body(), 'analysis/reasoning');
+        });
+    }
+
+    public function test_an_invalid_difficulty_is_rejected(): void
+    {
+        $context = $this->context('draft-bad-difficulty');
+        $quiz = $this->quiz($context);
+
+        $this->expectException(DomainException::class);
+        app(QuizDraftService::class)->generateDraft($quiz, $context['teacher'], 'Equality', 5, 'impossible');
+    }
+
     public function test_draft_generation_without_ingested_material_is_rejected(): void
     {
         Http::fake(['https://api.gemini.test/models/text-embedding-test:embedContent' => Http::response(['embedding' => ['values' => [1.0, 0.0]]])]);
@@ -121,6 +186,14 @@ final class QuizDraftServiceTest extends TestCase
 
     private function context(string $code): array
     {
+        // generateDraft() is a completion call and must resolve against
+        // ai.default_provider (see QuizDraftService) — explicit here so a
+        // regression back to ai.embedding_provider would be caught even
+        // though both happen to be "gemini" by coincidence in this suite's
+        // base config; the model names differ per env var below, so a
+        // request routed to the wrong one hits the wrong mocked URL and
+        // fails loudly instead of silently.
+        config(['ai.default_provider' => 'gemini']);
         $this->seed(AssessmentsPermissionSeeder::class);
         $this->seed(MaterialsPermissionSeeder::class);
         $organization = Organization::query()->create(['name' => $code, 'code' => $code, 'type' => 'school']);
