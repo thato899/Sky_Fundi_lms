@@ -99,10 +99,14 @@ final class LearnerWebController
         $history = Gate::allows('viewStatusHistory', $learner)
             ? $learner->statusHistory()->with('actor:id,name')->orderByDesc('changed_at')->orderByDesc('id')->get()
             : collect();
+        $enrolments = Gate::allows('viewEnrolmentHistory', $learner)
+            ? $learner->enrolments()->with(['academicYear:id,name', 'grade:id,name', 'classGroup:id,name', 'actor:id,name'])->orderByDesc('ended_on')->orderByDesc('started_on')->get()
+            : collect();
 
         return view('learners.show', $this->shared($organization, $membership) + [
             'learner' => $learner,
             'history' => $history,
+            'enrolments' => $enrolments,
             'transitions' => Gate::allows('manageStatus', $learner) ? $this->statuses->availableTransitions($learner) : [],
             'availableGuardians' => $canManageGuardians ? GuardianProfile::query()->where('organization_id', $organization->getKey())->whereNull('archived_at')->where('status', 'active')->orderBy('last_name')->get() : collect(),
             'canUpdateLearner' => $canUpdateLearner,
