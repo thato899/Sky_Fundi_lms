@@ -1,6 +1,13 @@
 # Project Status — Sky Fundi Platform
 
-_Last updated: 2026-07-21 evening (baseline analysis as of commit `c9c6a78`; progress log below)_
+_Last updated: 2026-08-21 (this entry); prior baseline dated 2026-07-21 against commit `c9c6a78` — `main` has moved substantially since (e.g. PR #56 "enterprise-operations-foundation") and the entries below this one are stale relative to the current repository; treat the executable code as the source of truth per AGENTS.md, not this log's older prose._
+
+## Progress log (2026-08-21)
+
+- **Phase 1 (of the "Finish the Platform" build plan) — real billing, on branch `feature/billing/payment-gateway-integration`, not merged**: `core/Billing` replaces the placeholder-README stub with a real PayFast integration (ADR-010) — gateway abstraction (`Contracts\PaymentGatewayInterface`, mirroring `AIProviderInterface`), checkout (subscription signup + invoice settlement), webhook-verified payment confirmation (signature + server-to-server confirm, idempotent against replay), and usage-linked invoicing (`InvoiceService::generateForPeriod()` — base plan fee plus an attendance-derived overage line, computed by `app/Console/Commands/GenerateInvoicesCommand` since Core never depends on a module). Dunning is the existing Subscriptions grace-period mechanism. Plans move from `config('hackathon.plans')` into a real `plans` table (`core/Subscriptions`). Guardian Portal gained an invoices page gated on the existing `receives_financial_communication` relationship flag. `core.billing.manage` — previously only reachable via a platform-wide direct-to-user role — is now also granted to the per-organization "Organization Administrator" role (`BillingPermissionSeeder`), a precondition for "an org admin can subscribe" to be true at all. **Not yet done**: a live sandbox-verified PayFast webhook round-trip (needs real merchant credentials, not yet supplied). Everything else, including `make migrate-check` on real MySQL, is verified — see below.
+- **Phase 2 (learner invitations) — turned out already built, just untested.** `LearnerInvitationService` and its controllers/routes/views already existed on `main` before this session, mirroring `GuardianInvitationService` field-for-field, but had zero test coverage. Added `modules/Learners/tests/Feature/LearnerInvitationOnboardingTest.php` (8 tests) and closed a real UI gap — the learner profile page hid the invitation section entirely once one existed (gated on `portal_access_enabled`, which only flips true on acceptance), so a sent-but-pending invitation had no resend/revoke UI. `docs/roadmap.md` and `modules/Learners/README.md` corrected to stop describing this as unbuilt.
+- **Phase 3 — real Gemini, plus retrieval-grounded assessment and an AI tutor chat — done.** `GeminiProvider` is a real `AIProviderInterface` implementation against Google's Generative Language API (structured output via `responseMimeType` + a schema-describing instruction, the same strategy `DeepSeekProvider` already used). ADR-011 adds a new `modules/Materials` module (not an Assessments extension — two independent consumers) for text-only ingestion (PDF deferred, no extraction library in `composer.json` yet), an async `ChunkAndEmbedMaterialJob`, and brute-force cosine-similarity retrieval over JSON-stored embeddings (no vector DB in this stack). `core/AIGateway` gained `Contracts\EmbeddingProviderInterface` + `AIManager::embed()`, Gemini-only for now. The learner AI tutor chat resolves its organization from the learner's own record, never client input — `TutorChatIsolationTest` proves a learner in one org is never answered from another's material (the brief's named hard requirement). `Modules\Assessments\Application\QuizDraftService` (new documented Assessments→Materials dependency) drafts questions from retrieved material and inserts every one through the *existing* `QuizService::addQuestion()` — same Draft-status/ownership gate, same required `publish()` — never a new "AI-published" path.
+- **Full canonical verification, all three phases, via Docker** (`docker compose up -d`, real MySQL — see the "Repository health" section for the local port-3307-conflict workaround): `composer validate --strict` ✅, `make migrate-check` ✅ (forward/seed/rollback/re-migrate, includes the Billing and Materials migrations), `docker compose exec app php artisan test` ✅ **330 tests / 1696 assertions, real MySQL**, Pint ✅ clean, PHPStan clean on every changed production file (a proven pre-existing "PHPStan without Larastan can't resolve Eloquent's `Model::create()`/magic properties" class remains untouched, reproduced against code from before this session to rule out a regression). Along the way, fixed `queue`/`scheduler` crash-looping on weeks-stale Docker images (`docker compose build && up -d --force-recreate`) and ran `composer dump-autoload` for the new module namespaces — environment fixes, not code changes. **No commit, push, or merge has occurred on any of this** — everything sits uncommitted on `feature/billing/payment-gateway-integration`, awaiting explicit authorization task by task, per `AGENTS.md`.
 
 ## Progress log (2026-07-20 → 2026-07-21)
 
@@ -25,25 +32,30 @@ Sky Fundi is a modular, multi-tenant education platform (LMS) for tutors, school
 
 ## Repository health
 
-- Worktree: branch `main`, up to date with origin; two uncommitted infra fixes (`.dockerignore`, `docker/init.sh` — see 2026-07-21 evening entry) awaiting a branch/PR. No unmerged remote branches.
+- Worktree (as of 2026-08-21): branch `feature/billing/payment-gateway-integration`, cut from `main` at `179590a`, entirely uncommitted — see the 2026-08-21 progress log entry above for what's on it and why nothing has been committed/pushed yet. The 2026-07-21 "two uncommitted infra fixes" note below is unverified against the current worktree; treat `git status --short` as ground truth over this paragraph.
+- Local dev stack note (2026-08-21, this machine only): this machine already runs unrelated Docker containers that collide with this project's default ports (MySQL host port 3307). A local, untracked `compose.override.yaml` remaps it to 3308 — safe to delete if the conflict doesn't apply to your machine; not part of any feature diff.
 - CI: GitHub Actions run on every push/PR (`ci.yml`: composer validate, migrate-check, tests, Pint, PHPStan) plus `deployment-validation.yml` for deployment artifacts.
 - No TODO/FIXME/HACK markers in PHP code — deferred work is tracked in READMEs and `docs/roadmap.md` instead.
 - Governance: `AGENTS.md` is the operating manual for all AI-assisted changes (branch-per-task, never implement on `main`, `make verify` before handoff).
 
 ## What is implemented
 
-### Domain modules (`modules/`) — all 8 functional
+### Domain modules (`modules/`) — at least 10, including two this table hadn't caught up to before 2026-08-21
+
+_This table was last fully counted 2026-07-21; `EnterpriseOperations` already existed on `main` uncounted before this session touched anything, and `Materials` is new as of 2026-08-21 — file counts below for other rows are carried over unverified, not re-audited this session._
 
 | Module | Size | Scope |
 |---|---|---|
 | Academics | 103 files | Curricula, departments, years, terms, grades, classes, subjects, calendar, timetable periods. The upstream engine for everything else. |
-| Learners | 68 files | Learner admin, learner numbering (row-locked sequences), status lifecycle, placement, **guardian management + invitation/portal onboarding** (hashed 7-day tokens, queued email), license-based capacity. |
-| Assessments | 49 files | Categories, assessments, atomic mark sheets, gradebooks, CSV export, plus the **AI quiz slice**: questions, learner attempts, deterministic objective marking, AI written-answer suggestions with teacher approval, adaptive study plans, intervention/risk dashboard. |
+| Learners | 68 files | Learner admin, learner numbering (row-locked sequences), status lifecycle, placement, **guardian + learner management + invitation/portal onboarding** (hashed 7-day tokens, queued email), license-based capacity. |
+| Assessments | 49+ files | Categories, assessments, atomic mark sheets, gradebooks, CSV export, the **AI quiz slice** (questions, learner attempts, deterministic objective marking, AI written-answer suggestions with teacher approval, adaptive study plans, intervention/risk dashboard), and now **retrieval-grounded AI quiz drafting** (`QuizDraftService`, depends on `Materials`) flowing through the same teacher review/publish gate. |
+| Materials | new, 2026-08-21 | Teacher-uploaded course material, async chunking + embeddings, brute-force-cosine retrieval, and the learner AI tutor chat — see `modules/Materials/README.md` and ADR-011. |
 | Organizations | 39 files | Tenancy foundation: org settings, encrypted per-org AI config, module assignment, administrators. API-only (Super Admin UI lives in `app/`). |
 | Reports | 27 files | Grading scales/bands, reporting periods, display templates, versioned report-card snapshots with lifecycle (generated→approved→published→withdrawn), PDF (dompdf), formula-safe CSV. |
 | Scheduling | 22 files | Rooms, weekly timetable templates, lesson materialization (≤93-day, idempotent), staff assignments, conflict detection, immutable change logs, attendance integration. |
 | Attendance | 21 files | Session lifecycle (draft→open→finalized, audited reopen), preserved register entries, factual summaries, CSV, lesson linkage. |
 | Staff | 14 files | Org-scoped staff profiles linked to Identity memberships, directory web+API. Document/invitation features are foundations only. |
+| EnterpriseOperations | uncounted | Present on `main` since PR #56, before this session — not otherwise investigated here. |
 
 ### Core platform (`core/`)
 
@@ -55,8 +67,8 @@ Sky Fundi is a modular, multi-tenant education platform (LMS) for tutors, school
 
 All AI access goes through `Core\AIGateway\Application\AIManager`; modules never call provider SDKs. Provider resolution: request preference → tenant default → platform default (`ollama`). Five registered providers:
 
-- **Live:** Ollama (default, local), DeepSeek (incl. streaming/structured output), OpenAI (used by the AI-marking demo; falls back to deterministic marks when unavailable).
-- **Intentional placeholders (throw `ProviderNotAvailableException`):** Claude, Gemini.
+- **Live:** Ollama (default, local), DeepSeek (incl. streaming/structured output), OpenAI (used by the AI-marking demo; falls back to deterministic marks when unavailable), Gemini (Google's Generative Language API, incl. SSE streaming and JSON structured output; implemented 2026-08-21, disabled by default pending an `AI_GEMINI_API_KEY`).
+- **Intentional placeholder (throws `ProviderNotAvailableException`):** Claude.
 
 ### Web UI surface
 
