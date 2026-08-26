@@ -8,8 +8,8 @@ use Exception;
 
 /**
  * Thrown when a provider is not configured/enabled, or (for the
- * placeholder future providers — OpenAI, Claude, Gemini) not yet
- * implemented. Mapped to a 503 JSON response so callers can distinguish
+ * remaining placeholder provider, Claude) not yet implemented. Mapped
+ * to a 503 JSON response so callers can distinguish
  * "AI temporarily unavailable" from a genuine application error — see
  * docs/api/error-handling.md and docs/ai/ai-gateway.md#failure-handling.
  */

@@ -9,6 +9,7 @@ use Core\Api\Providers\ApiServiceProvider;
 use Core\AuditLogs\Providers\AuditLogsServiceProvider;
 use Core\Auth\Providers\CoreAuthServiceProvider;
 use Core\Backup\Providers\BackupServiceProvider;
+use Core\Billing\Providers\BillingServiceProvider;
 use Core\Branding\Providers\BrandingServiceProvider;
 use Core\Deployment\Providers\DeploymentServiceProvider;
 use Core\FeatureFlags\Providers\FeatureFlagsServiceProvider;
@@ -32,6 +33,7 @@ use Modules\Assessments\Providers\AssessmentsServiceProvider;
 use Modules\Attendance\Providers\AttendanceServiceProvider;
 use Modules\EnterpriseOperations\Providers\EnterpriseOperationsServiceProvider;
 use Modules\Learners\Providers\LearnersServiceProvider;
+use Modules\Materials\Providers\MaterialsServiceProvider;
 use Modules\Organizations\Providers\OrganizationsServiceProvider;
 use Modules\Reports\Providers\ReportsServiceProvider;
 use Modules\Scheduling\Providers\SchedulingServiceProvider;
@@ -59,6 +61,7 @@ return [
     ModulesServiceProvider::class,
     LicensingServiceProvider::class,
     SubscriptionsServiceProvider::class,
+    BillingServiceProvider::class,
     DeploymentServiceProvider::class,
     HealthServiceProvider::class,
     FeatureFlagsServiceProvider::class,
@@ -76,6 +79,7 @@ return [
     OrganizationsServiceProvider::class,
     StaffServiceProvider::class,
     LearnersServiceProvider::class,
+    MaterialsServiceProvider::class,
     AttendanceServiceProvider::class,
     AssessmentsServiceProvider::class,
     ReportsServiceProvider::class,

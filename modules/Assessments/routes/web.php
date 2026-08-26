@@ -53,6 +53,7 @@ Route::middleware(['auth', 'account.not-locked', 'organization.context'])->group
         Route::middleware('assessment.context')->group(function (): void {
             Route::get('/{assessment}', [QuizWebController::class, 'show'])->name('show');
             Route::post('/{assessment}/questions', [QuizWebController::class, 'addQuestion'])->name('questions.store');
+            Route::post('/{assessment}/ai-draft', [QuizWebController::class, 'generateDraft'])->name('ai-draft');
             Route::post('/{assessment}/publish', [QuizWebController::class, 'publish'])->name('publish');
         });
     });

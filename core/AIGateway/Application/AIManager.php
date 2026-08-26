@@ -6,6 +6,7 @@ namespace Core\AIGateway\Application;
 
 use Core\AIGateway\Application\DTOs\AIRequest;
 use Core\AIGateway\Application\DTOs\AIResponse;
+use Core\AIGateway\Contracts\EmbeddingProviderInterface;
 use Core\AIGateway\Exceptions\AIGatewayException;
 use Core\AIGateway\Exceptions\ProviderNotAvailableException;
 use Core\Analytics\Application\AnalyticsRecorder;
@@ -66,6 +67,28 @@ final class AIManager
         $provider = $this->factory->make($providerName);
 
         yield from $provider->stream($request);
+    }
+
+    /**
+     * @return list<float>
+     *
+     * @throws ProviderNotAvailableException when the resolved provider
+     *                                       does not implement EmbeddingProviderInterface at all
+     */
+    public function embed(string $text, ?string $preferredProvider = null): array
+    {
+        $providerName = $preferredProvider ?? (string) config('ai.embedding_provider');
+        $provider = $this->factory->make($providerName);
+
+        if (! $provider instanceof EmbeddingProviderInterface) {
+            throw ProviderNotAvailableException::forProvider($providerName);
+        }
+
+        $embedding = $provider->embed($text);
+
+        $this->logger->ai('info', 'ai.embedding', ['provider' => $providerName]);
+
+        return $embedding;
     }
 
     private function resolveProviderName(AIRequest $request): string

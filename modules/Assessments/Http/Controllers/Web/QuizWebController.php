@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Modules\Assessments\Application\InterventionDashboardService;
+use Modules\Assessments\Application\QuizDraftService;
 use Modules\Assessments\Application\QuizService;
 use Modules\Assessments\Application\StudyPlanService;
 use Modules\Assessments\Infrastructure\Models\Assessment;
@@ -26,7 +27,7 @@ use Modules\Staff\Application\TeachingAssignmentService;
 
 final class QuizWebController
 {
-    public function __construct(private readonly QuizService $quizzes, private readonly StudyPlanService $studyPlans, private readonly InterventionDashboardService $interventions, private readonly PermissionResolver $permissions, private readonly OrganizationService $organizations, private readonly TeachingAssignmentService $assignments) {}
+    public function __construct(private readonly QuizService $quizzes, private readonly QuizDraftService $drafts, private readonly StudyPlanService $studyPlans, private readonly InterventionDashboardService $interventions, private readonly PermissionResolver $permissions, private readonly OrganizationService $organizations, private readonly TeachingAssignmentService $assignments) {}
 
     public function show(Request $request, Assessment $assessment): View
     {
@@ -59,6 +60,24 @@ final class QuizWebController
         }
 
         return back()->with('status', 'Question added and total marks recalculated.');
+    }
+
+    public function generateDraft(Request $request, Assessment $assessment): RedirectResponse
+    {
+        Gate::authorize('update', $assessment);
+        [, $membership] = $this->context($request);
+        abort_unless($this->permissions->allows($membership, 'quizzes.ai_draft'), 403);
+        $data = $request->validate([
+            'topic' => ['required', 'string', 'max:500'],
+            'question_count' => ['nullable', 'integer', 'min:1', 'max:10'],
+        ]);
+        try {
+            $result = $this->drafts->generateDraft($assessment, $this->actor($request), $data['topic'], (int) ($data['question_count'] ?? 5));
+        } catch (DomainException $exception) {
+            return back()->withErrors(['draft' => $exception->getMessage()]);
+        }
+
+        return back()->with('status', "AI draft added {$result['questions_added']} question(s) for review — check each before publishing.".($result['questions_skipped'] > 0 ? " {$result['questions_skipped']} malformed draft question(s) were skipped." : ''));
     }
 
     public function publish(Request $request, Assessment $assessment): RedirectResponse

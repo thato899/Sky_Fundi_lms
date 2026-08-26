@@ -68,8 +68,14 @@ return [
 
         'gemini' => [
             'driver' => GeminiProvider::class,
+            'base_url' => env('AI_GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
             'api_key' => env('AI_GEMINI_API_KEY'),
             'model' => env('AI_GEMINI_MODEL', 'gemini-2.0-flash'),
+            // Separate from `model` — Gemini's embedding models are not
+            // the same models used for generateContent. See
+            // Core\AIGateway\Contracts\EmbeddingProviderInterface.
+            'embedding_model' => env('AI_GEMINI_EMBEDDING_MODEL', 'text-embedding-004'),
+            'timeout' => (int) env('AI_GEMINI_TIMEOUT', 60),
             'enabled' => (bool) env('AI_GEMINI_ENABLED', false),
         ],
     ],
@@ -78,4 +84,10 @@ return [
     // See docs/ai/ai-gateway.md#failure-handling.
     'fallback_provider' => env('AI_FALLBACK_PROVIDER'),
     'max_retries' => (int) env('AI_MAX_RETRIES', 1),
+
+    // Which provider AIManager::embed() resolves to by default — see
+    // docs/adr/011-materials-retrieval.md. Distinct from
+    // `default_provider` (completions) because the platform default
+    // (Ollama) has no embeddings implementation in this codebase.
+    'embedding_provider' => env('AI_EMBEDDING_PROVIDER', 'gemini'),
 ];

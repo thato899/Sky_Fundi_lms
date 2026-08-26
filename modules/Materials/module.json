@@ -1,0 +1,1 @@
+{"name":"materials","display_name":"Materials","version":"1.0.0","description":"Teacher-uploaded course material, async chunking and embeddings, retrieval-grounded AI quiz drafting, and a learner AI tutor chat.","dependencies":["academics"],"provides":{"permissions":["materials.view","materials.upload","materials.delete"],"events":[]}}

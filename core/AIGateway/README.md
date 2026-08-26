@@ -10,10 +10,12 @@
 - `Application/AIManager` — the entry point every caller depends on. Resolves the provider (explicit request preference -> platform default), calls it, and on `ProviderNotAvailableException`/`AIGatewayException` retries once against `config('ai.fallback_provider')` if configured, logging via `Core\Logging`'s `ai` channel throughout.
 - `Infrastructure/Providers/OllamaProvider` — fully implemented, self-hosted/offline provider via Ollama's HTTP API (`/api/generate`), including streaming.
 - `Infrastructure/Providers/DeepSeekProvider` — fully implemented, OpenAI-compatible hosted provider (`/chat/completions`), including SSE streaming.
-- `Infrastructure/Providers/{OpenAIProvider,ClaudeProvider,GeminiProvider}` — real, registered, plug-and-play implementations of `AIProviderInterface` (via `AbstractPlaceholderProvider`) that report `isAvailable(): false` and throw a clear `ProviderNotAvailableException::notImplemented()` if ever selected, rather than being silently absent from the provider registry. Implementing each fully is future work — the contract and registration are already in place.
+- `Infrastructure/Providers/OpenAIProvider` — fully implemented against the OpenAI Responses API (`/responses`), including native JSON-schema structured output.
+- `Infrastructure/Providers/GeminiProvider` — fully implemented against Google's Generative Language API (`/models/{model}:generateContent`, `:streamGenerateContent?alt=sse`), authenticated via the `x-goog-api-key` header. Structured output uses `responseMimeType: application/json` plus a schema-describing system instruction (the same strategy as `DeepSeekProvider`) rather than Gemini's native `responseSchema`, which uses its own upper-case type vocabulary that every caller's plain JSON Schema would need translating into first.
+- `Infrastructure/Providers/ClaudeProvider` — real, registered, plug-and-play implementation of `AIProviderInterface` (via `AbstractPlaceholderProvider`) that reports `isAvailable(): false` and throws a clear `ProviderNotAvailableException::notImplemented()` if ever selected, rather than being silently absent from the provider registry. Implementing it fully is future work — the contract and registration are already in place.
 
 **Allowed dependencies**: `Core\Logging`. Never a module.
 
 **Routes**: `GET /api/v1/ai/providers` (list + availability), `POST /api/v1/ai/providers/test` (send a test prompt to a named provider) — both gated by `core.ai.manage`.
 
-**Future usage**: implementing OpenAI/Claude/Gemini for real means writing their HTTP call inside the existing class (see the docblock on each) and nothing else — `AIManager`, the registry, and every caller are already provider-agnostic.
+**Future usage**: implementing Claude for real means writing its HTTP call inside the existing class (see its docblock) and nothing else — `AIManager`, the registry, and every caller are already provider-agnostic.

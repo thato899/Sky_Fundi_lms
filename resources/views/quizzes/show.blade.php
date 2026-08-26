@@ -8,6 +8,14 @@
 @if($question->options->isNotEmpty())<ol>@foreach($question->options as $option)<li>{{ $option->label }} @if($option->is_correct)<span class="badge">Correct</span>@endif</li>@endforeach</ol>@endif
 @if($question->model_answer)<p><strong>Model answer:</strong> {{ $question->model_answer }}</p>@endif @if($question->marking_guidance)<p><strong>Rubric:</strong> {{ $question->marking_guidance }}</p>@endif</article>
 @empty<p class="empty">No questions yet. Add the first question below.</p>@endforelse</section>
+@if($quiz->status->value==='draft' && in_array('quizzes.ai_draft', $permissions ?? [], true))
+<section class="panel"><h2>Generate AI draft questions</h2><p class="muted">Drafts questions grounded in your organization's uploaded course material. Every draft question lands here as an ordinary editable question — review, edit, or remove each before publishing.</p>
+<form class="academic-form" method="POST" action="{{ route('quizzes.ai-draft', $quiz->uuid) }}">@csrf
+<label class="wide">Topic<input name="topic" required maxlength="500" placeholder="e.g. Photosynthesis and the Krebs cycle"></label>
+<label>Question count<input type="number" name="question_count" min="1" max="10" value="5"></label>
+<button type="submit">Generate draft</button>
+</form></section>
+@endif
 @if($quiz->status->value==='draft')
 <section class="panel"><h2>Add question</h2><form class="academic-form" method="POST" action="{{ route('quizzes.questions.store',$quiz->uuid) }}">@csrf
 <label>Type<select name="type" required><option value="multiple_choice">Multiple choice</option><option value="true_false">True or false</option><option value="short_response">Short written</option><option value="long_response">Long written</option></select></label>
