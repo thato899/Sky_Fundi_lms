@@ -13,6 +13,7 @@
 <form class="academic-form" method="POST" action="{{ route('quizzes.ai-draft', $quiz->uuid) }}">@csrf
 <label class="wide">Topic<input name="topic" required maxlength="500" placeholder="e.g. Photosynthesis and the Krebs cycle"></label>
 <label>Question count<input type="number" name="question_count" min="1" max="10" value="5"></label>
+<label>Difficulty<select name="difficulty"><option value="">Mixed (default)</option><option value="easy">Easy — recall</option><option value="medium">Medium — application</option><option value="hard">Hard — analysis/reasoning</option></select></label>
 <button type="submit">Generate draft</button>
 </form></section>
 @endif

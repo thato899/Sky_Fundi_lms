@@ -38,11 +38,17 @@ final class QuizDraftService
         private readonly AuditLogService $audit,
     ) {}
 
+    private const DIFFICULTIES = ['easy', 'medium', 'hard'];
+
     /**
-     * @return array{questions_added: int, questions_skipped: int}
+     * @return array{questions_added: int, questions_skipped: int, source_excerpt_count: int}
      */
-    public function generateDraft(Assessment $assessment, User $teacher, string $topic, int $questionCount = self::DEFAULT_QUESTION_COUNT): array
+    public function generateDraft(Assessment $assessment, User $teacher, string $topic, int $questionCount = self::DEFAULT_QUESTION_COUNT, ?string $difficulty = null): array
     {
+        if ($difficulty !== null && ! in_array($difficulty, self::DIFFICULTIES, true)) {
+            throw new DomainException('Difficulty must be easy, medium, or hard.');
+        }
+
         $organization = Organization::query()->findOrFail($assessment->organization_id);
         $matches = $this->retrieval->topK($organization, $topic, k: 8, subjectId: $assessment->subject_id);
         if ($matches->isEmpty()) {
@@ -58,11 +64,18 @@ final class QuizDraftService
             capability: 'materials.quiz_draft',
             tenantId: $assessment->organization_id,
             moduleId: 'assessments',
-            preferredProvider: (string) config('ai.embedding_provider'),
+            // The completion provider, same as every other AI call in this
+            // module — not ai.embedding_provider, which AIManager::embed()
+            // alone resolves against (see config/ai.php). Using the
+            // embedding provider here previously only worked by
+            // coincidence, since this deployment happens to use Gemini for
+            // both; it would silently break the moment the two config
+            // values diverged.
+            preferredProvider: config('ai.default_provider'),
             temperature: 0.4,
             maxTokens: 2000,
             metadata: [
-                'instructions' => "Draft exactly {$questionCount} quiz questions grounded ONLY in the supplied excerpts — never invent facts not present in them. Mix multiple_choice (4 options, exactly one correct) and short_response (with a model answer and marking guidance) types.",
+                'instructions' => "Draft exactly {$questionCount} quiz questions grounded ONLY in the supplied excerpts — never invent facts not present in them. Mix multiple_choice (4 options, exactly one correct), true_false, and short_response (with a model answer and marking guidance) types.".$this->difficultyInstruction($difficulty),
                 'schema_name' => 'quiz_draft',
                 'json_schema' => $this->draftSchema(),
             ],
@@ -81,9 +94,19 @@ final class QuizDraftService
             }
         }
 
-        $this->audit->record('quizzes.ai_draft_generated', $assessment, after: ['organization_id' => $assessment->organization_id, 'questions_added' => $added, 'questions_skipped' => $skipped, 'topic' => $topic]);
+        $this->audit->record('quizzes.ai_draft_generated', $assessment, after: ['organization_id' => $assessment->organization_id, 'questions_added' => $added, 'questions_skipped' => $skipped, 'topic' => $topic, 'difficulty' => $difficulty, 'source_excerpt_count' => $matches->count()]);
 
-        return ['questions_added' => $added, 'questions_skipped' => $skipped];
+        return ['questions_added' => $added, 'questions_skipped' => $skipped, 'source_excerpt_count' => $matches->count()];
+    }
+
+    private function difficultyInstruction(?string $difficulty): string
+    {
+        return match ($difficulty) {
+            'easy' => ' Keep questions at an easy, recall/definition level — testing whether the learner remembers the core facts.',
+            'medium' => ' Write questions at a medium, application level — the learner must apply a concept to a slightly new situation, not just recall it.',
+            'hard' => ' Write challenging questions at an analysis/reasoning level — require the learner to compare, explain a cause-and-effect relationship, or justify a conclusion using the material.',
+            default => '',
+        };
     }
 
     private function normalizeQuestion(mixed $questionData): array
@@ -121,7 +144,7 @@ final class QuizDraftService
                         'additionalProperties' => false,
                         'required' => ['type', 'prompt', 'marks_available', 'options', 'model_answer', 'marking_guidance', 'key_concepts'],
                         'properties' => [
-                            'type' => ['type' => 'string', 'enum' => ['multiple_choice', 'short_response']],
+                            'type' => ['type' => 'string', 'enum' => ['multiple_choice', 'true_false', 'short_response']],
                             'prompt' => ['type' => 'string'],
                             'marks_available' => ['type' => 'number'],
                             'options' => ['type' => 'array', 'items' => ['type' => 'object', 'additionalProperties' => false, 'required' => ['label', 'is_correct'], 'properties' => ['label' => ['type' => 'string'], 'is_correct' => ['type' => 'boolean']]]],

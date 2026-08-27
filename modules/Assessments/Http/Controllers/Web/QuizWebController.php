@@ -70,14 +70,15 @@ final class QuizWebController
         $data = $request->validate([
             'topic' => ['required', 'string', 'max:500'],
             'question_count' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'difficulty' => ['nullable', 'in:easy,medium,hard'],
         ]);
         try {
-            $result = $this->drafts->generateDraft($assessment, $this->actor($request), $data['topic'], (int) ($data['question_count'] ?? 5));
+            $result = $this->drafts->generateDraft($assessment, $this->actor($request), $data['topic'], (int) ($data['question_count'] ?? 5), $data['difficulty'] ?? null);
         } catch (DomainException $exception) {
             return back()->withErrors(['draft' => $exception->getMessage()]);
         }
 
-        return back()->with('status', "AI draft added {$result['questions_added']} question(s) for review — check each before publishing.".($result['questions_skipped'] > 0 ? " {$result['questions_skipped']} malformed draft question(s) were skipped." : ''));
+        return back()->with('status', "AI draft added {$result['questions_added']} question(s), grounded in {$result['source_excerpt_count']} course-material excerpt(s) — check each before publishing.".($result['questions_skipped'] > 0 ? " {$result['questions_skipped']} malformed draft question(s) were skipped." : ''));
     }
 
     public function publish(Request $request, Assessment $assessment): RedirectResponse
