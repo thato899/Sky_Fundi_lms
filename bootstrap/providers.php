@@ -32,6 +32,7 @@ use Modules\Academics\Providers\AcademicsServiceProvider;
 use Modules\Assessments\Providers\AssessmentsServiceProvider;
 use Modules\Attendance\Providers\AttendanceServiceProvider;
 use Modules\EnterpriseOperations\Providers\EnterpriseOperationsServiceProvider;
+use Modules\Leaderboards\Providers\LeaderboardsServiceProvider;
 use Modules\Learners\Providers\LearnersServiceProvider;
 use Modules\Materials\Providers\MaterialsServiceProvider;
 use Modules\Organizations\Providers\OrganizationsServiceProvider;
@@ -85,4 +86,5 @@ return [
     ReportsServiceProvider::class,
     SchedulingServiceProvider::class,
     EnterpriseOperationsServiceProvider::class,
+    LeaderboardsServiceProvider::class,
 ];
