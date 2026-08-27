@@ -64,6 +64,7 @@ final class NavigationContext
                 $this->link('My report cards', route('reports.my')),
                 $this->link('My attendance', route('learner-portal.attendance')),
                 $this->link('My timetable', route('learner-portal.timetable')),
+                $this->link('Leaderboards', route('leaderboards.mine')),
             ]];
         }
 
@@ -71,6 +72,7 @@ final class NavigationContext
         if ($guardian !== null) {
             return ['persona' => 'Guardian', 'links' => [
                 $this->link('My learners', route('guardians.show', $guardian->getAttribute('uuid'))),
+                $this->link('Leaderboards', route('leaderboards.mine')),
             ]];
         }
 
@@ -98,6 +100,11 @@ final class NavigationContext
         }
         if ($this->permissions->allows($membership, 'subscriptions.view')) {
             $links[] = $this->link('Subscription', route('subscription.dashboard'));
+        }
+        if ($this->permissions->allows($membership, 'leaderboards.manage') || $this->permissions->allows($membership, 'leaderboards.view_organization')) {
+            $links[] = $this->link('Leaderboards', route('leaderboards.index'));
+        } elseif ($this->permissions->allows($membership, 'sports_records.manage')) {
+            $links[] = $this->link('Leaderboards', route('leaderboards.sports-records.index'));
         }
 
         $manages = $this->permissions->allows($membership, 'learners.update');

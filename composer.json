@@ -48,6 +48,7 @@
             "Modules\\Academics\\Tests\\": "modules/Academics/tests/",
             "Modules\\Attendance\\Tests\\": "modules/Attendance/tests/",
             "Modules\\Assessments\\Tests\\": "modules/Assessments/tests/",
+            "Modules\\Leaderboards\\Tests\\": "modules/Leaderboards/tests/",
             "Modules\\Learners\\Tests\\": "modules/Learners/tests/",
             "Modules\\Materials\\Tests\\": "modules/Materials/tests/",
             "Modules\\Organizations\\Tests\\": "modules/Organizations/tests/",
