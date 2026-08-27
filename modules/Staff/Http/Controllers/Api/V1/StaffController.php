@@ -6,6 +6,8 @@ namespace Modules\Staff\Http\Controllers\Api\V1;
 
 use Core\Api\Http\Controllers\Controller;
 use Core\Api\Http\Responses\ApiResponse;
+use Core\Identity\Application\PermissionResolver;
+use Core\Identity\Infrastructure\Models\Membership;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Organizations\Infrastructure\Models\Organization;
@@ -19,12 +21,16 @@ final class StaffController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(private readonly StaffService $staff) {}
+    public function __construct(
+        private readonly StaffService $staff,
+        private readonly PermissionResolver $permissions,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
         $org = $request->attributes->get('organization');
         abort_unless($org instanceof Organization, 403);
+        $this->authorizeOrgPermission($request, 'staff.view');
 
         return $this->ok(StaffResource::collection(StaffProfile::query()->where('organization_id', $org->getKey())->when($request->input('search'), fn ($q, $s) => $q->where('employee_number', 'like', "%$s%"))->paginate(25)));
     }
@@ -47,6 +53,7 @@ final class StaffController extends Controller
     public function status(Request $request, StaffProfile $staff, string $status): JsonResponse
     {
         $this->guard($request, $staff);
+        $this->authorizeOrgPermission($request, 'staff.manage_employment');
 
         return $this->ok(new StaffResource($this->staff->transition($staff, $status)));
     }
@@ -54,5 +61,11 @@ final class StaffController extends Controller
     private function guard(Request $request, StaffProfile $staff): void
     {
         abort_unless($request->attributes->get('organization')?->getKey() === $staff->getAttribute('organization_id'), 404);
+    }
+
+    private function authorizeOrgPermission(Request $request, string $permission): void
+    {
+        $membership = $request->attributes->get('organization_membership');
+        abort_unless($membership instanceof Membership && $this->permissions->allows($membership, $permission), 403);
     }
 }

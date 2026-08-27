@@ -6,6 +6,8 @@ namespace Modules\Staff\Http\Controllers\Api\V1;
 
 use Core\Api\Http\Controllers\Controller;
 use Core\Api\Http\Responses\ApiResponse;
+use Core\Identity\Application\PermissionResolver;
+use Core\Identity\Infrastructure\Models\Membership;
 use Core\Support\Exceptions\DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,11 +22,15 @@ final class TeachingAssignmentController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(private readonly TeachingAssignmentService $assignments) {}
+    public function __construct(
+        private readonly TeachingAssignmentService $assignments,
+        private readonly PermissionResolver $permissions,
+    ) {}
 
     public function index(Request $request, StaffProfile $staff): JsonResponse
     {
         $organization = $this->guard($request, $staff);
+        $this->authorizeOrgPermission($request, 'teaching_assignments.view');
 
         return $this->ok(TeachingAssignmentResource::collection(TeachingAssignment::query()->with(['academicYear', 'classGroup', 'subject'])
             ->where('organization_id', $organization->getKey())->where('staff_profile_id', $staff->getKey())
@@ -48,6 +54,7 @@ final class TeachingAssignmentController extends Controller
     {
         $organization = $this->guard($request, $staff);
         abort_unless($assignment->getAttribute('organization_id') === $organization->getKey() && $assignment->getAttribute('staff_profile_id') === $staff->getKey(), 404);
+        $this->authorizeOrgPermission($request, 'teaching_assignments.manage');
 
         try {
             $ended = $this->assignments->end($assignment, $request->user());
@@ -64,5 +71,11 @@ final class TeachingAssignmentController extends Controller
         abort_unless($organization instanceof Organization && $organization->getKey() === $staff->getAttribute('organization_id'), 404);
 
         return $organization;
+    }
+
+    private function authorizeOrgPermission(Request $request, string $permission): void
+    {
+        $membership = $request->attributes->get('organization_membership');
+        abort_unless($membership instanceof Membership && $this->permissions->allows($membership, $permission), 403);
     }
 }

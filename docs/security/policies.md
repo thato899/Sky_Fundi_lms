@@ -2,7 +2,7 @@
 
 ## Authentication and sessions
 
-Blade uses Laravel session authentication and APIs use Sanctum bearer tokens. Login and password-reset endpoints are throttled. Authenticated groups apply account-lock checks; logout revokes access. Email verification endpoints exist. Session listing/revocation and trusted devices are implemented. Two-factor authentication is not enforced.
+Blade uses Laravel session authentication and APIs use Sanctum bearer tokens. Login and password-reset endpoints are throttled. Authenticated groups apply account-lock checks; logout revokes access. Email verification endpoints exist. Session listing/revocation and trusted devices are implemented. TOTP two-factor authentication (RFC 6238) is implemented and self-service (enroll/confirm/disable/recovery codes, both web and API), with per-organization opt-in enforcement (`security.enforce_two_factor` via the existing organization-settings mechanism) that blocks login completion until an enrolled member with the setting on completes a challenge, or an unenrolled one completes forced setup. See `core/Auth/README.md`.
 
 The API pipeline enforces active account state after Sanctum authentication, so
 locked, suspended, or deactivated users cannot retain access through routes
@@ -34,4 +34,4 @@ IP restriction management/enforcement, trusted-device detection, account locks, 
 
 ## Known assumptions
 
-Production TLS, proxy trust, secrets management, firewalling, worker isolation, storage encryption, backup protection, retention, and monitoring are operator responsibilities. Assignment-aware teacher authorization, enforced 2FA, automated restore, and a published vulnerability contact are not implemented.
+Production TLS, proxy trust, secrets management, firewalling, worker isolation, storage encryption, backup protection, retention, and monitoring are operator responsibilities. Assignment-aware teacher authorization, automated restore, and a published vulnerability contact are not implemented. There is no organization-admin self-service UI to toggle `security.enforce_two_factor` yet (nor for the equivalent `staff.enforce_teaching_assignments`) — it's set via the existing platform-wide `PUT /organizations/{organization}/settings` endpoint.

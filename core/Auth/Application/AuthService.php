@@ -39,6 +39,18 @@ final class AuthService
     {
         $user = $this->authenticate($email, $password, $ipAddress);
 
+        return $this->issueToken($user, $deviceName);
+    }
+
+    /**
+     * Issues a Sanctum token for a user already known to be authenticated
+     * — split out from login() so callers that must gate on two-factor
+     * status (Core\Auth\Http\Controllers\Api\V1\LoginController) can call
+     * authenticate() and this separately, only reaching this once any
+     * required second factor has been verified.
+     */
+    public function issueToken(User $user, string $deviceName = 'api'): LoginResult
+    {
         $expiresAt = config('sanctum.expiration')
             ? now()->addMinutes((int) config('sanctum.expiration'))
             : null;
