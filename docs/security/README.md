@@ -1,5 +1,7 @@
 # Security
 
+For the current platform-hardening workstream, see [Platform hardening stages 1–4](platform-hardening-stages-1-4.md). This document distinguishes verified controls from planned controls; historical status logs are not release evidence.
+
 Security is a Core concern present from day one, not retrofitted. This folder documents the platform's security model.
 
 - [`rbac.md`](rbac.md) — roles, permissions, how modules register their own permissions

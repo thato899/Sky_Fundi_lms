@@ -45,8 +45,14 @@ fi
 gzip -dc "$backup" | "${compose[@]}" exec -T mysql sh -eu -c \
     'MYSQL_PWD="$(cat /run/secrets/mysql_root_password)" mysql -uroot '"$validation_database"
 
-"${compose[@]}" exec -T mysql sh -eu -c \
-    'MYSQL_PWD="$(cat /run/secrets/mysql_root_password)" mysql -uroot -Nse "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '"'"''"$validation_database"''"'"'"'
+table_count="$("${compose[@]}" exec -T mysql sh -eu -c \
+    'MYSQL_PWD="$(cat /run/secrets/mysql_root_password)" mysql -uroot -Nse "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '"'"''"$validation_database"''"'"'"')"
+
+if [[ ! "$table_count" =~ ^[1-9][0-9]*$ ]]; then
+    echo "Restore validation produced no tables in $validation_database." >&2
+    exit 1
+fi
 
 echo "Restore validation completed in non-production database: $validation_database"
+echo "Validated table count: $table_count"
 echo "Drop it only after review; this script never deletes databases or volumes."

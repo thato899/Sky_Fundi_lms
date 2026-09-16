@@ -26,6 +26,7 @@ final class LoginController extends Controller
             password: $request->string('password')->value(),
             ipAddress: $request->ip() ?? '0.0.0.0',
             deviceName: $request->string('device_name', 'api')->value(),
+            twoFactorCode: $request->string('two_factor_code')->value() ?: null,
         );
 
         return $this->ok([
