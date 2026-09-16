@@ -40,7 +40,12 @@
             "Modules\\Organizations\\Database\\Seeders\\": "modules/Organizations/database/seeders/",
             "Modules\\Reports\\Database\\Seeders\\": "modules/Reports/database/seeders/",
             "Modules\\Staff\\Database\\Seeders\\": "modules/Staff/database/seeders/"
-        }
+        },
+        "exclude-from-classmap": [
+            "/modules/*/Database/seeders/",
+            "/modules/*/database/seeders/",
+            "/modules/*/tests/"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
