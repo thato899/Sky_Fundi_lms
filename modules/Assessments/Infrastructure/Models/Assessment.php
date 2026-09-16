@@ -31,10 +31,11 @@ use Modules\Staff\Infrastructure\Models\StaffProfile;
  * @property string|null $weighting
  * @property AssessmentStatus $status
  * @property ResultReleaseStatus $result_release_status
- * @property mixed $finalized_at
- * @property mixed $released_at
  * @property mixed $opens_at
  * @property mixed $closes_at
+ * @property int|null $time_limit_minutes
+ * @property mixed $finalized_at
+ * @property mixed $released_at
  * @property int $attempt_limit
  * @property string $created_by
  * @property string $subject_id

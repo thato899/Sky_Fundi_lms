@@ -17,6 +17,7 @@ use Modules\Learners\Infrastructure\Models\LearnerProfile;
  * @property string $organization_id
  * @property string $learner_profile_id
  * @property string $status
+ * @property mixed $started_at
  * @property string|null $reviewed_by
  * @property string|null $released_by
  * @property string|null $final_score
