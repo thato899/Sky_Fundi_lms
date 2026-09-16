@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property array<string, mixed>|null $ai_feedback
  * @property string|null $teacher_feedback
  * @property mixed $updated_at
+ * @property AssessmentQuestionOption|null $selectedOption
  * @property QuizAttempt $attempt
  * @property AssessmentQuestion $question
  */

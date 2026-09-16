@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Assessments\Application;
 
+use Carbon\CarbonImmutable;
 use Core\AIGateway\Application\AIManager;
 use Core\AIGateway\Application\DTOs\AIRequest;
 use Core\AuditLogs\Application\AuditLogService;
@@ -121,6 +122,84 @@ final class QuizService
         });
     }
 
+    public function deadlineAt(QuizAttempt $attempt): ?CarbonImmutable
+    {
+        $attempt->loadMissing('assessment');
+
+        $deadline = null;
+        if ($attempt->assessment->time_limit_minutes !== null) {
+            $deadline = CarbonImmutable::instance($attempt->started_at)
+                ->addMinutes((int) $attempt->assessment->time_limit_minutes);
+        }
+
+        if ($attempt->assessment->closes_at !== null) {
+            $closing = CarbonImmutable::instance($attempt->assessment->closes_at);
+            $deadline = $deadline === null || $closing->lessThan($deadline) ? $closing : $deadline;
+        }
+
+        return $deadline;
+    }
+
+    public function hasExpired(QuizAttempt $attempt): bool
+    {
+        $deadline = $this->deadlineAt($attempt);
+
+        return $deadline !== null && now()->greaterThanOrEqualTo($deadline);
+    }
+
+    public function saveAnswer(QuizAttempt $attempt, QuizAnswer $answer, LearnerProfile $learner, array $data): QuizAnswer
+    {
+        if ($attempt->learner_profile_id !== $learner->getKey()
+            || $attempt->status !== 'in_progress'
+            || $answer->quiz_attempt_id !== $attempt->getKey()) {
+            throw new DomainException('This answer cannot be saved.');
+        }
+
+        return DB::transaction(function () use ($attempt, $answer, $data): QuizAnswer {
+            /** @var QuizAttempt $lockedAttempt */
+            $lockedAttempt = QuizAttempt::query()->whereKey($attempt->getKey())->lockForUpdate()->firstOrFail();
+            if ($lockedAttempt->status !== 'in_progress') {
+                throw new DomainException('This attempt has already been submitted.');
+            }
+            if ($this->hasExpired($lockedAttempt)) {
+                throw new DomainException('The quiz time has expired and the attempt must be submitted.');
+            }
+
+            /** @var QuizAnswer $lockedAnswer */
+            $lockedAnswer = QuizAnswer::query()
+                ->whereKey($answer->getKey())
+                ->where('quiz_attempt_id', $lockedAttempt->getKey())
+                ->with('question.options')
+                ->lockForUpdate()
+                ->firstOrFail();
+            $question = $lockedAnswer->question;
+
+            if ($question->type->isObjective()) {
+                $optionUuid = $data['selected_option_uuid'] ?? null;
+                $option = $optionUuid ? $question->options->firstWhere('uuid', $optionUuid) : null;
+                if ($optionUuid && $option === null) {
+                    throw new DomainException('The selected option does not belong to this question.');
+                }
+                $lockedAnswer->update([
+                    'selected_option_id' => $option?->getKey(),
+                    'marks_awarded' => null,
+                    'marking_method' => null,
+                    'marked_at' => null,
+                ]);
+            } else {
+                $lockedAnswer->update([
+                    'selected_option_id' => null,
+                    'answer_text' => trim((string) ($data['answer_text'] ?? '')),
+                    'marks_awarded' => null,
+                    'marking_method' => null,
+                    'marked_at' => null,
+                ]);
+            }
+
+            return $lockedAnswer->refresh();
+        }, 3);
+    }
+
     public function submit(QuizAttempt $attempt, LearnerProfile $learner, array $answers): QuizAttempt
     {
         if ($attempt->learner_profile_id !== $learner->getKey() || $attempt->status !== 'in_progress') {
@@ -133,12 +212,21 @@ final class QuizService
             if ($locked->status !== 'in_progress') {
                 throw new DomainException('This attempt has already been submitted.');
             }
-            $stored = $locked->answers()->with('question.options')->lockForUpdate()->get();
+            $timedOut = $this->hasExpired($locked);
+            $stored = $locked->answers()->with(['question.options', 'selectedOption'])->lockForUpdate()->get();
             foreach ($stored as $answer) {
                 /** @var QuizAnswer $answer */
-                $input = $answers[$answer->question->uuid] ?? [];
+                $input = is_array($answers[$answer->question->uuid] ?? null)
+                    ? $answers[$answer->question->uuid]
+                    : [];
                 if ($answer->question->type->isObjective()) {
-                    $option = $answer->question->options->firstWhere('uuid', $input['selected_option_uuid'] ?? null);
+                    $selectedOptionUuid = array_key_exists('selected_option_uuid', $input)
+                        ? $input['selected_option_uuid']
+                        : $answer->selectedOption?->uuid;
+                    $option = $answer->question->options->firstWhere('uuid', $selectedOptionUuid);
+                    if ($selectedOptionUuid && $option === null) {
+                        throw new DomainException('The selected option does not belong to this question.');
+                    }
                     $answer->update([
                         'selected_option_id' => $option?->getKey(),
                         'marks_awarded' => $option?->is_correct ? $answer->marks_available : 0,
@@ -146,11 +234,16 @@ final class QuizService
                         'marked_at' => now(),
                     ]);
                 } else {
-                    $answer->update(['answer_text' => trim((string) ($input['answer_text'] ?? '')), 'marking_method' => null]);
+                    $answer->update([
+                        'answer_text' => array_key_exists('answer_text', $input)
+                            ? trim((string) $input['answer_text'])
+                            : $answer->answer_text,
+                        'marking_method' => null,
+                    ]);
                 }
             }
             $locked->update(['status' => 'submitted', 'submitted_at' => now()]);
-            $this->audit->record('quiz_attempts.submitted', $locked, after: ['organization_id' => $locked->organization_id]);
+            $this->audit->record('quiz_attempts.submitted', $locked, after: ['organization_id' => $locked->organization_id, 'timed_out' => $timedOut]);
 
             return $locked->refresh()->load('answers.question.options', 'assessment.subject', 'learner');
         }, 3);

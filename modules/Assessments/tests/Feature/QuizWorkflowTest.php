@@ -54,6 +54,101 @@ final class QuizWorkflowTest extends TestCase
         $service->submit($submitted, $context['learner'], []);
     }
 
+    public function test_answers_autosave_and_expired_attempt_is_submitted_with_saved_values(): void
+    {
+        $context = $this->context('autosave');
+        $quiz = $this->quiz($context);
+        $quiz->update(['time_limit_minutes' => 1]);
+        $service = app(QuizService::class);
+        $objective = $service->addQuestion($quiz, $context['teacher'], [
+            'type' => 'multiple_choice',
+            'prompt' => '2 + 2?',
+            'marks_available' => 2,
+            'options' => [['label' => '3', 'is_correct' => false], ['label' => '4', 'is_correct' => true]],
+        ]);
+        $written = $service->addQuestion($quiz->refresh(), $context['teacher'], [
+            'type' => 'short_response',
+            'prompt' => 'Explain equality.',
+            'marks_available' => 3,
+        ]);
+        $service->publish($quiz->refresh(), $context['teacher']);
+        $attempt = $service->start($quiz->refresh(), $context['learner']);
+        $objectiveAnswer = $attempt->answers->firstWhere('assessment_question_id', $objective->getKey());
+        $writtenAnswer = $attempt->answers->firstWhere('assessment_question_id', $written->getKey());
+
+        $service->saveAnswer($attempt, $objectiveAnswer, $context['learner'], [
+            'selected_option_uuid' => $objective->options->firstWhere('is_correct', true)->uuid,
+        ]);
+        $service->saveAnswer($attempt, $writtenAnswer, $context['learner'], [
+            'answer_text' => 'Both sides must remain balanced.',
+        ]);
+
+        $this->assertSame('Both sides must remain balanced.', $writtenAnswer->refresh()->answer_text);
+        $this->assertSame($objective->options->firstWhere('is_correct', true)->id, $objectiveAnswer->refresh()->selected_option_id);
+
+        $attempt->update(['started_at' => now()->subMinutes(2)]);
+        $this->assertTrue($service->hasExpired($attempt->refresh()->load('assessment')));
+
+        $submitted = $service->submit($attempt->refresh(), $context['learner'], []);
+
+        $this->assertSame('submitted', $submitted->status);
+        $this->assertSame('2.00', $submitted->answers->firstWhere('assessment_question_id', $objective->getKey())->marks_awarded);
+        $this->assertSame('Both sides must remain balanced.', $submitted->answers->firstWhere('assessment_question_id', $written->getKey())->answer_text);
+    }
+
+    public function test_expired_attempt_rejects_further_answer_autosaves(): void
+    {
+        $context = $this->context('autosave-expired');
+        $quiz = $this->quiz($context);
+        $quiz->update(['time_limit_minutes' => 1]);
+        $question = app(QuizService::class)->addQuestion($quiz, $context['teacher'], [
+            'type' => 'short_response',
+            'prompt' => 'Explain equality.',
+            'marks_available' => 2,
+        ]);
+        app(QuizService::class)->publish($quiz->refresh(), $context['teacher']);
+        $attempt = app(QuizService::class)->start($quiz->refresh(), $context['learner']);
+        $attempt->update(['started_at' => now()->subMinutes(2)]);
+
+        $this->expectException(DomainException::class);
+        app(QuizService::class)->saveAnswer($attempt->refresh(), $attempt->answers->first(), $context['learner'], [
+            'answer_text' => 'Late answer.',
+        ]);
+    }
+
+    public function test_learner_can_autosave_an_answer_through_the_web_endpoint(): void
+    {
+        $context = $this->context('autosave-http');
+        $learnerUser = User::factory()->create();
+        $learnerRole = Role::query()->where('name', 'Learner')->firstOrFail();
+        Membership::query()->create([
+            'organization_id' => $context['organization']->id,
+            'user_id' => $learnerUser->id,
+            'role_id' => $learnerRole->id,
+            'status' => 'active',
+            'is_default' => true,
+        ]);
+        $context['learner']->update(['user_id' => $learnerUser->id]);
+        $quiz = $this->quiz($context);
+        $question = app(QuizService::class)->addQuestion($quiz, $context['teacher'], [
+            'type' => 'short_response',
+            'prompt' => 'Explain equality.',
+            'marks_available' => 2,
+        ]);
+        app(QuizService::class)->publish($quiz->refresh(), $context['teacher']);
+        $attempt = app(QuizService::class)->start($quiz->refresh(), $context['learner']);
+        $answer = $attempt->answers->first();
+
+        $this->actingAs($learnerUser)
+            ->withSession(['organization_id' => $context['organization']->id])
+            ->postJson(route('quizzes.answers.save', [$attempt->uuid, $answer->uuid]), ['answer_text' => 'Both sides stay balanced.'])
+            ->assertOk()
+            ->assertJsonStructure(['saved_at']);
+
+        $this->assertSame('Both sides stay balanced.', $answer->refresh()->answer_text);
+        $this->assertSame($question->id, $answer->assessment_question_id);
+    }
+
     public function test_unassigned_and_foreign_learner_cannot_start_quiz(): void
     {
         $context = $this->context('denied');

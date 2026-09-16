@@ -56,4 +56,4 @@ Configure OpenAI per [AI marking](ai-marking.md). If unavailable, objective mark
 - Teaching-assignment administration has no web/API surface yet (assignments come from services and seeders).
 - Learner accounts must already link to learner profiles.
 - Study plans use a reliable bounded performance-based generator.
-- No question bank, autosave, file responses, proctoring, bulk assignment, moderation or mobile/offline client.
+- No question bank, file responses, proctoring, bulk assignment, moderation or mobile/offline client.

@@ -163,6 +163,15 @@ final class AssessmentService
         if (($data['assessment_date'] ?? null) && ($data['due_date'] ?? null) && $data['due_date'] < $data['assessment_date']) {
             throw new DomainException('The due date must be on or after the assessment date.');
         }
+        if (($data['opens_at'] ?? null) && ($data['closes_at'] ?? null) && $data['closes_at'] <= $data['opens_at']) {
+            throw new DomainException('The closing time must be after the opening time.');
+        }
+        if (($data['time_limit_minutes'] ?? null) !== null && ((int) $data['time_limit_minutes'] < 1 || (int) $data['time_limit_minutes'] > 600)) {
+            throw new DomainException('The time limit must be between one and 600 minutes.');
+        }
+        if (($data['attempt_limit'] ?? null) !== null && ((int) $data['attempt_limit'] < 1 || (int) $data['attempt_limit'] > 10)) {
+            throw new DomainException('The attempt limit must be between one and 10.');
+        }
     }
 
     private function owned(string $model, mixed $id, string $organizationId, string $label): Model

@@ -39,6 +39,7 @@ Route::middleware(['auth', 'account.not-locked', 'organization.context'])->group
         Route::post('/{assessment}/start', [QuizWebController::class, 'start'])->middleware('assessment.context')->name('start');
         Route::get('/attempts/{attempt}', [QuizWebController::class, 'attempt'])->name('attempt');
         Route::post('/attempts/{attempt}/submit', [QuizWebController::class, 'submit'])->name('submit');
+        Route::post('/attempts/{attempt}/answers/{answer}/save', [QuizWebController::class, 'saveAnswer'])->name('answers.save');
         Route::get('/attempts/{attempt}/review', [QuizWebController::class, 'review'])->name('review');
         Route::post('/attempts/{attempt}/review', [QuizWebController::class, 'saveReview'])->name('review.save');
         Route::post('/attempts/{attempt}/answers/{answer}/suggest', [QuizWebController::class, 'suggest'])->name('answers.suggest');

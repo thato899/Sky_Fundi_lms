@@ -9,6 +9,7 @@ use Core\Identity\Infrastructure\Models\Membership;
 use Core\Support\Exceptions\DomainException;
 use Core\Users\Infrastructure\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -134,7 +135,40 @@ final class QuizWebController
             return view('quizzes.result', $this->shared($organization, $membership) + compact('learner', 'quizAttempt'));
         }
 
-        return view('quizzes.attempt', $this->shared($organization, $membership) + compact('learner', 'quizAttempt'));
+        $deadlineAt = $this->quizzes->deadlineAt($quizAttempt);
+
+        return view('quizzes.attempt', $this->shared($organization, $membership) + compact('learner', 'quizAttempt', 'deadlineAt'));
+    }
+
+    public function saveAnswer(Request $request, string $attempt, string $answer): JsonResponse
+    {
+        [$organization, $membership] = $this->context($request);
+        abort_unless($this->permissions->allows($membership, 'quiz_attempts.submit'), 403);
+        $learner = $this->learner($request, $organization);
+        $quizAttempt = QuizAttempt::query()
+            ->where('organization_id', $organization->getKey())
+            ->where('learner_profile_id', $learner->getKey())
+            ->where('uuid', $attempt)
+            ->firstOrFail();
+        $quizAnswer = QuizAnswer::query()
+            ->where('quiz_attempt_id', $quizAttempt->getKey())
+            ->where('uuid', $answer)
+            ->firstOrFail();
+        $data = $request->validate([
+            'selected_option_uuid' => ['nullable', 'uuid'],
+            'answer_text' => ['nullable', 'string', 'max:20000'],
+        ]);
+
+        try {
+            $saved = $this->quizzes->saveAnswer($quizAttempt, $quizAnswer, $learner, $data);
+        } catch (DomainException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+                'expired' => $this->quizzes->hasExpired($quizAttempt),
+            ], 409);
+        }
+
+        return response()->json(['saved_at' => $saved->updated_at?->toIso8601String()]);
     }
 
     public function submit(Request $request, string $attempt): RedirectResponse
@@ -143,14 +177,17 @@ final class QuizWebController
         abort_unless($this->permissions->allows($membership, 'quiz_attempts.submit'), 403);
         $learner = $this->learner($request, $organization);
         $quizAttempt = QuizAttempt::query()->where('organization_id', $organization->getKey())->where('learner_profile_id', $learner->getKey())->where('uuid', $attempt)->firstOrFail();
-        $data = $request->validate(['answers' => ['required', 'array'], 'answers.*.selected_option_uuid' => ['nullable', 'uuid'], 'answers.*.answer_text' => ['nullable', 'string', 'max:20000']]);
+        $data = $request->validate(['answers' => ['nullable', 'array'], 'answers.*.selected_option_uuid' => ['nullable', 'uuid'], 'answers.*.answer_text' => ['nullable', 'string', 'max:20000']]);
+        $timedOut = $this->quizzes->hasExpired($quizAttempt);
         try {
-            $this->quizzes->submit($quizAttempt, $learner, $data['answers']);
+            $this->quizzes->submit($quizAttempt, $learner, $data['answers'] ?? []);
         } catch (DomainException $exception) {
             return back()->withInput()->withErrors(['submit' => $exception->getMessage()]);
         }
 
-        return redirect()->route('quizzes.assigned')->with('status', 'Quiz submitted. Written answers are awaiting teacher review.');
+        return redirect()->route('quizzes.assigned')->with('status', $timedOut
+            ? 'Time expired. Your quiz was submitted automatically.'
+            : 'Quiz submitted. Written answers are awaiting teacher review.');
     }
 
     public function review(Request $request, string $attempt): View
