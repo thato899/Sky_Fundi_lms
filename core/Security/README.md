@@ -17,4 +17,4 @@
 
 **Routes**: `GET/POST/DELETE /api/v1/security/trusted-devices[/...]` (self-service), `GET/DELETE /api/v1/security/sessions[/...]` (self-service), `GET/POST/DELETE /api/v1/security/ip-restrictions[/...]` (permission `core.security.manage`).
 
-**Future MFA**: `SecurityAlertRaised` is the natural hook a TOTP challenge-on-new-device flow would subscribe to — not implemented here, consistent with `Core\Auth`'s "2FA-ready" note.
+**MFA status**: TOTP enrollment and challenge enforcement are not yet implemented. `SecurityAlertRaised` remains a useful audit/notification hook, but trusted-device status must not be treated as an MFA factor.

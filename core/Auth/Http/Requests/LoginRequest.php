@@ -20,6 +20,7 @@ final class LoginRequest extends FormRequest
             'password' => ['required', 'string'],
             'device_name' => ['sometimes', 'string', 'max:255'],
             'remember' => ['sometimes', 'boolean'],
+            'two_factor_code' => ['sometimes', 'string', 'max:32'],
         ];
     }
 }

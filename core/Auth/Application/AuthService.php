@@ -10,6 +10,7 @@ use Core\Auth\Events\LoginFailed;
 use Core\Auth\Events\UserLoggedIn;
 use Core\Auth\Events\UserLoggedOut;
 use Core\Auth\Exceptions\AccountNotActiveException;
+use Core\Security\Application\TwoFactorAuthenticationService;
 use Core\Users\Application\UserService;
 use Core\Users\Domain\Enums\UserStatus;
 use Core\Users\Infrastructure\Models\User;
@@ -29,15 +30,27 @@ final class AuthService
     public function __construct(
         private readonly UserService $users,
         private readonly AuditLogService $auditLog,
+        private readonly TwoFactorAuthenticationService $twoFactor,
     ) {}
 
     /**
      * @throws ValidationException invalid credentials
      * @throws AccountNotActiveException valid credentials, inactive account
      */
-    public function login(string $email, string $password, string $ipAddress, string $deviceName = 'api'): LoginResult
-    {
+    public function login(
+        string $email,
+        string $password,
+        string $ipAddress,
+        string $deviceName = 'api',
+        ?string $twoFactorCode = null,
+    ): LoginResult {
         $user = $this->authenticate($email, $password, $ipAddress);
+
+        if ($this->twoFactor->enabled($user) && ($twoFactorCode === null || ! $this->twoFactor->verify($user, $twoFactorCode))) {
+            throw ValidationException::withMessages([
+                'two_factor_code' => ['A valid two-factor authentication code is required.'],
+            ]);
+        }
 
         $expiresAt = config('sanctum.expiration')
             ? now()->addMinutes((int) config('sanctum.expiration'))
